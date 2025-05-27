@@ -1,0 +1,49 @@
+diff --git a/src/database/connection.py b/src/database/connection.py
+index 2345678..bcdefgh 100644
+--- a/src/database/connection.py
++++ b/src/database/connection.py
+@@ -5,25 +5,30 @@ class DatabaseConnection:
+     def __init__(self, host, port, username, password):
+         self.host = host
+         self.port = port
+-        self.username = username
+-        self.password = password
++        self.credentials = {'user': username, 'pass': password}
+         self.connection = None
++        self.retry_count = 3
+     
+     def connect(self):
+-        try:
+-            self.connection = psycopg2.connect(
+-                host=self.host,
+-                port=self.port,
+-                user=self.username,
+-                password=self.password
+-            )
+-        except Exception as e:
+-            print(f"Connection failed: {e}")
++        for attempt in range(self.retry_count):
++            try:
++                self.connection = psycopg2.connect(
++                    host=self.host,
++                    port=self.port,
++                    user=self.credentials['user'],
++                    password=self.credentials['pass']
++                )
++                return True
++            except Exception as e:
++                print(f"Connection attempt {attempt + 1} failed: {e}")
++                if attempt < self.retry_count - 1:
++                    time.sleep(2 ** attempt)  # Exponential backoff
++        return False
+     
+     def execute_query(self, query):
+         cursor = self.connection.cursor()
+         cursor.execute(query)
+-        return cursor.fetchall()
++        results = cursor.fetchall()
++        cursor.close()
++        return results
+     
+     def close(self):
+         if self.connection:

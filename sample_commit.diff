@@ -1,0 +1,100 @@
+diff --git a/docs/swagger/ticket.yml b/docs/swagger/ticket.yml
+index 9c149193..3a8fd9af 100644
+--- a/docs/swagger/ticket.yml
++++ b/docs/swagger/ticket.yml
+@@ -62,6 +62,62 @@ paths:
+           application/json:
+             schema:
+               $ref: '#/components/responses/InternalServerError'
++  /ticket/{id}/files:
++    put:
++      summary: Upload files to a ticket
++      tags:
++        - Ticket
++      parameters:
++        - name: id
++          in: path
++          required: true
++          description: Ticket ID
++          schema:
++            type: number
++      requestBody:
++        required: true
++        content:
++          multipart/form-data:
++            schema:
++              type: object
++              properties:
++                files:
++                  type: array
++                  items:
++                    type: string
++                    format: binary
++                files_to_delete:
++                  type: array
++                  items:
++                    type: number
++                  example: 1745370338072
++                movement:
++                  type: string
++                  example: 'Pago Indemnización Realizado'
++                  enum:
++                    - Pago Indemnización Realizado
++                    - Correo / Carta Resolutiva
++                    - Registro Documentación Indemnización
++                  description: Movement type, required when incident is different to 'Envío dañado' or 'Sustracción'
++      responses:
++        '200':
++          description: Files uploaded successfully
++          content:
++            application/json:
++              schema:
++                $ref: '#/components/responses/Ticket'
++        '400':
++          description: Wrong Data
++          content:
++            application/json:
++              schema:
++                $ref: '#/components/responses/WrongData'
++        '500':
++          description: Internal server error
++          content:
++            application/json:
++              schema:
++                $ref: '#/components/responses/InternalServerError'
+   /tickets:
+     get:
+       summary: Get all tickets
+diff --git a/src/api/controllers/ticket.ts b/src/api/controllers/ticket.ts
+index aca8bef9..5182a6df 100644
+--- a/src/api/controllers/ticket.ts
++++ b/src/api/controllers/ticket.ts
+@@ -41,10 +41,27 @@ export const getTickets: RequestHandler = async (req, res, next) => {
+ };
+ 
+ export const updateTicket: RequestHandler = async (req, res, next) => {
++  const { ticket, ...rest } = req.body;
+   try {
+-    const result = await ticketService.updateTicket(req.ctx, req.endUser, req.body.ticket, req.body, req.files);
++    const result = await ticketService.updateTicket(req.ctx, req.endUser, ticket, rest);
+     res.status(200).send(result);
+   } catch (err) {
+     next(err);
+   }
+ }
++
++export const updateTicketFiles: RequestHandler = async (req, res, next) => {
++  try {
++    const files = req.files?.files 
++      ? Array.isArray(req.files!.files) 
++        ? req.files!.files 
++        : [req.files!.files]
++      : [];
++    
++    const { toDelete, ticket } = req.body;
++    const result = await ticketService.updateFiles(req.ctx, req.endUser!, ticket, files, toDelete);
++    return res.send(result);
++  } catch (err) {
++    next(err);
++  }
++}
