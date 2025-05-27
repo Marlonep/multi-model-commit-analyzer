@@ -55,6 +55,8 @@ def test_with_diff_file():
     avg_dev_level = sum(score.dev_level for score in model_scores) / len(model_scores)
     avg_complexity = sum(score.complexity for score in model_scores) / len(model_scores)
     avg_hours = sum(score.estimated_hours for score in model_scores) / len(model_scores)
+    avg_ai_percentage = sum(score.ai_percentage for score in model_scores) / len(model_scores)
+    avg_hours_with_ai = sum(score.estimated_hours_with_ai for score in model_scores) / len(model_scores)
     
     # Create analysis record
     analysis = CommitAnalysis(
@@ -70,7 +72,9 @@ def test_with_diff_file():
         average_code_quality=avg_quality,
         average_dev_level=avg_dev_level,
         average_complexity=avg_complexity,
-        average_estimated_hours=avg_hours
+        average_estimated_hours=avg_hours,
+        average_ai_percentage=avg_ai_percentage,
+        average_estimated_hours_with_ai=avg_hours_with_ai
     )
     
     # Print results
@@ -81,6 +85,9 @@ def test_with_diff_file():
     print(f"Developer Level: {avg_dev_level:.1f}/3 ({'Junior' if avg_dev_level <= 1.5 else 'Mid' if avg_dev_level <= 2.5 else 'Senior'})")
     print(f"Complexity: {avg_complexity:.1f}/5")
     print(f"Estimated Hours: {avg_hours:.1f}")
+    print(f"AI Code Percentage: {avg_ai_percentage:.1f}%")
+    print(f"Estimated Hours with AI: {avg_hours_with_ai:.1f}")
+    print(f"Time Savings with AI: {avg_hours - avg_hours_with_ai:.1f} hours ({((avg_hours - avg_hours_with_ai) / avg_hours * 100):.0f}% reduction)")
     
     # Save to database and show history
     db = CommitDatabase()
