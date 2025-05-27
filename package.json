@@ -1,0 +1,32 @@
+{
+  "name": "multi-model-commit-analyzer",
+  "version": "1.0.0",
+  "description": "AI-powered git commit analyzer using multiple language models",
+  "main": "analyzeCommit.js",
+  "type": "module",
+  "scripts": {
+    "analyze": "node analyzeCommit.js",
+    "test": "node testAnalyzer.js"
+  },
+  "keywords": [
+    "git",
+    "commit",
+    "analysis",
+    "ai",
+    "gpt",
+    "claude",
+    "gemini",
+    "grok"
+  ],
+  "author": "Marlone Espinosa",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.1",
+    "@google/generative-ai": "^0.11.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.47.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

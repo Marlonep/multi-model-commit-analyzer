@@ -1,6 +1,12 @@
 .env
+node_modules/
+npm-debug.log*
+.DS_Store
+*.log
+commit_analysis_history.json
+
+# Python (kept for reference)
 __pycache__/
 *.pyc
 venv/
 .venv/
-uploads/

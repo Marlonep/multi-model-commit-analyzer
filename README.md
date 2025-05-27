@@ -7,11 +7,15 @@ AI-powered git commit analyzer that uses multiple language models (GPT-3.5, Clau
 - Analyzes git commits using 4 different AI models concurrently
 - Provides decimal precision scoring for nuanced evaluation
 - Tracks commit analysis history in JSON format
+- Estimates AI-generated code percentage
+- Calculates time savings when using AI tools
 - Evaluates:
   - Code Quality (1.0-5.0 scale)
   - Developer Level (1.0-3.0: Junior/Mid/Senior)
   - Code Complexity (1.0-5.0 scale)
   - Estimated Development Hours
+  - AI Code Percentage (0-100%)
+  - Estimated Hours with AI assistance
 
 ## Setup
 
@@ -23,7 +27,7 @@ cd multi-model-commit-analyzer
 
 2. Install dependencies:
 ```bash
-pip install -r requirements.txt
+npm install
 ```
 
 3. Create a `.env` file with your API keys:
@@ -38,17 +42,19 @@ GROK_API_KEY=your_grok_key
 
 ### Analyze a Git Commit
 ```bash
-python analyze_commit_multimodel.py [commit_hash] [user] [project]
+node analyzeCommit.js [commit_hash] [user] [project]
 ```
 
 Example:
 ```bash
-python analyze_commit_multimodel.py HEAD john.doe MyProject
+node analyzeCommit.js HEAD john.doe MyProject
 ```
 
 ### Test with Sample Diff
 ```bash
-python test_multimodel_analyzer.py
+npm test
+# or
+node testAnalyzer.js
 ```
 
 ## Output
@@ -57,6 +63,8 @@ The analyzer provides:
 - Detailed scoring table with all model responses
 - Individual model reasoning explanations
 - Average scores across all models
+- AI code percentage estimation
+- Time savings calculation with AI assistance
 - Commit history tracking
 
 Results are saved to `commit_analysis_history.json` for future reference.
@@ -70,6 +78,19 @@ Results are saved to `commit_analysis_history.json` for future reference.
 
 ## Requirements
 
-- Python 3.7+
+- Node.js 18+ 
 - Git repository (for commit analysis)
 - API keys for each AI service
+
+## Example Output
+
+```
+📊 AVERAGE SCORES:
+Code Quality: 3.8/5
+Developer Level: 2.4/3 (Mid)
+Complexity: 3.0/5
+Estimated Hours: 3.8
+AI Code Percentage: 27.5%
+Estimated Hours with AI: 2.6
+Time Savings with AI: 1.2 hours (31% reduction)
+```
