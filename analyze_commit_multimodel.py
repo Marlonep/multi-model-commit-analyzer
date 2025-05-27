@@ -84,6 +84,16 @@ class AIModels:
                 "client": genai.GenerativeModel('gemini-1.5-flash'),
                 "type": "gemini"
             })
+        
+        # Grok setup
+        grok_key = os.getenv("GROK_API_KEY")
+        if grok_key and grok_key != "your_grok_api_key_here":
+            self.models.append({
+                "name": "Grok 3",
+                "provider": "xAI",
+                "client": OpenAI(api_key=grok_key, base_url="https://api.x.ai/v1"),
+                "type": "grok"
+            })
     
     def analyze_commit(self, diff_content: str, commit_info: Dict) -> List[ModelScore]:
         prompt = f"""Analyze this git commit and provide scores on a scale as specified:
@@ -97,18 +107,20 @@ Lines deleted: {commit_info['lines_deleted']}
 Diff:
 {diff_content[:2000]}  # Truncate for API limits
 
-Please score the following metrics:
-1. Code Quality (1-5): 1=Poor, 2=Below Average, 3=Average, 4=Good, 5=Excellent
-2. Developer Level (1-3): 1=Junior, 2=Mid-level, 3=Senior
-3. Code Complexity (1-5): 1=Very Simple, 2=Simple, 3=Moderate, 4=Complex, 5=Very Complex
-4. Estimated Development Time (in hours): Realistic estimate for implementing these changes
+Please score the following metrics using DECIMAL PRECISION (e.g., 3.7, 2.3, 4.5):
+1. Code Quality (1.0-5.0): Use decimals for nuanced scoring. 1.0=Poor, 2.0=Below Average, 3.0=Average, 4.0=Good, 5.0=Excellent
+2. Developer Level (1.0-3.0): Use decimals. 1.0-1.5=Junior, 1.6-2.5=Mid-level, 2.6-3.0=Senior
+3. Code Complexity (1.0-5.0): Use decimals. 1.0=Very Simple, 2.0=Simple, 3.0=Moderate, 4.0=Complex, 5.0=Very Complex
+4. Estimated Development Time (in hours): Use decimals for precision
+
+IMPORTANT: Provide precise decimal scores, not whole numbers. Each model should have its own unique perspective.
 
 Respond ONLY in this JSON format:
 {{
-  "code_quality": 4.0,
-  "dev_level": 2.0,
-  "complexity": 3.0,
-  "estimated_hours": 2.5,
+  "code_quality": 3.7,
+  "dev_level": 2.3,
+  "complexity": 3.4,
+  "estimated_hours": 2.75,
   "reasoning": "Brief explanation of your scoring"
 }}"""
 
@@ -154,6 +166,15 @@ Respond ONLY in this JSON format:
             elif model_info["type"] == "gemini":
                 response = model_info["client"].generate_content(prompt)
                 result = response.text
+            
+            elif model_info["type"] == "grok":
+                response = model_info["client"].chat.completions.create(
+                    model="grok-3",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.3,
+                    max_tokens=500
+                )
+                result = response.choices[0].message.content
             
             else:
                 return None
