@@ -1,65 +1,75 @@
-# Git Commit Analyzer
+# Multi-Model Commit Analyzer
 
-A Python script that analyzes git commits to determine code complexity, quality level, and estimated development time.
+AI-powered git commit analyzer that uses multiple language models (GPT-3.5, Claude, Gemini, Grok) to provide comprehensive code quality assessments.
 
 ## Features
 
-- **Complexity Analysis**: Categorizes commits as low, medium, or high complexity
-- **Code Quality Assessment**: Identifies code as junior, mid, or senior level
-- **Time Estimation**: Estimates development time in minutes
-- **Detailed Feedback**: Provides strengths and improvement suggestions
+- Analyzes git commits using 4 different AI models concurrently
+- Provides decimal precision scoring for nuanced evaluation
+- Tracks commit analysis history in JSON format
+- Evaluates:
+  - Code Quality (1.0-5.0 scale)
+  - Developer Level (1.0-3.0: Junior/Mid/Senior)
+  - Code Complexity (1.0-5.0 scale)
+  - Estimated Development Hours
+
+## Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Marlonep/multi-model-commit-analyzer.git
+cd multi-model-commit-analyzer
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Create a `.env` file with your API keys:
+```
+OPENAI_API_KEY=your_openai_key
+CLAUDE_API_KEY=your_claude_key
+GEMINI_API_KEY=your_gemini_key
+GROK_API_KEY=your_grok_key
+```
 
 ## Usage
 
+### Analyze a Git Commit
 ```bash
-# Analyze the latest commit
-python analyze_commit.py
-
-# Analyze a specific commit
-python analyze_commit.py <commit-hash>
-
-# Example
-python analyze_commit.py e5247db
+python analyze_commit_multimodel.py [commit_hash] [user] [project]
 ```
 
-## How It Works
-
-The analyzer examines:
-- Number of files changed
-- Lines added/deleted
-- Code patterns (error handling, validation, TypeScript usage)
-- Function definitions
-- Async operations
-- Test coverage indicators
-
-## Metrics
-
-### Complexity Levels
-- **Low**: Simple changes, few files, minimal logic
-- **Medium**: Multiple files, moderate logic changes
-- **High**: Many files, complex logic, significant refactoring
-
-### Quality Levels
-- **Junior**: Basic implementation, minimal error handling
-- **Mid**: Good practices, some validation and error handling
-- **Senior**: Comprehensive error handling, proper typing, modular design
-
-### Time Estimation
-Based on:
-- Base time (30 minutes minimum)
-- Files changed (15 min/file)
-- Functions added (10 min/function)
-- Validation logic (5 min/validation)
-- Complexity multiplier
-
-## Example Output
-
+Example:
+```bash
+python analyze_commit_multimodel.py HEAD john.doe MyProject
 ```
-Analyzing commit: e5247db File upload to ticket and improve validation
 
-1. Code complexity: medium
-2. Quality of code: senior
-3. Estimated time to code: 210 minutes
-4. Feedback: **Strengths:** Good error handling coverage; Comprehensive validation logic; Type safety implementation; Senior-level code patterns and architecture
-**Improvements:** Add unit tests for new functionality
+### Test with Sample Diff
+```bash
+python test_multimodel_analyzer.py
 ```
+
+## Output
+
+The analyzer provides:
+- Detailed scoring table with all model responses
+- Individual model reasoning explanations
+- Average scores across all models
+- Commit history tracking
+
+Results are saved to `commit_analysis_history.json` for future reference.
+
+## Models Used
+
+- **GPT-3.5 Turbo** (OpenAI)
+- **Claude 3 Haiku** (Anthropic)
+- **Gemini 1.5 Flash** (Google)
+- **Grok 3** (xAI)
+
+## Requirements
+
+- Python 3.7+
+- Git repository (for commit analysis)
+- API keys for each AI service

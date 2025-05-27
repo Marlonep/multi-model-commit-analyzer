@@ -54,5 +54,61 @@
     "average_dev_level": 2.375,
     "average_complexity": 2.95,
     "average_estimated_hours": 3.875
+  },
+  {
+    "commit_hash": "abc123def",
+    "commit_message": "Add user authentication feature",
+    "timestamp": "2025-05-27T10:28:41.297685",
+    "user": "john.doe",
+    "project": "TestProject",
+    "file_changes": 1,
+    "lines_added": 25,
+    "lines_deleted": 5,
+    "model_scores": [
+      {
+        "model_name": "GPT-3.5 Turbo",
+        "provider": "OpenAI",
+        "code_quality": 4.2,
+        "dev_level": 2.5,
+        "complexity": 3.2,
+        "estimated_hours": 3.25,
+        "reasoning": "The code quality is high due to the use of SHA256 for password hashing and JWT for token generation. The developer shows a mid-level understanding by implementing user authentication with token generation. The code complexity is moderate as it involves user authentication logic. Estimated development time is relatively short considering the added authentication feature.",
+        "response_time": 3.53472900390625
+      },
+      {
+        "model_name": "Claude 3 Haiku",
+        "provider": "Anthropic",
+        "code_quality": 4.2,
+        "dev_level": 2.8,
+        "complexity": 3.7,
+        "estimated_hours": 4.5,
+        "reasoning": "The code changes demonstrate a good understanding of user authentication and security best practices. The addition of JWT-based token generation and the switch from MD5 to SHA256 hashing show a solid grasp of secure authentication mechanisms. The overall structure and implementation are well-organized, making the code easy to understand and maintain. The developer appears to be at a mid-to-senior level, capable of handling complex authentication requirements. The code complexity is moderate, with the addition of new features and functionality, but the overall design is clean and maintainable. The estimated development time of 4.5 hours seems reasonable for the scope of the changes, including the implementation of the token generation and handling of existing user accounts.",
+        "response_time": 2.4096450805664062
+      },
+      {
+        "model_name": "Gemini 1.5 Flash",
+        "provider": "Google",
+        "code_quality": 3.8,
+        "dev_level": 2.2,
+        "complexity": 2.7,
+        "estimated_hours": 4.5,
+        "reasoning": "The code quality is decent, showing improvement from MD5 to SHA256 for password hashing and introduction of JWT for authentication.  However, the hardcoded secret key is a major security flaw, bringing the score down slightly.  The developer demonstrates a mid-level understanding of authentication concepts but lacks experience in secure key management. The complexity is moderate; the code is relatively straightforward but incorporates several concepts (hashing, JWT, date/time manipulation). The estimated development time includes coding, testing, and addressing the security vulnerability of the hardcoded key.  Adding robust key management would increase development time considerably.",
+        "response_time": 2.3138129711151123
+      },
+      {
+        "model_name": "Grok 3",
+        "provider": "xAI",
+        "code_quality": 2.8,
+        "dev_level": 1.9,
+        "complexity": 2.7,
+        "estimated_hours": 3.25,
+        "reasoning": "Code quality is below average due to the hardcoded secret key, which is a security risk, though the shift from MD5 to SHA256 is a positive change. Developer level suggests mid-level due to basic implementation with some awareness of security practices but lacking advanced techniques. Complexity is moderate as the logic involves JWT and hashing but remains straightforward. Estimated hours reflect a short but focused task with some research on JWT integration.",
+        "response_time": 2.919356107711792
+      }
+    ],
+    "average_code_quality": 3.75,
+    "average_dev_level": 2.35,
+    "average_complexity": 3.075,
+    "average_estimated_hours": 3.875
   }
 ]
