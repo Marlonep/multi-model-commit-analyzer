@@ -27,7 +27,7 @@ async function loadCommitDetails() {
 // Display all commit details
 function displayCommitDetails(commit) {
     // Commit info
-    document.getElementById('commitHash').textContent = commit.commitHash;
+    document.getElementById('commitHash').textContent = commit.commitHash.substring(0, 8);
     document.getElementById('commitMessage').textContent = commit.commitMessage;
     document.getElementById('commitUser').textContent = commit.user;
     document.getElementById('commitProject').textContent = commit.project;
@@ -38,7 +38,7 @@ function displayCommitDetails(commit) {
     // Average scores
     document.getElementById('avgQuality').textContent = commit.averageCodeQuality.toFixed(1);
     document.getElementById('avgDevLevel').textContent = 
-        `${commit.averageDevLevel.toFixed(1)} (${getDevLevel(commit.averageDevLevel)})`;
+        `${commit.averageDevLevel.toFixed(1)}`;
     document.getElementById('avgComplexity').textContent = commit.averageComplexity.toFixed(1);
     document.getElementById('avgHours').textContent = commit.averageEstimatedHours.toFixed(1);
     document.getElementById('avgAiPercent').textContent = 
@@ -46,9 +46,8 @@ function displayCommitDetails(commit) {
     
     // Time savings
     const savings = commit.averageEstimatedHours - (commit.averageEstimatedHoursWithAi || 0);
-    const savingsPercent = ((savings / commit.averageEstimatedHours) * 100).toFixed(0);
     document.getElementById('timeSavings').textContent = 
-        `${savings.toFixed(1)}h (${savingsPercent}%)`;
+        `${savings.toFixed(1)}h`;
     
     // Cost summary
     document.getElementById('totalTokens').textContent = 
@@ -126,9 +125,9 @@ function displayModelCards(modelScores) {
 
 // Helper function
 function getDevLevel(level) {
-    if (level <= 1.5) return 'Junior';
-    if (level <= 2.5) return 'Mid-level';
-    return 'Senior';
+    if (level <= 1.5) return 'Jr';
+    if (level <= 2.5) return 'Mid';
+    return 'Sr';
 }
 
 // Load details when page loads

@@ -7,6 +7,7 @@ async function loadCommitHistory() {
         displayBasicInfo(commits);
         displayScores(commits);
         displayCosts(commits);
+        displayComprehensive(commits);
     } catch (error) {
         console.error('Error loading commits:', error);
     }
@@ -100,6 +101,51 @@ function displayCosts(commits) {
     document.getElementById('totalTokens').textContent = grandTotalTokens.toLocaleString();
     document.getElementById('totalCost').textContent = `$${grandTotalCost.toFixed(4)}`;
     document.getElementById('avgCost').textContent = `$${(grandTotalCost / commits.length).toFixed(4)}`;
+}
+
+// Display comprehensive table with all data
+function displayComprehensive(commits) {
+    const tbody = document.getElementById('comprehensiveBody');
+    tbody.innerHTML = '';
+    
+    commits.forEach((commit, index) => {
+        const row = document.createElement('tr');
+        const date = new Date(commit.timestamp).toLocaleDateString();
+        const devLevel = getDevLevel(commit.averageDevLevel);
+        const savings = commit.averageEstimatedHours - (commit.averageEstimatedHoursWithAi || 0);
+        const savingsPercent = ((savings / commit.averageEstimatedHours) * 100).toFixed(0);
+        const tokens = commit.totalTokens || 0;
+        const cost = commit.totalCost || 0;
+        const avgCost = commit.avgCostPerModel || 0;
+        
+        row.innerHTML = `
+            <td>${date}</td>
+            <td>${commit.commitHash.substring(0, 8)}</td>
+            <td>${commit.user}</td>
+            <td>${commit.project}</td>
+            <td>${commit.fileChanges || 0}</td>
+            <td>+${commit.linesAdded || 0}</td>
+            <td>-${commit.linesDeleted || 0}</td>
+            <td title="${commit.commitMessage}">${truncate(commit.commitMessage, 40)}</td>
+            <td>${commit.averageCodeQuality.toFixed(1)}</td>
+            <td>${commit.averageDevLevel.toFixed(1)} (${devLevel})</td>
+            <td>${commit.averageComplexity.toFixed(1)}</td>
+            <td>${commit.averageEstimatedHours.toFixed(1)}</td>
+            <td>${(commit.averageAiPercentage || 0).toFixed(0)}%</td>
+            <td>${(commit.averageEstimatedHoursWithAi || 0).toFixed(1)}</td>
+            <td>${savings.toFixed(1)}h (${savingsPercent}%)</td>
+            <td>${tokens.toLocaleString()}</td>
+            <td>$${cost.toFixed(4)}</td>
+            <td>$${avgCost.toFixed(4)}</td>
+            <td>
+                <button class="view-details" onclick="viewDetails(${index})">
+                    View Details
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
 }
 
 // Helper functions

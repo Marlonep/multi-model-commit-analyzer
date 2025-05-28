@@ -226,5 +226,82 @@
     "totalTokens": 3730,
     "totalCost": 0.007116025,
     "avgCostPerModel": 0.00177900625
+  },
+  {
+    "commitHash": "e02dd3335e251e4dd28f18fe01045d83e14f46fb",
+    "commitMessage": "Add web interface for commit analysis visualization",
+    "timestamp": "2025-05-28T20:52:16.097Z",
+    "user": "unknown",
+    "project": "unknown",
+    "fileChanges": 11,
+    "linesAdded": 1911,
+    "linesDeleted": 44,
+    "modelScores": [
+      {
+        "modelName": "GPT-3.5 Turbo",
+        "provider": "OpenAI",
+        "codeQuality": 4.2,
+        "devLevel": 2.7,
+        "complexity": 3.8,
+        "estimatedHours": 3.5,
+        "aiPercentage": 30,
+        "estimatedHoursWithAi": 2.5,
+        "reasoning": "The code quality is high due to well-structured classes and functions. The developer shows a mid-level proficiency in handling complex code. The complexity is moderate due to the use of token estimation and pricing calculations. The estimated development time is relatively high due to the number of files changed and lines added. The AI percentage is lower as the code seems to involve more manual logic. With AI assistance, the development time could be significantly reduced.",
+        "responseTime": 4.86,
+        "tokensUsed": 1206,
+        "cost": 0.0007590000000000001
+      },
+      {
+        "modelName": "Claude 3 Haiku",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 2.8,
+        "complexity": 3.9,
+        "estimatedHours": 25.5,
+        "aiPercentage": 35,
+        "estimatedHoursWithAi": 16.7,
+        "reasoning": "The commit adds a significant web interface for visualizing commit analysis, which indicates a well-designed and implemented feature. The developer appears to be an experienced mid-level engineer capable of handling complex tasks. The code complexity is moderately high due to the interactive visualization components, but the overall quality is good. The AI assistance is estimated to reduce the development time by about a third, suggesting a good balance between human and AI contributions.",
+        "responseTime": 2.335,
+        "tokensUsed": 1454,
+        "cost": 0.0005355
+      },
+      {
+        "modelName": "Gemini 1.5 Flash",
+        "provider": "Google",
+        "codeQuality": 4.2,
+        "devLevel": 2.8,
+        "complexity": 3.8,
+        "estimatedHours": 18.5,
+        "aiPercentage": 20,
+        "estimatedHoursWithAi": 14.8,
+        "reasoning": "The code demonstrates a good understanding of asynchronous operations and object-oriented programming.  The addition of cost estimation based on token usage shows forethought and planning. The code is well-structured, but the complexity arises from handling multiple AI models and their varying pricing structures, as well as the integration of a web interface (implied by the commit message, but not fully shown in the provided diff).  The developer shows mid-to-senior level skills in software engineering and cost awareness.  A significant portion of the code (especially the model pricing and token estimation) appears to be manually written, suggesting a lower AI contribution than might be expected given the 1900 lines added.  The estimated hours are based on a detailed task analysis including setting up the web interface, integrating different AI APIs, handling token estimation, pricing calculations, and handling potential errors. Using AI could reduce time by approximately 3.7 hours in the context of this commit, primarily by accelerating the implementation of the cost estimation logic and UI components.",
+        "responseTime": 3.318,
+        "tokensUsed": 1150,
+        "cost": 0.000159825
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4.2,
+        "devLevel": 2.4,
+        "complexity": 3.8,
+        "estimatedHours": 30.5,
+        "aiPercentage": 35.7,
+        "estimatedHoursWithAi": 18.3,
+        "reasoning": "The commit introduces a significant feature with a web interface for commit analysis visualization, adding substantial lines of code (1911 added vs 44 deleted). Code quality is rated high due to structured additions like pricing models and token estimation logic, suggesting attention to detail. Developer level is mid-range, reflecting competence in handling complex integrations. Complexity is moderately high due to the integration of cost and token tracking logic. Estimated hours are based on the volume of changes and feature scope. AI percentage is moderate as some structured data (like MODEL_PRICING) could be AI-generated or templated. AI assistance could reduce development time by automating repetitive tasks.",
+        "responseTime": 3.739,
+        "tokensUsed": 1239,
+        "cost": 0.008175
+      }
+    ],
+    "averageCodeQuality": 4.2,
+    "averageDevLevel": 2.6750000000000003,
+    "averageComplexity": 3.825,
+    "averageEstimatedHours": 19.5,
+    "averageAiPercentage": 30.175,
+    "averageEstimatedHoursWithAi": 13.075,
+    "totalTokens": 5049,
+    "totalCost": 0.009629325,
+    "avgCostPerModel": 0.00240733125
   }
 ]

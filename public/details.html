@@ -8,23 +8,19 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📊 Commit Analysis Details</h1>
-            <a href="/" class="back-link">← Back to History</a>
+        <header class="compact-header inline-header">
+            <h1>Commit Analysis Details</h1>
+            <a href="/" class="back-link">[Back to History]</a>
         </header>
 
         <main>
             <!-- Commit Info -->
-            <section class="commit-info">
-                <h2>Commit Information</h2>
+            <h2 class="section-title">Commit Information</h2>
+            <section class="commit-info compact">
                 <div class="info-grid">
-                    <div class="info-item">
-                        <span class="label">Hash:</span>
-                        <span id="commitHash" class="value"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Message:</span>
-                        <span id="commitMessage" class="value"></span>
+                    <div class="info-item full-width">
+                        <span class="label">Commit:</span>
+                        <span class="value"><span id="commitHash"></span> - <span id="commitMessage"></span></span>
                     </div>
                     <div class="info-item">
                         <span class="label">User:</span>
@@ -46,8 +42,8 @@
             </section>
 
             <!-- Summary Stats -->
-            <section class="summary-stats">
-                <h2>Average Scores</h2>
+            <h2 class="section-title">Average Scores</h2>
+            <section class="summary-stats compact">
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="avgQuality">0.0</div>
@@ -77,8 +73,8 @@
             </section>
 
             <!-- Cost Summary -->
-            <section class="cost-summary">
-                <h2>Cost Analysis</h2>
+            <h2 class="section-title">Cost Analysis</h2>
+            <section class="cost-summary compact">
                 <div class="cost-grid">
                     <div class="cost-item">
                         <span class="label">Total Tokens:</span>
@@ -96,8 +92,8 @@
             </section>
 
             <!-- Model Details -->
+            <h2 class="section-title">Model Analysis Details</h2>
             <section class="model-details">
-                <h2>Model Analysis Details</h2>
                 <div id="modelCards" class="model-cards">
                     <!-- Model cards will be populated here -->
                 </div>
