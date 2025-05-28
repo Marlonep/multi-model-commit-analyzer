@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Details</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Commit Analysis Details</h1>
+            <a href="/" class="back-link">← Back to History</a>
+        </header>
+
+        <main>
+            <!-- Commit Info -->
+            <section class="commit-info">
+                <h2>Commit Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Hash:</span>
+                        <span id="commitHash" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Message:</span>
+                        <span id="commitMessage" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">User:</span>
+                        <span id="commitUser" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Project:</span>
+                        <span id="commitProject" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Timestamp:</span>
+                        <span id="commitTimestamp" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Changes:</span>
+                        <span id="commitChanges" class="value"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary Stats -->
+            <section class="summary-stats">
+                <h2>Average Scores</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgQuality">0.0</div>
+                        <div class="stat-label">Code Quality</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgDevLevel">0.0</div>
+                        <div class="stat-label">Dev Level</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgComplexity">0.0</div>
+                        <div class="stat-label">Complexity</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgHours">0.0</div>
+                        <div class="stat-label">Est. Hours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgAiPercent">0%</div>
+                        <div class="stat-label">AI Code %</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="timeSavings">0h</div>
+                        <div class="stat-label">Time Saved</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cost Summary -->
+            <section class="cost-summary">
+                <h2>Cost Analysis</h2>
+                <div class="cost-grid">
+                    <div class="cost-item">
+                        <span class="label">Total Tokens:</span>
+                        <span id="totalTokens" class="value">0</span>
+                    </div>
+                    <div class="cost-item">
+                        <span class="label">Total Cost:</span>
+                        <span id="totalCost" class="value">$0.0000</span>
+                    </div>
+                    <div class="cost-item">
+                        <span class="label">Avg Cost/Model:</span>
+                        <span id="avgModelCost" class="value">$0.0000</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Model Details -->
+            <section class="model-details">
+                <h2>Model Analysis Details</h2>
+                <div id="modelCards" class="model-cards">
+                    <!-- Model cards will be populated here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="details.js"></script>
+</body>
+</html>

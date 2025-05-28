@@ -12,6 +12,32 @@ config();
 
 const execAsync = promisify(exec);
 
+// Pricing per 1K tokens (as of 2025)
+const MODEL_PRICING = {
+  'gpt-3.5-turbo': {
+    input: 0.0005,  // $0.50 per 1M input tokens
+    output: 0.0015  // $1.50 per 1M output tokens
+  },
+  'claude-3-haiku-20240307': {
+    input: 0.00025, // $0.25 per 1M input tokens
+    output: 0.00125 // $1.25 per 1M output tokens
+  },
+  'gemini-1.5-flash': {
+    input: 0.000075, // $0.075 per 1M input tokens
+    output: 0.00030  // $0.30 per 1M output tokens
+  },
+  'grok-3': {
+    input: 0.005,   // $5 per 1M input tokens (estimated)
+    output: 0.015   // $15 per 1M output tokens (estimated)
+  }
+};
+
+// Simple token estimation (rough approximation)
+function estimateTokens(text) {
+  // Rough estimate: 1 token ≈ 4 characters
+  return Math.ceil(text.length / 4);
+}
+
 class ModelScore {
   constructor(data) {
     this.modelName = data.modelName;
@@ -24,6 +50,8 @@ class ModelScore {
     this.estimatedHoursWithAi = data.estimatedHoursWithAi;
     this.reasoning = data.reasoning;
     this.responseTime = data.responseTime;
+    this.tokensUsed = data.tokensUsed || 0;
+    this.cost = data.cost || 0;
   }
 }
 
@@ -44,6 +72,9 @@ class CommitAnalysis {
     this.averageEstimatedHours = data.averageEstimatedHours;
     this.averageAiPercentage = data.averageAiPercentage;
     this.averageEstimatedHoursWithAi = data.averageEstimatedHoursWithAi;
+    this.totalTokens = data.totalTokens;
+    this.totalCost = data.totalCost;
+    this.avgCostPerModel = data.avgCostPerModel;
   }
 }
 
@@ -150,6 +181,9 @@ Respond ONLY in this JSON format:
     try {
       const startTime = Date.now();
       let result;
+      let inputTokens = 0;
+      let outputTokens = 0;
+      let modelKey = '';
 
       if (modelInfo.type === 'openai') {
         const response = await modelInfo.client.chat.completions.create({
@@ -159,6 +193,9 @@ Respond ONLY in this JSON format:
           max_tokens: 500
         });
         result = response.choices[0].message.content;
+        inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
+        outputTokens = response.usage?.completion_tokens || estimateTokens(result);
+        modelKey = 'gpt-3.5-turbo';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
           model: 'claude-3-haiku-20240307',
@@ -167,10 +204,17 @@ Respond ONLY in this JSON format:
           messages: [{ role: 'user', content: prompt }]
         });
         result = response.content[0].text;
+        inputTokens = response.usage?.input_tokens || estimateTokens(prompt);
+        outputTokens = response.usage?.output_tokens || estimateTokens(result);
+        modelKey = 'claude-3-haiku-20240307';
       } else if (modelInfo.type === 'gemini') {
         const model = modelInfo.client.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const response = await model.generateContent(prompt);
         result = response.response.text();
+        // Gemini doesn't provide token counts, so we estimate
+        inputTokens = estimateTokens(prompt);
+        outputTokens = estimateTokens(result);
+        modelKey = 'gemini-1.5-flash';
       } else if (modelInfo.type === 'grok') {
         const response = await modelInfo.client.chat.completions.create({
           model: 'grok-3',
@@ -179,9 +223,18 @@ Respond ONLY in this JSON format:
           max_tokens: 500
         });
         result = response.choices[0].message.content;
+        inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
+        outputTokens = response.usage?.completion_tokens || estimateTokens(result);
+        modelKey = 'grok-3';
       } else {
         return null;
       }
+
+      // Calculate cost
+      const pricing = MODEL_PRICING[modelKey];
+      const cost = pricing ? 
+        (inputTokens * pricing.input / 1000) + (outputTokens * pricing.output / 1000) : 
+        0;
 
       const elapsedTime = (Date.now() - startTime) / 1000;
 
@@ -208,7 +261,9 @@ Respond ONLY in this JSON format:
           aiPercentage: parseFloat(parsed.ai_percentage || 0.0),
           estimatedHoursWithAi: parseFloat(parsed.estimated_hours_with_ai || 1.0),
           reasoning: parsed.reasoning || 'No reasoning provided',
-          responseTime: elapsedTime
+          responseTime: elapsedTime,
+          tokensUsed: inputTokens + outputTokens,
+          cost: cost
         });
       } catch (e) {
         return new ModelScore({
@@ -221,7 +276,9 @@ Respond ONLY in this JSON format:
           aiPercentage: 0.0,
           estimatedHoursWithAi: 1.0,
           reasoning: `JSON parsing error: ${e.message}`,
-          responseTime: elapsedTime
+          responseTime: elapsedTime,
+          tokensUsed: inputTokens + outputTokens,
+          cost: cost
         });
       }
     } catch (error) {
@@ -235,7 +292,9 @@ Respond ONLY in this JSON format:
         aiPercentage: 0.0,
         estimatedHoursWithAi: 0.0,
         reasoning: `Error: ${error.message}`,
-        responseTime: 0.0
+        responseTime: 0.0,
+        tokensUsed: 0,
+        cost: 0
       });
     }
   }
@@ -324,32 +383,49 @@ async function getCommitInfo(commitHash = 'HEAD') {
 }
 
 function printModelScoresTable(modelScores) {
-  console.log('\n' + '='.repeat(150));
+  console.log('\n' + '='.repeat(170));
   console.log('📊 DETAILED MODEL ANALYSIS');
-  console.log('='.repeat(150));
+  console.log('='.repeat(170));
 
   // Header
   console.log(
     `${'Model'.padEnd(20)} ${'Provider'.padEnd(10)} ${'Quality'.padEnd(8)} ` +
     `${'Dev Lvl'.padEnd(10)} ${'Complex'.padEnd(8)} ${'Hours'.padEnd(7)} ` +
-    `${'AI %'.padEnd(7)} ${'AI Hrs'.padEnd(7)} ${'Time(s)'.padEnd(7)}`
+    `${'AI %'.padEnd(7)} ${'AI Hrs'.padEnd(7)} ${'Tokens'.padEnd(8)} ${'Cost $'.padEnd(8)} ${'Time(s)'.padEnd(7)}`
   );
-  console.log('-'.repeat(150));
+  console.log('-'.repeat(170));
 
   // Data rows
+  let totalCost = 0;
+  let totalTokens = 0;
+  
   for (const score of modelScores) {
     const devLevelStr = `${score.devLevel.toFixed(1)} (${
       score.devLevel <= 1.5 ? 'Jr' : score.devLevel <= 2.5 ? 'Mid' : 'Sr'
     })`;
+    
+    totalCost += score.cost;
+    totalTokens += score.tokensUsed;
     
     console.log(
       `${score.modelName.padEnd(20)} ${score.provider.padEnd(10)} ` +
       `${score.codeQuality.toFixed(1).padEnd(8)} ${devLevelStr.padEnd(10)} ` +
       `${score.complexity.toFixed(1).padEnd(8)} ${score.estimatedHours.toFixed(1).padEnd(7)} ` +
       `${score.aiPercentage.toFixed(1).padEnd(7)} ${score.estimatedHoursWithAi.toFixed(1).padEnd(7)} ` +
+      `${score.tokensUsed.toString().padEnd(8)} $${score.cost.toFixed(4).padEnd(7)} ` +
       `${score.responseTime.toFixed(2).padEnd(7)}`
     );
   }
+  
+  // Total row
+  console.log('-'.repeat(170));
+  console.log(
+    `${'TOTAL'.padEnd(20)} ${' '.padEnd(10)} ${' '.padEnd(8)} ` +
+    `${' '.padEnd(10)} ${' '.padEnd(8)} ${' '.padEnd(7)} ` +
+    `${' '.padEnd(7)} ${' '.padEnd(7)} ` +
+    `${totalTokens.toString().padEnd(8)} $${totalCost.toFixed(4).padEnd(7)} ${' '.padEnd(7)}`
+  );
+  console.log('='.repeat(170));
 
   console.log('\n📝 Model Reasoning:');
   modelScores.forEach((score, i) => {
@@ -364,17 +440,17 @@ function printCommitHistoryTable(history) {
     return;
   }
 
-  console.log('\n' + '='.repeat(140));
+  console.log('\n' + '='.repeat(220));
   console.log('📈 COMMIT HISTORY SUMMARY');
-  console.log('='.repeat(140));
+  console.log('='.repeat(220));
 
-  // Header
+  // Basic info header
+  console.log('BASIC INFO:');
   console.log(
-    `${'Date'.padEnd(12)} ${'Hash'.padEnd(8)} ${'Author'.padEnd(15)} ` +
-    `${'Avg Quality'.padEnd(11)} ${'Avg Dev Lvl'.padEnd(11)} ` +
-    `${'Avg Complex'.padEnd(11)} ${'Avg Hours'.padEnd(10)} ${'Message'.padEnd(50)}`
+    `${'Date'.padEnd(12)} ${'Hash'.padEnd(10)} ${'User'.padEnd(12)} ${'Project'.padEnd(15)} ` +
+    `${'Files'.padEnd(7)} ${'+Lines'.padEnd(7)} ${'-Lines'.padEnd(7)} ${'Message'.padEnd(40)}`
   );
-  console.log('-'.repeat(140));
+  console.log('-'.repeat(220));
 
   // Show last 10
   const recentHistory = history.slice(-10);
@@ -382,20 +458,76 @@ function printCommitHistoryTable(history) {
   for (const commit of recentHistory) {
     const dateStr = commit.timestamp.substring(0, 10);
     const hashShort = commit.commitHash.substring(0, 8);
-    const author = commit.user.substring(0, 14);
-    const message = commit.commitMessage.substring(0, 49);
+    const author = (commit.user || 'unknown').substring(0, 11);
+    const project = (commit.project || 'unknown').substring(0, 14);
+    const message = commit.commitMessage.substring(0, 39);
 
     console.log(
-      `${dateStr.padEnd(12)} ${hashShort.padEnd(8)} ${author.padEnd(15)} ` +
-      `${commit.averageCodeQuality.toFixed(1).padEnd(11)} ` +
-      `${commit.averageDevLevel.toFixed(1).padEnd(11)} ` +
-      `${commit.averageComplexity.toFixed(1).padEnd(11)} ` +
-      `${commit.averageEstimatedHours.toFixed(1).padEnd(10)} ${message.padEnd(50)}`
+      `${dateStr.padEnd(12)} ${hashShort.padEnd(10)} ${author.padEnd(12)} ${project.padEnd(15)} ` +
+      `${(commit.fileChanges || 0).toString().padEnd(7)} ${('+' + (commit.linesAdded || 0)).padEnd(7)} ` +
+      `${('-' + (commit.linesDeleted || 0)).padEnd(7)} ${message.padEnd(40)}`
     );
   }
 
+  // Analysis scores header
+  console.log('\nANALYSIS SCORES:');
+  console.log(
+    `${'Date'.padEnd(12)} ${'Quality'.padEnd(8)} ${'Dev Lvl'.padEnd(8)} ${'Complex'.padEnd(8)} ` +
+    `${'Hours'.padEnd(7)} ${'AI %'.padEnd(6)} ${'AI Hrs'.padEnd(7)} ${'Savings'.padEnd(8)}`
+  );
+  console.log('-'.repeat(220));
+
+  for (const commit of recentHistory) {
+    const dateStr = commit.timestamp.substring(0, 10);
+    const devLevel = commit.averageDevLevel <= 1.5 ? 'Jr' : commit.averageDevLevel <= 2.5 ? 'Mid' : 'Sr';
+    const savings = commit.averageEstimatedHours - commit.averageEstimatedHoursWithAi;
+    const savingsPercent = (savings / commit.averageEstimatedHours * 100).toFixed(0);
+
+    console.log(
+      `${dateStr.padEnd(12)} ${commit.averageCodeQuality.toFixed(1).padEnd(8)} ` +
+      `${commit.averageDevLevel.toFixed(1).padEnd(3)}${('(' + devLevel + ')').padEnd(5)} ` +
+      `${commit.averageComplexity.toFixed(1).padEnd(8)} ` +
+      `${commit.averageEstimatedHours.toFixed(1).padEnd(7)} ` +
+      `${(commit.averageAiPercentage || 0).toFixed(0).padEnd(6)} ` +
+      `${(commit.averageEstimatedHoursWithAi || 0).toFixed(1).padEnd(7)} ` +
+      `${savings.toFixed(1)}h(${savingsPercent}%)`.padEnd(8)
+    );
+  }
+
+  // Cost analysis header
+  console.log('\nCOST ANALYSIS:');
+  console.log(
+    `${'Date'.padEnd(12)} ${'Tokens'.padEnd(10)} ${'Total Cost'.padEnd(12)} ${'Avg/Model'.padEnd(12)}`
+  );
+  console.log('-'.repeat(220));
+
+  let grandTotalTokens = 0;
+  let grandTotalCost = 0;
+
+  for (const commit of recentHistory) {
+    const dateStr = commit.timestamp.substring(0, 10);
+    const tokens = commit.totalTokens || 0;
+    const cost = commit.totalCost || 0;
+    const avgCost = commit.avgCostPerModel || 0;
+    
+    grandTotalTokens += tokens;
+    grandTotalCost += cost;
+
+    console.log(
+      `${dateStr.padEnd(12)} ${tokens.toLocaleString().padEnd(10)} ` +
+      `$${cost.toFixed(4).padEnd(11)} $${avgCost.toFixed(4).padEnd(11)}`
+    );
+  }
+
+  // Grand totals
+  console.log('='.repeat(220));
+  console.log(
+    `${'GRAND TOTAL'.padEnd(12)} ${grandTotalTokens.toLocaleString().padEnd(10)} ` +
+    `$${grandTotalCost.toFixed(4).padEnd(11)} $${(grandTotalCost / recentHistory.length).toFixed(4).padEnd(11)}`
+  );
+
   if (history.length > 10) {
-    console.log(`\n... and ${history.length - 10} more commits`);
+    console.log(`\n... showing last 10 of ${history.length} commits`);
   }
 }
 
@@ -448,6 +580,11 @@ async function main() {
   const avgAiPercentage = modelScores.reduce((sum, s) => sum + s.aiPercentage, 0) / modelScores.length;
   const avgHoursWithAi = modelScores.reduce((sum, s) => sum + s.estimatedHoursWithAi, 0) / modelScores.length;
 
+  // Calculate total cost and tokens (moved up before creating analysis)
+  const totalCost = modelScores.reduce((sum, s) => sum + s.cost, 0);
+  const totalTokens = modelScores.reduce((sum, s) => sum + s.tokensUsed, 0);
+  const avgCostPerModel = totalCost / modelScores.length;
+
   // Create analysis record
   const analysis = new CommitAnalysis({
     commitHash: commitInfo.hash,
@@ -464,7 +601,10 @@ async function main() {
     averageComplexity: avgComplexity,
     averageEstimatedHours: avgHours,
     averageAiPercentage: avgAiPercentage,
-    averageEstimatedHoursWithAi: avgHoursWithAi
+    averageEstimatedHoursWithAi: avgHoursWithAi,
+    totalTokens,
+    totalCost,
+    avgCostPerModel
   });
 
   // Print results
@@ -482,6 +622,11 @@ async function main() {
   console.log(`Time Savings with AI: ${(avgHours - avgHoursWithAi).toFixed(1)} hours (${
     Math.round(((avgHours - avgHoursWithAi) / avgHours) * 100)
   }% reduction)`);
+  
+  console.log('\n💰 COST ANALYSIS:');
+  console.log(`Total Tokens Used: ${totalTokens.toLocaleString()}`);
+  console.log(`Total Cost: $${totalCost.toFixed(4)}`);
+  console.log(`Average Cost per Model: $${(totalCost / modelScores.length).toFixed(4)}`);
 
   // Save to database and show history
   const db = new CommitDatabase();
