@@ -631,5 +631,92 @@
       "commentPercent": "0.0",
       "textPercent": "5.3"
     }
+  },
+  {
+    "commitHash": "514b871ec6a7ed94ca00fef4fb0f9efde1916454",
+    "commitMessage": "Add comprehensive code comments and documentation",
+    "timestamp": "2025-05-29T00:36:08.674Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 7,
+    "linesAdded": 667,
+    "linesDeleted": 3,
+    "modelScores": [
+      {
+        "modelName": "GPT-3.5 Turbo",
+        "provider": "OpenAI",
+        "codeQuality": 4.2,
+        "devLevel": 2.7,
+        "complexity": 3.8,
+        "estimatedHours": 3.25,
+        "aiPercentage": 30,
+        "estimatedHoursWithAi": 2.25,
+        "reasoning": "The code quality is high due to comprehensive comments and documentation. The developer level is mid-level as shown by the structured approach. The complexity is moderate due to the use of multiple AI models. The estimated development time is higher due to the detailed analysis. The AI percentage is lower as significant manual work is evident. The estimated hours with AI are reduced but still substantial.",
+        "responseTime": 3.535,
+        "tokensUsed": 1099,
+        "cost": 0.0006925
+      },
+      {
+        "modelName": "Claude 3 Haiku",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 2.8,
+        "complexity": 3.9,
+        "estimatedHours": 15.5,
+        "aiPercentage": 25,
+        "estimatedHoursWithAi": 11,
+        "reasoning": "The comprehensive code comments and documentation indicate a high level of code quality and developer expertise. The complexity is moderate to high, requiring significant development time. However, the use of AI tools could reduce the overall development time by approximately 30%.",
+        "responseTime": 1.388,
+        "tokensUsed": 1270,
+        "cost": 0.0004515
+      },
+      {
+        "modelName": "Gemini 1.5 Flash",
+        "provider": "Google",
+        "codeQuality": 4.2,
+        "devLevel": 2.8,
+        "complexity": 3,
+        "estimatedHours": 8.5,
+        "aiPercentage": 10,
+        "estimatedHoursWithAi": 6,
+        "reasoning": "The commit focuses heavily on adding comments and documentation, which significantly improves code quality (4.2).  The code itself appears to be moderately complex (3.0), suggesting a mid-to-senior level developer (2.8).  Estimating development time is challenging without knowing the initial state, but adding extensive documentation to 7 files suggests a significant time investment (8.5 hours).  While the commit includes new code, the majority of changes appear to be additions of comments and documentation, rather than new functionality, thus low AI percentage (10%). AI assistance would likely speed up the documentation process but not eliminate the need for manual code understanding, resulting in a still significant, but reduced time estimate (6 hours).",
+        "responseTime": 2.103,
+        "tokensUsed": 1058,
+        "cost": 0.00013267499999999999
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4.2,
+        "devLevel": 2.4,
+        "complexity": 3.6,
+        "estimatedHours": 3.5,
+        "aiPercentage": 30.5,
+        "estimatedHoursWithAi": 2.1,
+        "reasoning": "The commit focuses on adding comprehensive comments and documentation, significantly improving readability and maintainability, hence a high code quality score. The developer level is mid-range due to the structured approach to documentation. Complexity is moderate to high given the integration of multiple AI models and token estimation logic. Estimated hours reflect the effort to write detailed comments across 7 files. AI percentage is moderate as the structure suggests some templated or generated comments. With AI assistance, time is reduced due to potential automation of comment generation.",
+        "responseTime": 2.673,
+        "tokensUsed": 1115,
+        "cost": 0.007285
+      }
+    ],
+    "averageCodeQuality": 4.2,
+    "averageDevLevel": 2.6750000000000003,
+    "averageComplexity": 3.5749999999999997,
+    "averageEstimatedHours": 7.6875,
+    "averageAiPercentage": 23.875,
+    "averageEstimatedHoursWithAi": 5.3375,
+    "totalTokens": 4542,
+    "totalCost": 0.008561675,
+    "avgCostPerModel": 0.00214041875,
+    "codeAnalysis": {
+      "totalLines": 3616,
+      "codeLines": 2990,
+      "commentLines": 0,
+      "textLines": 169,
+      "blankLines": 282,
+      "codePercent": "89.7",
+      "commentPercent": "0.0",
+      "textPercent": "5.1"
+    }
   }
 ]

@@ -108,6 +108,11 @@ class LineAnalyzer {
       }
       return { type: 'comment', inMultiComment: true };
     }
+    
+    // Check for JSDoc-style comment continuation (lines starting with *)
+    if (trimmed.startsWith('*') && !trimmed.startsWith('*/')) {
+      return { type: 'comment', inMultiComment: inMultiComment };
+    }
 
     // Check for single-line comment
     if (patterns.single && trimmed.startsWith(patterns.single)) {
@@ -115,7 +120,7 @@ class LineAnalyzer {
     }
 
     // Check for multi-line comment start
-    if (patterns.multi && trimmed.includes(patterns.multi.start)) {
+    if (patterns.multi && (trimmed.startsWith(patterns.multi.start) || trimmed.includes(patterns.multi.start))) {
       const hasEnd = trimmed.includes(patterns.multi.end);
       return { type: 'comment', inMultiComment: !hasEnd };
     }
@@ -132,20 +137,24 @@ class LineAnalyzer {
       const ext = path.extname(filePath).toLowerCase();
       
       let inMultiComment = false;
-      const fileStats = { code: 0, comments: 0, text: 0, blank: 0 };
+      const fileStats = { code: 0, comment: 0, text: 0, blank: 0 };
 
-      for (const line of lines) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         const result = this.analyzeLine(line, ext, inMultiComment);
         inMultiComment = result.inMultiComment;
-        fileStats[result.type]++;
+        
+        fileStats[result.type]++
       }
 
       // Update global stats
       this.stats.code += fileStats.code;
-      this.stats.comments += fileStats.comments;
+      this.stats.comments += fileStats.comment;
       this.stats.text += fileStats.text;
       this.stats.blank += fileStats.blank;
       this.stats.total += lines.length;
+      
+
 
       this.processedFiles++;
       this.updateProgress();
@@ -164,6 +173,8 @@ class LineAnalyzer {
    * Shows a visual representation of analysis progress
    */
   updateProgress() {
+    if (this.fileCount === 0) return;
+    
     const progress = (this.processedFiles / this.fileCount) * 100;
     const filled = Math.floor(progress / 2);
     const empty = 50 - filled;
@@ -178,6 +189,7 @@ class LineAnalyzer {
     console.log('\n\n' + '='.repeat(80));
     console.log('📈 CODE ANALYSIS RESULTS');
     console.log('='.repeat(80));
+    
 
     const nonBlank = this.stats.total - this.stats.blank;
     const codePercent = (this.stats.code / nonBlank) * 100;
