@@ -28,6 +28,70 @@ body {
     padding: 20px;
 }
 
+/* App Layout with Sidebar */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 200px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header h2 {
+    color: var(--accent-green);
+    font-size: 1.2rem;
+    font-weight: normal;
+    margin: 0;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-link {
+    display: block;
+    padding: 12px 20px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.nav-link:hover {
+    background: var(--hover-bg);
+    color: var(--accent-green);
+}
+
+.nav-link.active {
+    background: var(--hover-bg);
+    color: var(--accent-green);
+    border-left-color: var(--accent-green);
+}
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
+    margin-left: 200px;
+    padding: 20px;
+    min-height: 100vh;
+    width: calc(100% - 200px);
+    overflow-x: auto;
+}
+
 /* Header */
 header {
     background: var(--bg-secondary);
@@ -35,6 +99,11 @@ header {
     padding: 20px;
     border: 1px solid var(--border-color);
     margin-bottom: 30px;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-top: -20px;
+    padding-left: 40px;
+    padding-right: 40px;
 }
 
 header h1 {
@@ -68,6 +137,8 @@ header p {
     padding: 20px;
     border: 1px solid var(--border-color);
     margin-bottom: 25px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .table-section h3 {
@@ -85,10 +156,12 @@ header p {
 .comprehensive-table {
     margin-top: 20px;
     border: 1px solid var(--accent-green);
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .comprehensive-table table {
-    min-width: 1800px;
+    min-width: 2000px;
 }
 
 .comprehensive-table::-webkit-scrollbar {
@@ -477,5 +550,14 @@ tfoot td {
     .info-grid,
     .cost-grid {
         grid-template-columns: 1fr;
+    }
+    
+    /* Hide sidebar on mobile */
+    .sidebar {
+        display: none;
+    }
+    
+    .main-content {
+        margin-left: 0;
     }
 }

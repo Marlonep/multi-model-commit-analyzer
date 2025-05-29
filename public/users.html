@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Statistics - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link active">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="compact-header">
+                <h1>User Statistics</h1>
+                <p>Historical analysis of all contributors</p>
+            </header>
+
+            <main>
+                <!-- Users Table -->
+                <section class="table-section">
+                    <h3>Developer Contributions</h3>
+                    <div class="table-wrapper">
+                        <table id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Commits</th>
+                                    <th>+Lines</th>
+                                    <th>-Lines</th>
+                                    <th>Last Commit</th>
+                                    <th>Avg Quality</th>
+                                    <th>Avg Dev Level</th>
+                                    <th>Avg Complex</th>
+                                    <th>Total Hours</th>
+                                    <th>Avg AI %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="users.js"></script>
+</body>
+</html>

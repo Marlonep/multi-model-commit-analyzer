@@ -7,13 +7,27 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header class="compact-header inline-header">
-            <h1>Commit Analysis Details</h1>
-            <a href="/" class="back-link">[Back to History]</a>
-        </header>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+            </ul>
+        </nav>
 
-        <main>
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="compact-header inline-header">
+                <h1>Commit Analysis Details</h1>
+                <a href="/" class="back-link">[Back to History]</a>
+            </header>
+
+            <main>
             <!-- Commit Info -->
             <h2 class="section-title">Commit Information</h2>
             <section class="commit-info compact">
@@ -141,7 +155,8 @@
                     <!-- Model cards will be populated here -->
                 </div>
             </section>
-        </main>
+            </main>
+        </div>
     </div>
 
     <script src="details.js"></script>

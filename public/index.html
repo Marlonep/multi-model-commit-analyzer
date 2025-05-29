@@ -7,13 +7,27 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Multi-Model Commit Analyzer</h1>
-            <p>AI-powered git commit analysis using GPT, Claude, Gemini, and Grok</p>
-        </header>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link active">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+            </ul>
+        </nav>
 
-        <main>
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Multi-Model Commit Analyzer</h1>
+                <p>AI-powered git commit analysis using GPT, Claude, Gemini, and Grok</p>
+            </header>
+
+            <main>
             <h2 class="main-title">Commit History Summary</h2>
             
             <!-- Basic Info Section -->
@@ -127,7 +141,8 @@
                     </table>
                 </div>
             </section>
-        </main>
+            </main>
+        </div>
     </div>
 
     <script src="script.js"></script>
