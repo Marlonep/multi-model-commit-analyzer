@@ -94,3 +94,121 @@ AI Code Percentage: 27.5%
 Estimated Hours with AI: 2.6
 Time Savings with AI: 1.2 hours (31% reduction)
 ```
+
+## Web Interface
+
+The analyzer includes a modern web interface for viewing commit analysis history:
+
+### Starting the Web Server
+```bash
+node server.js
+# Server runs on http://localhost:3000
+```
+
+### Features
+- **Terminal-style dark theme** with classic green-on-black aesthetics
+- **Commit history table** with three sections:
+  - Basic Information (hash, user, project, files, lines)
+  - Analysis Scores (quality, complexity, time estimates)
+  - Cost Analysis (token usage and API costs)
+- **Detailed analysis view** for each commit showing:
+  - Individual model scores and reasoning
+  - Code composition breakdown (code vs comments vs documentation)
+  - Visual progress bars for code analysis
+  - Cost breakdown per model
+- **Comprehensive data table** with horizontal scrolling for all metrics
+
+### Code Analysis
+
+The analyzer includes a sophisticated code line analyzer that categorizes your codebase:
+
+#### Line Categories
+- **Code Lines**: Actual programming logic and statements
+- **Comment Lines**: Single-line and multi-line comments
+- **Text/Documentation**: Markdown, text files, and documentation
+- **Blank Lines**: Empty lines (excluded from percentage calculations)
+
+#### Supported File Types
+- **Code**: `.js`, `.jsx`, `.ts`, `.tsx`, `.py`, `.java`, `.c`, `.cpp`, `.cs`, `.go`, `.rs`, `.swift`, `.kt`, `.scala`, `.rb`, `.php`, `.r`, `.vue`, `.svelte`
+- **Text**: `.md`, `.txt`, `.rst`, `.adoc`, `.tex`
+- **Config**: `.json`, `.yaml`, `.yml`, `.toml`, `.xml`, `.ini`, `.cfg`, `.conf`, `.properties`, `.env`
+
+#### Target Composition
+The analyzer compares your codebase against these targets:
+- Code: 70%
+- Comments: 10%
+- Documentation: 20%
+
+### Cost Tracking
+
+Each API call is tracked for cost analysis:
+- **Token usage** per model
+- **Cost calculation** based on current pricing
+- **Total cost** per commit analysis
+- **Running totals** across all analyses
+
+### API Configuration
+
+The analyzer automatically extracts:
+- **Username**: From git config or commit author
+- **Project name**: From git remote URL
+- **Repository details**: From git metadata
+
+## Architecture
+
+The project is built with:
+- **Node.js** for the backend analyzer
+- **Express.js** for the web server
+- **Vanilla JavaScript** for the frontend
+- **CSS Variables** for theming
+- **Monospace fonts** for terminal aesthetics
+
+## Development
+
+### Project Structure
+```
+multi-model-commit-analyzer/
+├── analyzeCommit.js      # Main analyzer script
+├── codeAnalyzer.js       # Code line categorization
+├── server.js             # Express web server
+├── public/               # Web interface files
+│   ├── index.html        # Commit history page
+│   ├── details.html      # Analysis details page
+│   ├── styles.css        # Terminal-style CSS
+│   ├── script.js         # History page logic
+│   └── details.js        # Details page logic
+├── commit_analysis_history.json  # Analysis database
+└── package.json          # Node dependencies
+```
+
+### Adding New Models
+
+To add a new AI model:
+1. Add the model configuration in `analyzeCommit.js`
+2. Add pricing information to `MODEL_PRICING`
+3. Implement the API call in the `AIModels` class
+4. Update the `.env` file with the new API key
+
+### Customizing the Theme
+
+The terminal theme uses CSS variables defined in `:root`:
+```css
+--bg-primary: #0d1117;      /* Dark background */
+--bg-secondary: #161b22;    /* Container background */
+--text-primary: #c9d1d9;    /* Main text */
+--text-secondary: #8b949e;  /* Secondary text */
+--accent-green: #39ff14;    /* Terminal green */
+--border-color: #30363d;    /* Borders */
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is open source and available under the MIT License.
