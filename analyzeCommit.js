@@ -534,15 +534,54 @@ function printCommitHistoryTable(history) {
 async function main() {
   // Get commit hash from arguments or use HEAD
   const commitHash = process.argv[2] || 'HEAD';
-  const user = process.argv[3] || 'unknown';
-  const project = process.argv[4] || 'unknown';
-
+  
   // Check if we're in a git repository
   try {
     await execAsync('git rev-parse --git-dir');
   } catch (error) {
     console.error('Error: Not in a git repository');
     process.exit(1);
+  }
+
+  // Get git user info
+  let user = process.argv[3] || 'unknown';
+  let project = process.argv[4] || 'unknown';
+  
+  // Try to get user from git config if not provided
+  if (user === 'unknown') {
+    try {
+      const { stdout: gitUser } = await execAsync('git config user.name');
+      user = gitUser.trim() || 'unknown';
+    } catch (error) {
+      // Fallback to commit author
+      try {
+        const { stdout: commitAuthor } = await execAsync(`git show --format=%an -s ${commitHash}`);
+        user = commitAuthor.trim().split(' ')[0] || 'unknown';
+      } catch (e) {
+        user = 'unknown';
+      }
+    }
+  }
+  
+  // Try to get project name from git remote if not provided
+  if (project === 'unknown') {
+    try {
+      const { stdout: remoteUrl } = await execAsync('git config --get remote.origin.url');
+      // Extract project name from URL (works for both HTTPS and SSH URLs)
+      const cleanUrl = remoteUrl.trim();
+      const match = cleanUrl.match(/[:/]([^/]+)\/([^/\s]+?)(?:\.git)?$/);
+      if (match) {
+        project = match[2].replace(/\.git$/, ''); // Repository name without .git
+      }
+    } catch (error) {
+      // Fallback to current directory name
+      try {
+        const { stdout: pwd } = await execAsync('pwd');
+        project = pwd.trim().split('/').pop() || 'unknown';
+      } catch (e) {
+        project = 'unknown';
+      }
+    }
   }
 
   console.log('🚀 Enhanced Multi-Model Commit Analyzer');
