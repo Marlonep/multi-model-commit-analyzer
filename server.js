@@ -23,7 +23,12 @@ app.get('/api/commits', async (req, res) => {
   }
 });
 
-// API endpoint to get specific commit analysis
+/**
+ * GET /api/commits/:index
+ * Returns a specific commit analysis by array index
+ * 
+ * @param {number} index - Array index of the commit
+ */
 app.get('/api/commits/:index', async (req, res) => {
   try {
     const data = await fs.readFile('commit_analysis_history.json', 'utf8');

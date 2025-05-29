@@ -388,6 +388,82 @@ tfoot td {
     color: var(--text-secondary);
 }
 
+/* Code Analysis Section */
+.code-analysis {
+    background: var(--bg-secondary);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 25px;
+}
+
+.code-analysis.compact {
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.code-stats {
+    margin-top: 10px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.code-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.code-type {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.type-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.progress-bar {
+    height: 24px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.code-fill {
+    background: var(--accent-green);
+}
+
+.comment-fill {
+    background: #ffd700;
+}
+
+.text-fill {
+    background: #00bfff;
+}
+
+.line-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     header h1 {

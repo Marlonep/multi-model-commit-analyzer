@@ -1,5 +1,16 @@
 #!/usr/bin/env node
 
+/**
+ * Multi-Model Commit Analyzer
+ * 
+ * This tool analyzes git commits using multiple AI models (GPT-3.5, Claude, Gemini, Grok)
+ * to provide comprehensive code quality assessments. It evaluates code quality, developer
+ * level, complexity, and estimates development time with and without AI assistance.
+ * 
+ * @author Marlon Espinosa
+ * @version 1.0.0
+ */
+
 import { config } from 'dotenv';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -7,9 +18,12 @@ import fs from 'fs/promises';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { LineAnalyzer } from './codeAnalyzer.js';
 
+// Load environment variables from .env file
 config();
 
+// Promisify exec for async/await usage
 const execAsync = promisify(exec);
 
 // Pricing per 1K tokens (as of 2025)
@@ -32,13 +46,35 @@ const MODEL_PRICING = {
   }
 };
 
-// Simple token estimation (rough approximation)
+/**
+ * Estimates the number of tokens in a text string
+ * Uses a rough approximation of 1 token ≈ 4 characters
+ * 
+ * @param {string} text - The text to estimate tokens for
+ * @returns {number} Estimated number of tokens
+ */
 function estimateTokens(text) {
   // Rough estimate: 1 token ≈ 4 characters
+  // This is a simplified approximation - actual tokenization varies by model
   return Math.ceil(text.length / 4);
 }
 
+/**
+ * Represents the analysis score from a single AI model
+ * Contains all metrics evaluated by the model including quality scores,
+ * time estimates, and cost calculations
+ */
 class ModelScore {
+  /**
+   * @param {Object} data - Score data from AI model
+   * @param {string} data.modelName - Name of the AI model
+   * @param {string} data.provider - Provider of the AI model
+   * @param {number} data.codeQuality - Code quality score (1-5)
+   * @param {number} data.devLevel - Developer level (1-3)
+   * @param {number} data.complexity - Code complexity (1-5)
+   * @param {number} data.estimatedHours - Estimated development hours
+   * @param {number} data.aiPercentage - Percentage of AI-generated code
+   */
   constructor(data) {
     this.modelName = data.modelName;
     this.provider = data.provider;
@@ -75,6 +111,7 @@ class CommitAnalysis {
     this.totalTokens = data.totalTokens;
     this.totalCost = data.totalCost;
     this.avgCostPerModel = data.avgCostPerModel;
+    this.codeAnalysis = data.codeAnalysis;
   }
 }
 
@@ -600,6 +637,22 @@ async function main() {
   console.log(`Author: ${commitInfo.author} | Date: ${commitInfo.date}`);
   console.log(`Files: ${commitInfo.filesChanged} | +${commitInfo.linesAdded} -${commitInfo.linesDeleted}`);
 
+  // Run code line analysis on the repository
+  console.log('\n📊 Running code analysis on repository...');
+  const lineAnalyzer = new LineAnalyzer();
+  await lineAnalyzer.analyze('.');
+  
+  const codeAnalysis = {
+    totalLines: lineAnalyzer.stats.total,
+    codeLines: lineAnalyzer.stats.code,
+    commentLines: lineAnalyzer.stats.comments,
+    textLines: lineAnalyzer.stats.text,
+    blankLines: lineAnalyzer.stats.blank,
+    codePercent: ((lineAnalyzer.stats.code / (lineAnalyzer.stats.total - lineAnalyzer.stats.blank)) * 100).toFixed(1),
+    commentPercent: ((lineAnalyzer.stats.comments / (lineAnalyzer.stats.total - lineAnalyzer.stats.blank)) * 100).toFixed(1),
+    textPercent: ((lineAnalyzer.stats.text / (lineAnalyzer.stats.total - lineAnalyzer.stats.blank)) * 100).toFixed(1)
+  };
+
   // Initialize AI models and analyze
   const aiModels = new AIModels();
   console.log(`\n🤖 Analyzing with ${aiModels.models.length} AI models...`);
@@ -643,7 +696,8 @@ async function main() {
     averageEstimatedHoursWithAi: avgHoursWithAi,
     totalTokens,
     totalCost,
-    avgCostPerModel
+    avgCostPerModel,
+    codeAnalysis
   });
 
   // Print results

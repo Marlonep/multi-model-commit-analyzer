@@ -57,6 +57,41 @@ function displayCommitDetails(commit) {
     document.getElementById('avgModelCost').textContent = 
         `$${(commit.avgCostPerModel || 0).toFixed(4)}`;
     
+    // Code analysis
+    if (commit.codeAnalysis) {
+        const ca = commit.codeAnalysis;
+        document.getElementById('totalLines').textContent = 
+            ca.totalLines.toLocaleString();
+        
+        // Code
+        document.getElementById('codePercent').textContent = `${ca.codePercent}%`;
+        document.getElementById('codeLines').textContent = 
+            `${ca.codeLines.toLocaleString()} lines`;
+        document.getElementById('codeBar').style.width = `${ca.codePercent}%`;
+        
+        // Comments
+        document.getElementById('commentPercent').textContent = `${ca.commentPercent}%`;
+        document.getElementById('commentLines').textContent = 
+            `${ca.commentLines.toLocaleString()} lines`;
+        document.getElementById('commentBar').style.width = `${ca.commentPercent}%`;
+        
+        // Text
+        document.getElementById('textPercent').textContent = `${ca.textPercent}%`;
+        document.getElementById('textLines').textContent = 
+            `${ca.textLines.toLocaleString()} lines`;
+        document.getElementById('textBar').style.width = `${ca.textPercent}%`;
+    } else {
+        // Hide code analysis section if no data
+        const codeSection = document.querySelector('.code-analysis');
+        if (codeSection) {
+            codeSection.style.display = 'none';
+            const sectionTitle = codeSection.previousElementSibling;
+            if (sectionTitle && sectionTitle.classList.contains('section-title')) {
+                sectionTitle.style.display = 'none';
+            }
+        }
+    }
+    
     // Model cards
     displayModelCards(commit.modelScores);
 }
