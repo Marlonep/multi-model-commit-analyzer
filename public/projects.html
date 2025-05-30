@@ -22,7 +22,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <header class="compact-header">
+            <header>
                 <h1>Project Statistics</h1>
                 <p>Analysis metrics grouped by project</p>
             </header>
@@ -31,6 +31,9 @@
                 <!-- Projects Table -->
                 <section class="table-section">
                     <h3>Project Analysis Summary</h3>
+                    <div class="search-container">
+                        <input type="text" class="search-bar" id="projectsSearch" placeholder="Search projects...">
+                    </div>
                     <div class="table-wrapper">
                         <table id="projectsTable">
                             <thead>

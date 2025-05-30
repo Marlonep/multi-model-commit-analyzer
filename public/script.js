@@ -164,4 +164,64 @@ function viewDetails(index) {
 }
 
 // Load data when page loads
-document.addEventListener('DOMContentLoaded', loadCommitHistory);
+document.addEventListener('DOMContentLoaded', () => {
+    loadCommitHistory();
+    setupSearchFunctionality();
+});
+
+// Search functionality
+function setupSearchFunctionality() {
+    // Setup search for each table
+    setupTableSearch('basicSearch', 'basicInfoBody');
+    setupTableSearch('scoresSearch', 'scoresBody');
+    setupTableSearch('costSearch', 'costBody');
+    setupTableSearch('comprehensiveSearch', 'comprehensiveBody');
+}
+
+function setupTableSearch(searchInputId, tableBodyId) {
+    const searchInput = document.getElementById(searchInputId);
+    const tableBody = document.getElementById(tableBodyId);
+    
+    if (!searchInput || !tableBody) return;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = tableBody.getElementsByTagName('tr');
+        
+        Array.from(rows).forEach(row => {
+            // Skip the grand total row in cost table
+            if (row.id === 'grandTotal') return;
+            
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+        
+        // Update grand total if it's the cost table
+        if (tableBodyId === 'costBody') {
+            updateGrandTotal();
+        }
+    });
+}
+
+// Update grand total for cost table when filtering
+function updateGrandTotal() {
+    const tbody = document.getElementById('costBody');
+    const rows = tbody.getElementsByTagName('tr');
+    let totalTokens = 0;
+    let totalCost = 0;
+    let visibleRows = 0;
+    
+    Array.from(rows).forEach(row => {
+        if (row.style.display !== 'none') {
+            const tokens = parseInt(row.cells[1].textContent) || 0;
+            const cost = parseFloat(row.cells[2].textContent.replace('$', '')) || 0;
+            totalTokens += tokens;
+            totalCost += cost;
+            visibleRows++;
+        }
+    });
+    
+    document.getElementById('totalTokens').textContent = totalTokens.toLocaleString();
+    document.getElementById('totalCost').textContent = `$${totalCost.toFixed(4)}`;
+    document.getElementById('avgCost').textContent = visibleRows > 0 ? `$${(totalCost / visibleRows).toFixed(4)}` : '$0.0000';
+}

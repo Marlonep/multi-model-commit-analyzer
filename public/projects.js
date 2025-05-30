@@ -122,4 +122,25 @@ function getDevLevel(level) {
 }
 
 // Load data when page loads
-document.addEventListener('DOMContentLoaded', loadProjectStats);
+document.addEventListener('DOMContentLoaded', () => {
+    loadProjectStats();
+    setupSearchFunctionality();
+});
+
+// Search functionality
+function setupSearchFunctionality() {
+    const searchInput = document.getElementById('projectsSearch');
+    const tableBody = document.getElementById('projectsBody');
+    
+    if (!searchInput || !tableBody) return;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = tableBody.getElementsByTagName('tr');
+        
+        Array.from(rows).forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}

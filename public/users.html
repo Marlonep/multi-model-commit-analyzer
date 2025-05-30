@@ -22,7 +22,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <header class="compact-header">
+            <header>
                 <h1>User Statistics</h1>
                 <p>Historical analysis of all contributors</p>
             </header>
@@ -31,6 +31,9 @@
                 <!-- Users Table -->
                 <section class="table-section">
                     <h3>Developer Contributions</h3>
+                    <div class="search-container">
+                        <input type="text" class="search-bar" id="usersSearch" placeholder="Search users...">
+                    </div>
                     <div class="table-wrapper">
                         <table id="usersTable">
                             <thead>

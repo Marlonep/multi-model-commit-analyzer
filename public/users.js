@@ -110,4 +110,25 @@ function getDevLevel(level) {
 }
 
 // Load data when page loads
-document.addEventListener('DOMContentLoaded', loadUserStats);
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserStats();
+    setupSearchFunctionality();
+});
+
+// Search functionality
+function setupSearchFunctionality() {
+    const searchInput = document.getElementById('usersSearch');
+    const tableBody = document.getElementById('usersBody');
+    
+    if (!searchInput || !tableBody) return;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = tableBody.getElementsByTagName('tr');
+        
+        Array.from(rows).forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
