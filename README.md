@@ -1,6 +1,6 @@
 # Multi-Model Commit Analyzer
 
-AI-powered git commit analyzer that uses multiple language models (OpenAI o1-pro, Claude Sonnet 4, Gemini 2.5 Pro, Grok) to provide comprehensive code quality assessments.
+AI-powered git commit analyzer that uses multiple language models (GPT-4, Claude Sonnet 4, Gemini 2.5 Flash, Grok) to provide comprehensive code quality assessments.
 
 ## Features
 
@@ -71,9 +71,9 @@ Results are saved to `commit_analysis_history.json` for future reference.
 
 ## Models Used
 
-- **OpenAI o1-pro** (OpenAI)
+- **GPT-4** (OpenAI)
 - **Claude Sonnet 4** (Anthropic)
-- **Gemini 2.5 Pro Preview** (Google)
+- **Gemini 2.5 Flash Preview** (Google)
 - **Grok 3** (xAI)
 
 ## Requirements

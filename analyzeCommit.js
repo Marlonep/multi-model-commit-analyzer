@@ -3,7 +3,7 @@
 /**
  * Multi-Model Commit Analyzer
  * 
- * This tool analyzes git commits using multiple AI models (OpenAI o1-pro, Claude Sonnet 4, Gemini 2.5 Pro, Grok)
+ * This tool analyzes git commits using multiple AI models (GPT-4, Claude Sonnet 4, Gemini 2.5 Flash, Grok)
  * to provide comprehensive code quality assessments. It evaluates code quality, developer
  * level, complexity, and estimates development time with and without AI assistance.
  * 
@@ -28,17 +28,17 @@ const execAsync = promisify(exec);
 
 // Pricing per 1K tokens (as of 2025)
 const MODEL_PRICING = {
-  'o1-pro': {
-    input: 0.015,   // $15 per 1M input tokens
+  'gpt-4': {
+    input: 0.030,   // $30 per 1M input tokens
     output: 0.060   // $60 per 1M output tokens
   },
   'claude-sonnet-4-20250514': {
     input: 0.003,   // $3 per 1M input tokens
     output: 0.015   // $15 per 1M output tokens
   },
-  'gemini-2.5-pro-preview-05-06': {
-    input: 0.00125, // $1.25 per 1M input tokens
-    output: 0.005   // $5 per 1M output tokens
+  'gemini-2.5-flash-preview-04-17': {
+    input: 0.000075, // $0.075 per 1M input tokens
+    output: 0.00030  // $0.30 per 1M output tokens
   },
   'grok-3': {
     input: 0.005,   // $5 per 1M input tokens (estimated)
@@ -126,7 +126,7 @@ class AIModels {
     const openaiKey = process.env.OPENAI_API_KEY;
     if (openaiKey && openaiKey !== 'your_api_key_here') {
       this.models.push({
-        name: 'OpenAI o1-pro',
+        name: 'GPT-4',
         provider: 'OpenAI',
         client: new OpenAI({ apiKey: openaiKey }),
         type: 'openai'
@@ -148,7 +148,7 @@ class AIModels {
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey && geminiKey !== 'your_gemini_api_key_here') {
       this.models.push({
-        name: 'Gemini 2.5 Pro Preview',
+        name: 'Gemini 2.5 Flash Preview',
         provider: 'Google',
         client: new GoogleGenerativeAI(geminiKey),
         type: 'gemini'
@@ -224,7 +224,7 @@ Respond ONLY in this JSON format:
 
       if (modelInfo.type === 'openai') {
         const response = await modelInfo.client.chat.completions.create({
-          model: 'o1-pro',
+          model: 'gpt-4',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.3,
           max_tokens: 500
@@ -232,7 +232,7 @@ Respond ONLY in this JSON format:
         result = response.choices[0].message.content;
         inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
         outputTokens = response.usage?.completion_tokens || estimateTokens(result);
-        modelKey = 'o1-pro';
+        modelKey = 'gpt-4';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
           model: 'claude-sonnet-4-20250514',
@@ -245,13 +245,13 @@ Respond ONLY in this JSON format:
         outputTokens = response.usage?.output_tokens || estimateTokens(result);
         modelKey = 'claude-sonnet-4-20250514';
       } else if (modelInfo.type === 'gemini') {
-        const model = modelInfo.client.getGenerativeModel({ model: 'gemini-2.5-pro-preview-05-06' });
+        const model = modelInfo.client.getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' });
         const response = await model.generateContent(prompt);
         result = response.response.text();
         // Gemini doesn't provide token counts, so we estimate
         inputTokens = estimateTokens(prompt);
         outputTokens = estimateTokens(result);
-        modelKey = 'gemini-2.5-pro-preview-05-06';
+        modelKey = 'gemini-2.5-flash-preview-04-17';
       } else if (modelInfo.type === 'grok') {
         const response = await modelInfo.client.chat.completions.create({
           model: 'grok-3',
