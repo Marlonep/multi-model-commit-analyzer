@@ -694,12 +694,6 @@ tfoot td {
     gap: 15px;
 }
 
-.stat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.1rem;
-}
 
 .stacked-progress-bar {
     height: 30px;
@@ -735,6 +729,57 @@ tfoot td {
     height: 16px;
     border-radius: 3px;
     border: 1px solid var(--border-color);
+}
+
+/* Analysis Grid - Side by Side Layout */
+.analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.analysis-section {
+    background: var(--bg-secondary);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.analysis-section .section-title {
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+}
+
+.analysis-section .code-analysis,
+.analysis-section .cost-summary {
+    background: none;
+    padding: 0;
+    border: none;
+    margin: 0;
+}
+
+.stat-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 5px 0;
+}
+
+.cost-stats-compact {
+    display: flex;
+    flex-direction: column;
+}
+
+.cost-stats-compact .stat-line:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive adjustment */
+@media (max-width: 968px) {
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Responsive */

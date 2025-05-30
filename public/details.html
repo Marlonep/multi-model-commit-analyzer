@@ -87,54 +87,61 @@
                 </div>
             </section>
 
-            <!-- Cost Summary -->
-            <h2 class="section-title">Cost Analysis</h2>
-            <section class="cost-summary compact">
-                <div class="cost-grid">
-                    <div class="cost-item">
-                        <span class="label">Total Tokens:</span>
-                        <span id="totalTokens" class="value">0</span>
-                    </div>
-                    <div class="cost-item">
-                        <span class="label">Total Cost:</span>
-                        <span id="totalCost" class="value">$0.0000</span>
-                    </div>
-                    <div class="cost-item">
-                        <span class="label">Avg Cost/Model:</span>
-                        <span id="avgModelCost" class="value">$0.0000</span>
-                    </div>
+            <!-- Analysis Summary Grid -->
+            <div class="analysis-grid">
+                <!-- Code Analysis -->
+                <div class="analysis-section">
+                    <h2 class="section-title">Code Analysis</h2>
+                    <section class="code-analysis compact">
+                        <div class="code-stats-compact">
+                            <div class="stat-line">
+                                <span class="label">Total Lines:</span>
+                                <span id="totalLines" class="value">0</span>
+                            </div>
+                            <div class="stacked-progress-bar">
+                                <div id="codeBar" class="progress-segment code-fill" title="Code"></div>
+                                <div id="commentBar" class="progress-segment comment-fill" title="Comments"></div>
+                                <div id="textBar" class="progress-segment text-fill" title="Text/Docs"></div>
+                            </div>
+                            <div class="code-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color code-fill"></span>
+                                    <span>Code <span id="codePercent">0%</span> (<span id="codeLines">0</span> lines)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color comment-fill"></span>
+                                    <span>Comments <span id="commentPercent">0%</span> (<span id="commentLines">0</span> lines)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color text-fill"></span>
+                                    <span>Text/Docs <span id="textPercent">0%</span> (<span id="textLines">0</span> lines)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-            </section>
-
-            <!-- Code Analysis -->
-            <h2 class="section-title">Code Analysis</h2>
-            <section class="code-analysis compact">
-                <div class="code-stats-compact">
-                    <div class="stat-header">
-                        <span class="label">Total Lines:</span>
-                        <span id="totalLines" class="value">0</span>
-                    </div>
-                    <div class="stacked-progress-bar">
-                        <div id="codeBar" class="progress-segment code-fill" title="Code"></div>
-                        <div id="commentBar" class="progress-segment comment-fill" title="Comments"></div>
-                        <div id="textBar" class="progress-segment text-fill" title="Text/Docs"></div>
-                    </div>
-                    <div class="code-legend">
-                        <div class="legend-item">
-                            <span class="legend-color code-fill"></span>
-                            <span>Code <span id="codePercent">0%</span> (<span id="codeLines">0</span> lines)</span>
+                
+                <!-- Cost Analysis -->
+                <div class="analysis-section">
+                    <h2 class="section-title">Cost Analysis</h2>
+                    <section class="cost-summary compact">
+                        <div class="cost-stats-compact">
+                            <div class="stat-line">
+                                <span class="label">Total Tokens:</span>
+                                <span id="totalTokens" class="value">0</span>
+                            </div>
+                            <div class="stat-line">
+                                <span class="label">Total Cost:</span>
+                                <span id="totalCost" class="value">$0.0000</span>
+                            </div>
+                            <div class="stat-line">
+                                <span class="label">Avg Cost/Model:</span>
+                                <span id="avgModelCost" class="value">$0.0000</span>
+                            </div>
                         </div>
-                        <div class="legend-item">
-                            <span class="legend-color comment-fill"></span>
-                            <span>Comments <span id="commentPercent">0%</span> (<span id="commentLines">0</span> lines)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color text-fill"></span>
-                            <span>Text/Docs <span id="textPercent">0%</span> (<span id="textLines">0</span> lines)</span>
-                        </div>
-                    </div>
+                    </section>
                 </div>
-            </section>
+            </div>
 
             <!-- Model Details -->
             <h2 class="section-title">Model Analysis Details</h2>

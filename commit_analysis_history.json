@@ -2719,5 +2719,92 @@
       "commentPercent": "4.1",
       "textPercent": "2.6"
     }
+  },
+  {
+    "commitHash": "d8b0b040cffff02b1b0ed53fdf9f87b1a67d0b1c",
+    "commitMessage": "Optimize code analysis display with stacked progress bar",
+    "timestamp": "2025-05-30T21:34:54.333Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 4,
+    "linesAdded": 162,
+    "linesDeleted": 43,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 6.087,
+        "tokensUsed": 1650,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 1.8,
+        "complexity": 1.5,
+        "estimatedHours": 1,
+        "aiPercentage": 25,
+        "estimatedHoursWithAi": 0.75,
+        "reasoning": "Clean JSON data addition with proper structure and consistent formatting. The commit primarily adds a single entry to an existing JSON history file, maintaining the established schema. Simple data entry task with good attention to detail in preserving the nested object structure. Junior to mid-level work as it involves understanding the data format but no complex logic or architecture decisions.",
+        "responseTime": 4.329,
+        "tokensUsed": 1453,
+        "cost": 0.006183
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 4.5,
+        "devLevel": 1.2,
+        "complexity": 1.1,
+        "estimatedHours": 0.1,
+        "aiPercentage": 5,
+        "estimatedHoursWithAi": 0.1,
+        "reasoning": "Analysis is based solely on the provided diff, which shows a simple addition of an entry to a JSON data array. This is a basic data manipulation task with minimal complexity, indicative of a junior-level contribution for this specific change. Code quality of the JSON snippet is good, assuming the full entry is valid JSON. Assumes the core code changes implementing the stacked progress bar were in files not included in the provided diff, making this analysis limited to the data update shown.",
+        "responseTime": 7.596,
+        "tokensUsed": 1109,
+        "cost": 0.00012119999999999999
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4.2,
+        "devLevel": 2,
+        "complexity": 2.5,
+        "estimatedHours": 3,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 2.5,
+        "reasoning": "Code quality is high with clean JSON structure and consistent formatting in the commit history file; no syntax errors or typos observed. Developer level assessed as mid-level due to straightforward data entry with good practices in maintaining schema integrity. Complexity is moderate due to nested JSON structure and multiple file changes (4 files), though the logic appears relatively simple. Estimated hours reflect the scope of changes (162 lines added, 43 deleted). AI percentage is low as the work appears manual with human-specific content in the commit data.",
+        "responseTime": 2.695,
+        "tokensUsed": 1303,
+        "cost": 0.008215
+      }
+    ],
+    "averageCodeQuality": 3.2249999999999996,
+    "averageDevLevel": 1.25,
+    "averageComplexity": 1.275,
+    "averageEstimatedHours": 1.025,
+    "averageAiPercentage": 11.25,
+    "averageEstimatedHoursWithAi": 0.8375,
+    "totalTokens": 5515,
+    "totalCost": 0.0145192,
+    "avgCostPerModel": 0.0036298,
+    "codeAnalysis": {
+      "totalLines": 6973,
+      "codeLines": 6074,
+      "commentLines": 263,
+      "textLines": 169,
+      "blankLines": 467,
+      "codePercent": "93.4",
+      "commentPercent": "4.0",
+      "textPercent": "2.6"
+    }
   }
 ]
