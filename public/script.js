@@ -13,6 +13,9 @@ async function loadCommitHistory() {
         const response = await fetch('/api/commits');
         allCommits = await response.json();
         
+        // Sort commits by timestamp descending (latest first)
+        allCommits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
         // Initialize filtered data
         pagination.comprehensive.filteredData = [...allCommits];
         pagination.basic.filteredData = [...allCommits];
@@ -147,7 +150,7 @@ function displayComprehensive() {
     
     pageData.forEach((commit, index) => {
         const row = document.createElement('tr');
-        const date = new Date(commit.timestamp).toLocaleDateString();
+        const date = new Date(commit.timestamp).toLocaleString();
         const devLevel = getDevLevel(commit.averageDevLevel);
         const savings = commit.averageEstimatedHours - (commit.averageEstimatedHoursWithAi || 0);
         const savingsPercent = ((savings / commit.averageEstimatedHours) * 100).toFixed(0);
@@ -402,7 +405,7 @@ function filterTableData(tableType, searchTerm) {
                 commit.user,
                 commit.project,
                 commit.commitHash,
-                new Date(commit.timestamp).toLocaleDateString()
+                new Date(commit.timestamp).toLocaleString()
             ].join(' ').toLowerCase();
             
             return searchableText.includes(searchTerm);

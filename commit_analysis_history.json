@@ -2458,5 +2458,92 @@
       "commentPercent": "4.1",
       "textPercent": "2.8"
     }
+  },
+  {
+    "commitHash": "9689e8803aa98817de3550403d9e91e93e8aa9e0",
+    "commitMessage": "Fix pagination display for cost table",
+    "timestamp": "2025-05-30T21:20:00.683Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 4,
+    "linesAdded": 1296,
+    "linesDeleted": 57,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 7.006,
+        "tokensUsed": 1607,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 2.8,
+        "devLevel": 1.4,
+        "complexity": 2.2,
+        "estimatedHours": 3.5,
+        "aiPercentage": 85,
+        "estimatedHoursWithAi": 1.5,
+        "reasoning": "The commit message 'Fix pagination display for cost table' doesn't match the actual changes, which are adding historical commit analysis data to a JSON file. This is primarily data insertion (962 new JSON entries) rather than code logic. The large line addition ratio (1296 added vs 57 deleted) suggests automated/AI-generated content. The work appears to be basic data manipulation rather than complex programming logic.",
+        "responseTime": 6.34,
+        "tokensUsed": 1429,
+        "cost": 0.006351000000000001
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 3.8,
+        "devLevel": 2.3,
+        "complexity": 3.4,
+        "estimatedHours": 3.5,
+        "aiPercentage": 30,
+        "estimatedHoursWithAi": 2.5,
+        "reasoning": "The analysis is based on the visible diff, which shows adding a large JSON block to a history file, and the commit metadata (4 files changed, significant lines added/deleted). The visible change is simple data addition, but the commit title 'Fix pagination display for cost table' implies significant logic changes in the other 3 files (not shown in the diff). Scoring reflects the likely complexity of a pagination fix involving data handling (implied by adding history data) and multiple file changes, combined with the quality of the visible, well-formatted JSON. Code quality is rated assuming the unseen pagination logic is reasonably clean, reflecting the fix nature. Developer level and complexity align with typical multi-file pagination implementations. AI percentage is an estimate for assistance on the unseen logic; the visible diff (adding data) is likely manual or scripted.",
+        "responseTime": 20.026,
+        "tokensUsed": 1203,
+        "cost": 0.00015052499999999999
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.8,
+        "devLevel": 2.4,
+        "complexity": 2.8,
+        "estimatedHours": 3,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 2.5,
+        "reasoning": "The commit addresses pagination display issues in a cost table, involving a significant number of lines added (1296) across 4 files, indicating a moderate scope of changes. Code quality is rated well due to systematic updates and consistency as partially reflected in the diff, though not fully visible. Developer level suggests mid-level expertise with good practices inferred from the context. Complexity is moderate given the number of files and lines changed, likely involving UI logic and data handling. Estimated hours reflect the effort for such a task, while AI percentage is low as the changes seem human-driven based on the specific focus on pagination fixes.",
+        "responseTime": 3.329,
+        "tokensUsed": 1279,
+        "cost": 0.008305
+      }
+    ],
+    "averageCodeQuality": 2.5999999999999996,
+    "averageDevLevel": 1.525,
+    "averageComplexity": 2.0999999999999996,
+    "averageEstimatedHours": 2.5,
+    "averageAiPercentage": 32.5,
+    "averageEstimatedHoursWithAi": 1.625,
+    "totalTokens": 5518,
+    "totalCost": 0.014806525000000001,
+    "avgCostPerModel": 0.0037016312500000002,
+    "codeAnalysis": {
+      "totalLines": 6706,
+      "codeLines": 5813,
+      "commentLines": 261,
+      "textLines": 169,
+      "blankLines": 463,
+      "codePercent": "93.1",
+      "commentPercent": "4.2",
+      "textPercent": "2.7"
+    }
   }
 ]
