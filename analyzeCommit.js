@@ -226,8 +226,7 @@ Respond ONLY in this JSON format:
         const response = await modelInfo.client.chat.completions.create({
           model: 'o3-mini',
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 500
+          max_completion_tokens: 500
         });
         result = response.choices[0].message.content;
         inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);

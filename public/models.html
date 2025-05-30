@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Models - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/models.html" class="nav-link active">AI Models</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>AI Models Configuration</h1>
+                <p>Manage and monitor AI models used in commit analysis</p>
+            </header>
+
+            <main>
+                <!-- Model Status Overview -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Active Models</h3>
+                        <div class="stat-value" id="activeModels">0</div>
+                        <p>Currently configured and working</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Inactive Models</h3>
+                        <div class="stat-value" id="inactiveModels">0</div>
+                        <p>Not configured or failing</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Cost</h3>
+                        <div class="stat-value" id="totalCost">$0.00</div>
+                        <p>Last analysis session</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg Response Time</h3>
+                        <div class="stat-value" id="avgResponseTime">0s</div>
+                        <p>Average model response time</p>
+                    </div>
+                </section>
+
+                <!-- Model Configuration Table -->
+                <section class="table-section">
+                    <h3>Model Configuration</h3>
+                    <div class="table-wrapper">
+                        <table id="modelsTable">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Model Name</th>
+                                    <th>Model ID</th>
+                                    <th>Status</th>
+                                    <th>Input Cost</th>
+                                    <th>Output Cost</th>
+                                    <th>API Endpoint</th>
+                                    <th>Parameters</th>
+                                    <th>Last Used</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modelsTableBody">
+                                <!-- Models will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Model Performance Analysis -->
+                <section class="table-section">
+                    <h3>Performance Metrics</h3>
+                    <div class="search-container">
+                        <input type="text" class="search-bar" id="performanceSearch" placeholder="Search performance data...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="performanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Avg Quality Score</th>
+                                    <th>Avg Response Time</th>
+                                    <th>Total Tokens</th>
+                                    <th>Total Cost</th>
+                                    <th>Success Rate</th>
+                                    <th>Error Rate</th>
+                                    <th>Last Error</th>
+                                </tr>
+                            </thead>
+                            <tbody id="performanceTableBody">
+                                <!-- Performance data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Model Testing Section -->
+                <section class="table-section">
+                    <h3>Model Testing</h3>
+                    <div class="test-controls">
+                        <button class="btn primary" id="testAllModels">Test All Models</button>
+                        <button class="btn secondary" id="refreshStatus">Refresh Status</button>
+                        <select id="modelSelector" class="form-select">
+                            <option value="">Select model to test individually</option>
+                        </select>
+                        <button class="btn secondary" id="testSingleModel">Test Selected</button>
+                    </div>
+                    <div class="test-results" id="testResults">
+                        <!-- Test results will be displayed here -->
+                    </div>
+                </section>
+
+                <!-- Configuration Help -->
+                <section class="table-section">
+                    <h3>Configuration Guide</h3>
+                    <div class="config-help">
+                        <div class="help-card">
+                            <h4>Environment Variables Required:</h4>
+                            <ul>
+                                <li><code>OPENAI_API_KEY</code> - OpenAI API key for GPT models</li>
+                                <li><code>CLAUDE_API_KEY</code> - Anthropic API key for Claude models</li>
+                                <li><code>GEMINI_API_KEY</code> - Google API key for Gemini models</li>
+                                <li><code>GROK_API_KEY</code> - xAI API key for Grok models</li>
+                            </ul>
+                        </div>
+                        <div class="help-card">
+                            <h4>Model Switching:</h4>
+                            <p>To switch models, update the model ID in <code>analyzeCommit.js</code> and restart the service. 
+                            Use this page to verify the model is working before committing changes.</p>
+                        </div>
+                        <div class="help-card">
+                            <h4>Cost Management:</h4>
+                            <p>Monitor token usage and costs here. Set up alerts when costs exceed thresholds. 
+                            Gemini offers the lowest cost, while o3-mini has premium pricing.</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="models.js"></script>
+</body>
+</html>
