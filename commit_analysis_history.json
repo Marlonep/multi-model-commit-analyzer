@@ -1153,5 +1153,92 @@
       "commentPercent": "5.3",
       "textPercent": "4.0"
     }
+  },
+  {
+    "commitHash": "94a094163b137e77a659faf998896ce800d18846",
+    "commitMessage": "Implement OpenAI o3 support with new /v1/responses API",
+    "timestamp": "2025-05-30T01:52:16.139Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 2,
+    "linesAdded": 138,
+    "linesDeleted": 8,
+    "modelScores": [
+      {
+        "modelName": "OpenAI o3",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: o3 API error: 401 - {\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-proj-********************************************************************************************************************************************************AMkA. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+        "responseTime": 0,
+        "tokensUsed": 0,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 3.2,
+        "devLevel": 2.1,
+        "complexity": 3.6,
+        "estimatedHours": 4.5,
+        "aiPercentage": 75,
+        "estimatedHoursWithAi": 2.25,
+        "reasoning": "Code implements new API integration with proper error handling and structured request format. However, it lacks comprehensive error handling patterns, input validation, and the diff appears truncated. The highly specific API structure and detailed parameter configuration suggests significant AI assistance. Mid-level developer work with moderate complexity due to API integration requirements.",
+        "responseTime": 4.555,
+        "tokensUsed": 1222,
+        "cost": 0.00543
+      },
+      {
+        "modelName": "Gemini 2.5 Pro Preview",
+        "provider": "Google",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-05-06:generateContent: [429 Too Many Requests] Gemini 2.5 Pro Preview doesn't have a free quota tier. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. [{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerMinute-FreeTier\",\"quotaDimensions\":{\"model\":\"gemini-2.5-pro-exp\",\"location\":\"global\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.5-pro-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.5-pro-exp\"}},{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\",\"quotaId\":\"GenerateContentInputTokensPerModelPerDay-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.5-pro-exp\"}}]},{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"48s\"}]",
+        "responseTime": 0,
+        "tokensUsed": 0,
+        "cost": 0
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.8,
+        "devLevel": 2.4,
+        "complexity": 3.6,
+        "estimatedHours": 3.25,
+        "aiPercentage": 30.5,
+        "estimatedHoursWithAi": 2.1,
+        "reasoning": "The code quality is rated at 3.8 due to clear implementation of the new OpenAI o3 API with proper error handling and structured request formatting. The developer level is assessed at 2.4, indicating mid-level expertise, as the commit shows familiarity with API integration and custom configurations. Complexity is scored at 3.6 because of the moderate intricacy in handling a new API endpoint and data structure. Estimated hours are set at 3.25 based on the significant lines added (138) and the need to research/test the new API. AI percentage is estimated at 30.5% due to potential use of AI for boilerplate or API request structure. With AI assistance, the time is reduced to 2.10 hours as it could streamline formatting and error handling.",
+        "responseTime": 3.177,
+        "tokensUsed": 1125,
+        "cost": 0.007905
+      }
+    ],
+    "averageCodeQuality": 1.75,
+    "averageDevLevel": 1.125,
+    "averageComplexity": 1.8,
+    "averageEstimatedHours": 1.9375,
+    "averageAiPercentage": 26.375,
+    "averageEstimatedHoursWithAi": 1.0875,
+    "totalTokens": 2347,
+    "totalCost": 0.013335,
+    "avgCostPerModel": 0.00333375,
+    "codeAnalysis": {
+      "totalLines": 4765,
+      "codeLines": 3988,
+      "commentLines": 230,
+      "textLines": 169,
+      "blankLines": 378,
+      "codePercent": "90.9",
+      "commentPercent": "5.2",
+      "textPercent": "3.9"
+    }
   }
 ]

@@ -3,7 +3,7 @@
 /**
  * Multi-Model Commit Analyzer
  * 
- * This tool analyzes git commits using multiple AI models (OpenAI o3, Claude Sonnet 4, Gemini 2.5 Pro, Grok)
+ * This tool analyzes git commits using multiple AI models (OpenAI o1-pro, Claude Sonnet 4, Gemini 2.5 Pro, Grok)
  * to provide comprehensive code quality assessments. It evaluates code quality, developer
  * level, complexity, and estimates development time with and without AI assistance.
  * 
@@ -28,9 +28,9 @@ const execAsync = promisify(exec);
 
 // Pricing per 1K tokens (as of 2025)
 const MODEL_PRICING = {
-  'o3': {
-    input: 0.015,   // $15 per 1M input tokens (estimated for o3)
-    output: 0.060   // $60 per 1M output tokens (estimated for o3)
+  'o1-pro': {
+    input: 0.015,   // $15 per 1M input tokens
+    output: 0.060   // $60 per 1M output tokens
   },
   'claude-sonnet-4-20250514': {
     input: 0.003,   // $3 per 1M input tokens
@@ -126,7 +126,7 @@ class AIModels {
     const openaiKey = process.env.OPENAI_API_KEY;
     if (openaiKey && openaiKey !== 'your_api_key_here') {
       this.models.push({
-        name: 'OpenAI o3',
+        name: 'OpenAI o1-pro',
         provider: 'OpenAI',
         client: new OpenAI({ apiKey: openaiKey }),
         type: 'openai'
@@ -223,59 +223,16 @@ Respond ONLY in this JSON format:
       let modelKey = '';
 
       if (modelInfo.type === 'openai') {
-        // o3 uses a different API endpoint and format
-        const apiKey = process.env.OPENAI_API_KEY;
-        const o3Response = await fetch('https://api.openai.com/v1/responses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'o3',
-            input: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'input_text',
-                    text: prompt
-                  }
-                ]
-              }
-            ],
-            text: {
-              format: {
-                type: 'text'
-              }
-            },
-            reasoning: {
-              effort: 'medium'
-            },
-            tools: [],
-            store: true
-          })
+        const response = await modelInfo.client.chat.completions.create({
+          model: 'o1-pro',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: 500
         });
-
-        if (!o3Response.ok) {
-          const errorText = await o3Response.text();
-          throw new Error(`o3 API error: ${o3Response.status} - ${errorText}`);
-        }
-
-        const o3Data = await o3Response.json();
-        
-        // Extract the response text from the o3 format
-        if (o3Data.output && o3Data.output[0] && o3Data.output[0].content) {
-          const outputContent = o3Data.output[0].content.find(c => c.type === 'output_text');
-          result = outputContent ? outputContent.text : 'No response generated';
-        } else {
-          result = 'No response generated';
-        }
-        
-        // o3 doesn't provide token counts in the same way, so we estimate
-        inputTokens = estimateTokens(prompt);
-        outputTokens = estimateTokens(result);
-        modelKey = 'o3';
+        result = response.choices[0].message.content;
+        inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
+        outputTokens = response.usage?.completion_tokens || estimateTokens(result);
+        modelKey = 'o1-pro';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
           model: 'claude-sonnet-4-20250514',
