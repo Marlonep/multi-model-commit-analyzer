@@ -224,7 +224,7 @@ Respond ONLY in this JSON format:
 
       if (modelInfo.type === 'openai') {
         const response = await modelInfo.client.chat.completions.create({
-          model: 'gpt-4',
+          model: 'o3-mini',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.3,
           max_tokens: 500
@@ -232,7 +232,7 @@ Respond ONLY in this JSON format:
         result = response.choices[0].message.content;
         inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
         outputTokens = response.usage?.completion_tokens || estimateTokens(result);
-        modelKey = 'gpt-4';
+        modelKey = 'o3-mini';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
           model: 'claude-sonnet-4-20250514',
