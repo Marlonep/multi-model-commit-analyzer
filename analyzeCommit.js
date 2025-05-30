@@ -3,7 +3,7 @@
 /**
  * Multi-Model Commit Analyzer
  * 
- * This tool analyzes git commits using multiple AI models (GPT-3.5, Claude, Gemini, Grok)
+ * This tool analyzes git commits using multiple AI models (OpenAI o3, Claude Sonnet 4, Gemini 2.5 Pro, Grok)
  * to provide comprehensive code quality assessments. It evaluates code quality, developer
  * level, complexity, and estimates development time with and without AI assistance.
  * 
@@ -28,17 +28,17 @@ const execAsync = promisify(exec);
 
 // Pricing per 1K tokens (as of 2025)
 const MODEL_PRICING = {
-  'gpt-3.5-turbo': {
-    input: 0.0005,  // $0.50 per 1M input tokens
-    output: 0.0015  // $1.50 per 1M output tokens
+  'o3': {
+    input: 0.015,   // $15 per 1M input tokens (estimated for o3)
+    output: 0.060   // $60 per 1M output tokens (estimated for o3)
   },
-  'claude-3-haiku-20240307': {
-    input: 0.00025, // $0.25 per 1M input tokens
-    output: 0.00125 // $1.25 per 1M output tokens
+  'claude-sonnet-4-20250514': {
+    input: 0.003,   // $3 per 1M input tokens
+    output: 0.015   // $15 per 1M output tokens
   },
-  'gemini-1.5-flash': {
-    input: 0.000075, // $0.075 per 1M input tokens
-    output: 0.00030  // $0.30 per 1M output tokens
+  'gemini-2.5-pro-preview-05-06': {
+    input: 0.00125, // $1.25 per 1M input tokens
+    output: 0.005   // $5 per 1M output tokens
   },
   'grok-3': {
     input: 0.005,   // $5 per 1M input tokens (estimated)
@@ -126,7 +126,7 @@ class AIModels {
     const openaiKey = process.env.OPENAI_API_KEY;
     if (openaiKey && openaiKey !== 'your_api_key_here') {
       this.models.push({
-        name: 'GPT-3.5 Turbo',
+        name: 'OpenAI o3',
         provider: 'OpenAI',
         client: new OpenAI({ apiKey: openaiKey }),
         type: 'openai'
@@ -137,7 +137,7 @@ class AIModels {
     const claudeKey = process.env.CLAUDE_API_KEY;
     if (claudeKey && claudeKey !== 'your_claude_api_key_here') {
       this.models.push({
-        name: 'Claude 3 Haiku',
+        name: 'Claude Sonnet 4',
         provider: 'Anthropic',
         client: new Anthropic({ apiKey: claudeKey }),
         type: 'claude'
@@ -148,7 +148,7 @@ class AIModels {
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey && geminiKey !== 'your_gemini_api_key_here') {
       this.models.push({
-        name: 'Gemini 1.5 Flash',
+        name: 'Gemini 2.5 Pro Preview',
         provider: 'Google',
         client: new GoogleGenerativeAI(geminiKey),
         type: 'gemini'
@@ -224,7 +224,7 @@ Respond ONLY in this JSON format:
 
       if (modelInfo.type === 'openai') {
         const response = await modelInfo.client.chat.completions.create({
-          model: 'gpt-3.5-turbo',
+          model: 'o3',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.3,
           max_tokens: 500
@@ -235,7 +235,7 @@ Respond ONLY in this JSON format:
         modelKey = 'gpt-3.5-turbo';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
-          model: 'claude-3-haiku-20240307',
+          model: 'claude-sonnet-4-20250514',
           max_tokens: 500,
           temperature: 0.3,
           messages: [{ role: 'user', content: prompt }]
@@ -245,7 +245,7 @@ Respond ONLY in this JSON format:
         outputTokens = response.usage?.output_tokens || estimateTokens(result);
         modelKey = 'claude-3-haiku-20240307';
       } else if (modelInfo.type === 'gemini') {
-        const model = modelInfo.client.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = modelInfo.client.getGenerativeModel({ model: 'gemini-2.5-pro-preview-05-06' });
         const response = await model.generateContent(prompt);
         result = response.response.text();
         // Gemini doesn't provide token counts, so we estimate

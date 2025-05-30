@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Analytics - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/analytics.html" class="nav-link active">Analytics</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Organization Analytics</h1>
+                <p>Comprehensive statistics across all projects and contributors</p>
+            </header>
+
+            <main>
+                <!-- Organization Overview -->
+                <section class="table-section">
+                    <h3>Organization Overview</h3>
+                    <div class="analytics-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <h4>Total Commits</h4>
+                                <p class="stat-value" id="totalCommits">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <h4>Contributors</h4>
+                                <p class="stat-value" id="totalContributors">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📁</div>
+                            <div class="stat-content">
+                                <h4>Projects</h4>
+                                <p class="stat-value" id="totalProjects">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-content">
+                                <h4>Total Hours</h4>
+                                <p class="stat-value" id="totalHours">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Code Statistics -->
+                <section class="table-section">
+                    <h3>Code Production Statistics</h3>
+                    <div class="table-wrapper">
+                        <table id="codeStatsTable">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Value</th>
+                                    <th>Average per Commit</th>
+                                    <th>Average per Contributor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Total Lines Added</td>
+                                    <td id="totalLinesAdded">0</td>
+                                    <td id="avgLinesPerCommit">0</td>
+                                    <td id="avgLinesPerContributor">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Total Lines Deleted</td>
+                                    <td id="totalLinesDeleted">0</td>
+                                    <td id="avgLinesDeletedPerCommit">0</td>
+                                    <td id="avgLinesDeletedPerContributor">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Net Lines Changed</td>
+                                    <td id="netLinesChanged">0</td>
+                                    <td id="avgNetLinesPerCommit">0</td>
+                                    <td id="avgNetLinesPerContributor">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Files Changed</td>
+                                    <td id="totalFilesChanged">0</td>
+                                    <td id="avgFilesPerCommit">0</td>
+                                    <td id="avgFilesPerContributor">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Productivity Metrics -->
+                <section class="table-section">
+                    <h3>Productivity Metrics</h3>
+                    <div class="table-wrapper">
+                        <table id="productivityTable">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Value</th>
+                                    <th>Organization Average</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Development Hours</td>
+                                    <td id="totalDevHours">0h</td>
+                                    <td id="avgHoursPerCommit">0h</td>
+                                </tr>
+                                <tr>
+                                    <td>AI Assistance Usage</td>
+                                    <td id="avgAiUsage">0%</td>
+                                    <td id="aiHoursSaved">0h saved</td>
+                                </tr>
+                                <tr>
+                                    <td>Code Quality Score</td>
+                                    <td id="avgQualityScore">0/5</td>
+                                    <td id="qualityTrend">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Complexity Average</td>
+                                    <td id="avgComplexity">0/5</td>
+                                    <td id="complexityDistribution">-</td>
+                                </tr>
+                                <tr>
+                                    <td>Developer Level Distribution</td>
+                                    <td id="devLevelDist">-</td>
+                                    <td id="avgDevLevel">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Cost Analysis -->
+                <section class="table-section">
+                    <h3>AI Analysis Cost Summary</h3>
+                    <div class="table-wrapper">
+                        <table id="costSummaryTable">
+                            <thead>
+                                <tr>
+                                    <th>Model Provider</th>
+                                    <th>Total Tokens</th>
+                                    <th>Total Cost</th>
+                                    <th>Avg Cost per Analysis</th>
+                                </tr>
+                            </thead>
+                            <tbody id="costSummaryBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td><strong>TOTAL</strong></td>
+                                    <td id="grandTotalTokens">0</td>
+                                    <td id="grandTotalCost">$0.00</td>
+                                    <td id="grandAvgCost">$0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="analytics.js"></script>
+</body>
+</html>
