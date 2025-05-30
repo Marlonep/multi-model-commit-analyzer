@@ -96,17 +96,38 @@ function displayUserStats(userStats) {
             <td>${user.avgComplexity.toFixed(1)}/5</td>
             <td>${user.totalHours.toFixed(1)}h</td>
             <td>${user.avgAiPercentage.toFixed(0)}%</td>
+            <td>${getGitHubProfileButton(user.user)}</td>
         `;
         
         tbody.appendChild(row);
     });
 }
 
-// Helper function
+// Helper functions
 function getDevLevel(level) {
     if (level <= 1.5) return 'Jr';
     if (level <= 2.5) return 'Mid';
     return 'Sr';
+}
+
+function getGitHubProfileButton(userName) {
+    if (!userName) {
+        return '<span style="color: var(--text-secondary)">-</span>';
+    }
+    
+    // Map user names to GitHub usernames
+    // In a real app, this would be stored in configuration or user profiles
+    const githubUserMap = {
+        'Marlon Espinosa': 'Marlonep',
+        'marlonespinosaperez': 'Marlonep',
+        // Add more mappings as needed
+    };
+    
+    // Try to find a mapping, or use the name as-is (removing spaces)
+    const githubUsername = githubUserMap[userName] || userName.replace(/\s+/g, '');
+    const profileUrl = `https://github.com/${githubUsername}`;
+    
+    return `<a href="${profileUrl}" target="_blank" class="github-link">View Profile</a>`;
 }
 
 // Load data when page loads

@@ -108,17 +108,31 @@ function displayProjectStats(projectStats) {
             <td>${project.avgComplexity.toFixed(1)}/5</td>
             <td>${project.totalHours.toFixed(1)}h</td>
             <td>${project.avgAiPercentage.toFixed(0)}%</td>
+            <td>${getGitHubRepoButton(project.project)}</td>
         `;
         
         tbody.appendChild(row);
     });
 }
 
-// Helper function
+// Helper functions
 function getDevLevel(level) {
     if (level <= 1.5) return 'Jr';
     if (level <= 2.5) return 'Mid';
     return 'Sr';
+}
+
+function getGitHubRepoButton(projectName) {
+    if (projectName === 'unknown' || !projectName) {
+        return '<span style="color: var(--text-secondary)">-</span>';
+    }
+    
+    // Extract GitHub username from localStorage or use a default
+    // In a real app, this would be configured or extracted from git config
+    const githubUsername = localStorage.getItem('githubUsername') || 'Marlonep';
+    const repoUrl = `https://github.com/${githubUsername}/${projectName}`;
+    
+    return `<a href="${repoUrl}" target="_blank" class="github-link">View Repo</a>`;
 }
 
 // Load data when page loads

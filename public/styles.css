@@ -297,6 +297,32 @@ tbody tr:hover {
     color: var(--bg-primary);
 }
 
+/* GitHub Link Buttons */
+.github-link {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.github-link:hover {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.github-link::before {
+    content: '↗';
+    font-size: 0.8rem;
+}
+
 /* Grand Total Row */
 tfoot tr {
     background-color: var(--bg-primary);
