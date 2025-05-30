@@ -19,6 +19,10 @@ app.get('/api/commits', async (req, res) => {
   try {
     const data = await fs.readFile('commit_analysis_history.json', 'utf8');
     const history = JSON.parse(data);
+    
+    // Sort by timestamp descending (latest first)
+    history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
     res.json(history);
   } catch (error) {
     res.json([]);
@@ -35,6 +39,10 @@ app.get('/api/commits/:index', async (req, res) => {
   try {
     const data = await fs.readFile('commit_analysis_history.json', 'utf8');
     const history = JSON.parse(data);
+    
+    // Sort by timestamp descending to match frontend
+    history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
     const index = parseInt(req.params.index);
     
     if (index >= 0 && index < history.length) {

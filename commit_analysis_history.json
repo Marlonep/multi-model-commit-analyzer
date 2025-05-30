@@ -2545,5 +2545,92 @@
       "commentPercent": "4.2",
       "textPercent": "2.7"
     }
+  },
+  {
+    "commitHash": "d19262a06f4f1d114038520271fe5bdfadd39b9c",
+    "commitMessage": "Add date/time display and sort commits by latest first",
+    "timestamp": "2025-05-30T21:23:17.407Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 2,
+    "linesAdded": 92,
+    "linesDeleted": 2,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 6.92,
+        "tokensUsed": 1669,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 2.1,
+        "complexity": 2.3,
+        "estimatedHours": 2.5,
+        "aiPercentage": 25,
+        "estimatedHoursWithAi": 1.8,
+        "reasoning": "Clean JSON data addition with proper structure and formatting. The commit adds historical analysis data to an existing JSON file with consistent schema. Developer shows mid-level understanding of data structure maintenance. Moderate complexity due to handling structured data with multiple nested objects and maintaining JSON integrity. Low AI percentage as this appears to be manual data compilation and organization work.",
+        "responseTime": 5.145,
+        "tokensUsed": 1472,
+        "cost": 0.00624
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 3.7,
+        "devLevel": 2.3,
+        "complexity": 3.4,
+        "estimatedHours": 2.75,
+        "aiPercentage": 45.5,
+        "estimatedHoursWithAi": 1.25,
+        "reasoning": "Adds date/time display using the moment library, including timezone handling. Implements sorting of commits by timestamp. Extracts sorting logic into a separate function (good practice). The changes involve parsing, formatting, sorting, and modifying the rendering logic, representing moderate complexity.",
+        "responseTime": 8.34,
+        "tokensUsed": 1062,
+        "cost": 0.00010732499999999999
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.5,
+        "devLevel": 1.8,
+        "complexity": 2.5,
+        "estimatedHours": 2,
+        "aiPercentage": 70,
+        "estimatedHoursWithAi": 0.75,
+        "reasoning": "The commit primarily involves adding date/time display and sorting commits, which appears to be a moderate update to a JSON file with a significant number of lines added (92) compared to deletions (2). Code quality is decent with no visible syntax errors or typos in the diff, though the structure is mostly data-driven rather than complex logic. Developer level is mid-range due to the straightforward nature of the changes without advanced patterns. Complexity is moderate given the number of lines added and the integration of timestamp data. High AI percentage is inferred from the structured, repetitive nature of the JSON data additions, suggesting automated generation. Estimated time reflects a quick task, further reduced with AI assistance.",
+        "responseTime": 3.028,
+        "tokensUsed": 1355,
+        "cost": 0.008805
+      }
+    ],
+    "averageCodeQuality": 2.85,
+    "averageDevLevel": 1.55,
+    "averageComplexity": 2.05,
+    "averageEstimatedHours": 1.8125,
+    "averageAiPercentage": 35.125,
+    "averageEstimatedHoursWithAi": 0.95,
+    "totalTokens": 5558,
+    "totalCost": 0.015152325000000001,
+    "avgCostPerModel": 0.0037880812500000003,
+    "codeAnalysis": {
+      "totalLines": 6796,
+      "codeLines": 5901,
+      "commentLines": 262,
+      "textLines": 169,
+      "blankLines": 464,
+      "codePercent": "93.2",
+      "commentPercent": "4.1",
+      "textPercent": "2.7"
+    }
   }
 ]
