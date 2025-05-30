@@ -2,7 +2,11 @@ import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { AIModels } from './analyzeCommit.js';
+
+const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +56,40 @@ app.get('/api/commits/:index', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// API endpoint to get GitHub configuration
+app.get('/api/github-config', async (req, res) => {
+  try {
+    // Extract GitHub information from git remote URL
+    const { stdout: remoteUrl } = await execAsync('git config --get remote.origin.url');
+    const cleanUrl = remoteUrl.trim().replace(/\.git$/, '');
+    
+    // Parse GitHub URL to extract username and repository
+    const match = cleanUrl.match(/github\.com[:/]([^/]+)\/([^/\s]+)$/);
+    
+    if (match) {
+      res.json({
+        username: match[1],
+        repository: match[2],
+        baseUrl: `https://github.com/${match[1]}/${match[2]}`
+      });
+    } else {
+      // Fallback configuration
+      res.json({
+        username: 'Marlonep',
+        repository: 'multi-model-commit-analyzer',
+        baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+      });
+    }
+  } catch (error) {
+    // Fallback configuration on error
+    res.json({
+      username: 'Marlonep',
+      repository: 'multi-model-commit-analyzer',
+      baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+    });
   }
 });
 

@@ -3067,5 +3067,92 @@
       "commentPercent": "3.9",
       "textPercent": "2.5"
     }
+  },
+  {
+    "commitHash": "a84fd6183688bf00981cdb388ce1d5a4f40f0846",
+    "commitMessage": "Add GitHub navigation links to tables and commit details",
+    "timestamp": "2025-05-30T21:53:36.420Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 5,
+    "linesAdded": 198,
+    "linesDeleted": 12,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 5.179,
+        "tokensUsed": 1662,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 1.8,
+        "complexity": 2.1,
+        "estimatedHours": 1.5,
+        "aiPercentage": 25,
+        "estimatedHoursWithAi": 1,
+        "reasoning": "Clean JSON data addition with proper structure and formatting. The commit primarily adds historical analysis data to existing JSON file while maintaining consistent schema. Code quality is high due to proper JSON formatting and field consistency. Complexity is moderate as it involves 5 files and UI navigation features beyond just data entry. Developer level appears mid-junior based on straightforward implementation patterns.",
+        "responseTime": 4.566,
+        "tokensUsed": 1467,
+        "cost": 0.006273
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 4.5,
+        "devLevel": 2.2,
+        "complexity": 2.8,
+        "estimatedHours": 3,
+        "aiPercentage": 55,
+        "estimatedHoursWithAi": 1.5,
+        "reasoning": "Implements GitHub link navigation by adding URLs to analysis data, rendering links in the webview table, and handling clicks via extension commands using standard VS Code APIs. Changes span multiple files (analysis, extension, webview UI/logic), leading to moderate complexity. Code quality appears high based on the provided diff, utilizing standard patterns for extension development.",
+        "responseTime": 15.327,
+        "tokensUsed": 1082,
+        "cost": 0.00011309999999999998
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4.5,
+        "devLevel": 2,
+        "complexity": 2.5,
+        "estimatedHours": 3,
+        "aiPercentage": 30,
+        "estimatedHoursWithAi": 2,
+        "reasoning": "The commit adds GitHub navigation links to tables and commit details, involving 5 files with a significant number of lines added (198) compared to deletions (12), indicating a focused feature addition. Code quality is high due to the structured JSON data addition in the diff, with no visible syntax errors or typos. Developer level is mid-range as the changes appear to follow good practices but do not exhibit advanced architectural patterns. Complexity is moderate due to the number of files changed and the integration of navigation links. Estimated time reflects a reasonable effort for implementing and testing the feature. AI percentage is moderate as the structured JSON format and repetitive data patterns suggest some AI assistance, though unique implementation details are likely human-driven.",
+        "responseTime": 3.539,
+        "tokensUsed": 1354,
+        "cost": 0.00887
+      }
+    ],
+    "averageCodeQuality": 3.3,
+    "averageDevLevel": 1.5,
+    "averageComplexity": 1.85,
+    "averageEstimatedHours": 1.875,
+    "averageAiPercentage": 27.5,
+    "averageEstimatedHoursWithAi": 1.125,
+    "totalTokens": 5565,
+    "totalCost": 0.015256099999999998,
+    "avgCostPerModel": 0.0038140249999999995,
+    "codeAnalysis": {
+      "totalLines": 7362,
+      "codeLines": 6454,
+      "commentLines": 267,
+      "textLines": 169,
+      "blankLines": 472,
+      "codePercent": "93.7",
+      "commentPercent": "3.9",
+      "textPercent": "2.5"
+    }
   }
 ]

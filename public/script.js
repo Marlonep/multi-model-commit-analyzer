@@ -1,5 +1,6 @@
 // Global variables for pagination
 let allCommits = [];
+let githubConfig = null;
 const pagination = {
     comprehensive: { currentPage: 1, pageSize: 25, filteredData: [] },
     basic: { currentPage: 1, pageSize: 25, filteredData: [] },
@@ -7,9 +8,28 @@ const pagination = {
     cost: { currentPage: 1, pageSize: 25, filteredData: [] }
 };
 
+// Fetch GitHub configuration
+async function loadGithubConfig() {
+    try {
+        const response = await fetch('/api/github-config');
+        githubConfig = await response.json();
+    } catch (error) {
+        console.error('Error loading GitHub config:', error);
+        // Fallback configuration
+        githubConfig = {
+            username: 'Marlonep',
+            repository: 'multi-model-commit-analyzer',
+            baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+        };
+    }
+}
+
 // Fetch and display commit history
 async function loadCommitHistory() {
     try {
+        // Load GitHub config first
+        await loadGithubConfig();
+        
         const response = await fetch('/api/commits');
         allCommits = await response.json();
         
@@ -159,25 +179,26 @@ function displayComprehensive() {
         const avgCost = commit.avgCostPerModel || 0;
         const globalIndex = allCommits.indexOf(commit);
         
-        const username = commit.user.replace(/\s+/g, '').toLowerCase();
-        const projectName = commit.project;
+        // Use the actual GitHub configuration
+        const githubUsername = githubConfig?.username || 'Marlonep';
+        const projectName = githubConfig?.repository || 'multi-model-commit-analyzer';
         
         row.innerHTML = `
             <td>${date}</td>
             <td>
-                <a href="https://github.com/${username}/${projectName}/commit/${commit.commitHash}" 
+                <a href="https://github.com/${githubUsername}/${projectName}/commit/${commit.commitHash}" 
                    target="_blank" class="table-link" title="View on GitHub">
                     ${commit.commitHash.substring(0, 8)}
                 </a>
             </td>
             <td>
-                <a href="https://github.com/${username}" 
+                <a href="https://github.com/${githubUsername}" 
                    target="_blank" class="table-link" title="View Profile">
                     ${commit.user}
                 </a>
             </td>
             <td>
-                <a href="https://github.com/${username}/${projectName}" 
+                <a href="https://github.com/${githubUsername}/${projectName}" 
                    target="_blank" class="table-link" title="View Repository">
                     ${commit.project}
                 </a>
@@ -201,7 +222,7 @@ function displayComprehensive() {
                     <button class="view-details" onclick="viewDetails(${globalIndex})">
                         View Details
                     </button>
-                    <a href="https://github.com/${username}/${projectName}/commit/${commit.commitHash}" 
+                    <a href="https://github.com/${githubUsername}/${projectName}/commit/${commit.commitHash}" 
                        target="_blank" class="github-link-btn" title="View on GitHub">
                         GitHub ↗
                     </a>

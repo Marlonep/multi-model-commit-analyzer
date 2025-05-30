@@ -1,6 +1,23 @@
 // Get commit index from URL
 const urlParams = new URLSearchParams(window.location.search);
 const commitIndex = urlParams.get('index');
+let githubConfig = null;
+
+// Fetch GitHub configuration
+async function loadGithubConfig() {
+    try {
+        const response = await fetch('/api/github-config');
+        githubConfig = await response.json();
+    } catch (error) {
+        console.error('Error loading GitHub config:', error);
+        // Fallback configuration
+        githubConfig = {
+            username: 'Marlonep',
+            repository: 'multi-model-commit-analyzer',
+            baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+        };
+    }
+}
 
 // Load and display commit details
 async function loadCommitDetails() {
@@ -10,6 +27,9 @@ async function loadCommitDetails() {
     }
     
     try {
+        // Load GitHub config first
+        await loadGithubConfig();
+        
         const response = await fetch(`/api/commits/${commitIndex}`);
         if (!response.ok) {
             throw new Error('Commit not found');
@@ -36,21 +56,21 @@ function displayCommitDetails(commit) {
     document.getElementById('commitChanges').textContent = 
         `${commit.fileChanges} files, +${commit.linesAdded} -${commit.linesDeleted}`;
     
-    // Set GitHub links
-    const username = commit.user.replace(/\s+/g, '').toLowerCase(); // Remove spaces and lowercase
-    const projectName = commit.project;
+    // Set GitHub links using actual repository configuration
+    const githubUsername = githubConfig?.username || 'Marlonep';
+    const projectName = githubConfig?.repository || 'multi-model-commit-analyzer';
     
-    // GitHub commit link (assuming standard GitHub URL structure)
+    // GitHub commit link
     document.getElementById('commitHashLink').href = 
-        `https://github.com/${username}/${projectName}/commit/${commit.commitHash}`;
+        `https://github.com/${githubUsername}/${projectName}/commit/${commit.commitHash}`;
     
     // GitHub user profile link
     document.getElementById('commitUserLink').href = 
-        `https://github.com/${username}`;
+        `https://github.com/${githubUsername}`;
     
     // GitHub project repository link
     document.getElementById('commitProjectLink').href = 
-        `https://github.com/${username}/${projectName}`;
+        `https://github.com/${githubUsername}/${projectName}`;
     
     // Average scores
     document.getElementById('avgQuality').textContent = commit.averageCodeQuality.toFixed(1);
