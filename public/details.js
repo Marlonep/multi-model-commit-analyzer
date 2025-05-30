@@ -27,13 +27,30 @@ async function loadCommitDetails() {
 // Display all commit details
 function displayCommitDetails(commit) {
     // Commit info
-    document.getElementById('commitHash').textContent = commit.commitHash.substring(0, 8);
+    const shortHash = commit.commitHash.substring(0, 8);
+    document.getElementById('commitHash').textContent = shortHash;
     document.getElementById('commitMessage').textContent = commit.commitMessage;
     document.getElementById('commitUser').textContent = commit.user;
     document.getElementById('commitProject').textContent = commit.project;
     document.getElementById('commitTimestamp').textContent = new Date(commit.timestamp).toLocaleString();
     document.getElementById('commitChanges').textContent = 
         `${commit.fileChanges} files, +${commit.linesAdded} -${commit.linesDeleted}`;
+    
+    // Set GitHub links
+    const username = commit.user.replace(/\s+/g, '').toLowerCase(); // Remove spaces and lowercase
+    const projectName = commit.project;
+    
+    // GitHub commit link (assuming standard GitHub URL structure)
+    document.getElementById('commitHashLink').href = 
+        `https://github.com/${username}/${projectName}/commit/${commit.commitHash}`;
+    
+    // GitHub user profile link
+    document.getElementById('commitUserLink').href = 
+        `https://github.com/${username}`;
+    
+    // GitHub project repository link
+    document.getElementById('commitProjectLink').href = 
+        `https://github.com/${username}/${projectName}`;
     
     // Average scores
     document.getElementById('avgQuality').textContent = commit.averageCodeQuality.toFixed(1);

@@ -41,15 +41,24 @@
                 <div class="info-grid">
                     <div class="info-item full-width">
                         <span class="label">Commit:</span>
-                        <span class="value"><span id="commitHash"></span> - <span id="commitMessage"></span></span>
+                        <span class="value">
+                            <a id="commitHashLink" href="#" target="_blank" class="commit-link">
+                                <span id="commitHash"></span>
+                            </a>
+                            - <span id="commitMessage"></span>
+                        </span>
                     </div>
                     <div class="info-item">
                         <span class="label">User:</span>
-                        <span id="commitUser" class="value"></span>
+                        <a id="commitUserLink" href="#" target="_blank" class="value user-link">
+                            <span id="commitUser"></span>
+                        </a>
                     </div>
                     <div class="info-item">
                         <span class="label">Project:</span>
-                        <span id="commitProject" class="value"></span>
+                        <a id="commitProjectLink" href="#" target="_blank" class="value project-link">
+                            <span id="commitProject"></span>
+                        </a>
                     </div>
                     <div class="info-item">
                         <span class="label">Timestamp:</span>

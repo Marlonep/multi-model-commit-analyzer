@@ -2980,5 +2980,92 @@
       "commentPercent": "3.9",
       "textPercent": "2.5"
     }
+  },
+  {
+    "commitHash": "725237bc483afe291f4c6f168b6b505d1853df7e",
+    "commitMessage": "Fix comprehensive table column widths for single-line headers",
+    "timestamp": "2025-05-30T21:47:01.075Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 2,
+    "linesAdded": 147,
+    "linesDeleted": 1,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 14.189,
+        "tokensUsed": 1664,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.8,
+        "devLevel": 1.2,
+        "complexity": 1.3,
+        "estimatedHours": 0.25,
+        "aiPercentage": 5,
+        "estimatedHoursWithAi": 0.15,
+        "reasoning": "Clean JSON data addition with proper structure and formatting. The commit adds historical analysis data to an existing JSON file while maintaining consistent schema. This is a simple data entry task with minimal complexity - just appending structured data to an array. High code quality due to proper JSON formatting and consistent field structure.",
+        "responseTime": 3.828,
+        "tokensUsed": 1458,
+        "cost": 0.006090000000000001
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 3.7,
+        "devLevel": 2.3,
+        "complexity": 3.4,
+        "estimatedHours": 2.75,
+        "aiPercentage": 45.5,
+        "estimatedHoursWithAi": 1.25,
+        "reasoning": "The commit primarily adds CSS rules to control table column widths within a media query, addressing a specific layout issue for single-line headers on wider screens. It also includes a simple data addition to a JSON history file. Code quality is decent, though the frequent use of `!important` in the CSS is a minor detraction. The task is a typical mid-level front-end layout fix. Complexity is moderate due to the intricacies of consistent table styling. The repetitive nature of the CSS rules makes it a candidate for significant AI assistance.",
+        "responseTime": 14.193,
+        "tokensUsed": 1124,
+        "cost": 0.000125475
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4.5,
+        "devLevel": 1.3,
+        "complexity": 1.5,
+        "estimatedHours": 0.5,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 0.25,
+        "reasoning": "The commit primarily involves adding structured JSON data to an existing file with proper formatting and schema consistency. There are no visible syntax errors or structural issues in the provided diff. The changes are straightforward, reflecting a junior to mid-level developer skill set due to the simplicity of the task. Complexity is low as it involves minimal logic or integration, focusing on data entry. Estimated time is minimal due to the repetitive nature of the update, and AI assistance appears low based on the structured but manual nature of the JSON additions.",
+        "responseTime": 2.721,
+        "tokensUsed": 1318,
+        "cost": 0.0083
+      }
+    ],
+    "averageCodeQuality": 3.25,
+    "averageDevLevel": 1.2,
+    "averageComplexity": 1.55,
+    "averageEstimatedHours": 0.875,
+    "averageAiPercentage": 16.375,
+    "averageEstimatedHoursWithAi": 0.4125,
+    "totalTokens": 5564,
+    "totalCost": 0.014515475,
+    "avgCostPerModel": 0.00362886875,
+    "codeAnalysis": {
+      "totalLines": 7234,
+      "codeLines": 6335,
+      "commentLines": 263,
+      "textLines": 169,
+      "blankLines": 467,
+      "codePercent": "93.6",
+      "commentPercent": "3.9",
+      "textPercent": "2.5"
+    }
   }
 ]

@@ -159,11 +159,29 @@ function displayComprehensive() {
         const avgCost = commit.avgCostPerModel || 0;
         const globalIndex = allCommits.indexOf(commit);
         
+        const username = commit.user.replace(/\s+/g, '').toLowerCase();
+        const projectName = commit.project;
+        
         row.innerHTML = `
             <td>${date}</td>
-            <td>${commit.commitHash.substring(0, 8)}</td>
-            <td>${commit.user}</td>
-            <td>${commit.project}</td>
+            <td>
+                <a href="https://github.com/${username}/${projectName}/commit/${commit.commitHash}" 
+                   target="_blank" class="table-link" title="View on GitHub">
+                    ${commit.commitHash.substring(0, 8)}
+                </a>
+            </td>
+            <td>
+                <a href="https://github.com/${username}" 
+                   target="_blank" class="table-link" title="View Profile">
+                    ${commit.user}
+                </a>
+            </td>
+            <td>
+                <a href="https://github.com/${username}/${projectName}" 
+                   target="_blank" class="table-link" title="View Repository">
+                    ${commit.project}
+                </a>
+            </td>
             <td>${commit.fileChanges || 0}</td>
             <td>+${commit.linesAdded || 0}</td>
             <td>-${commit.linesDeleted || 0}</td>
@@ -179,9 +197,15 @@ function displayComprehensive() {
             <td>$${cost.toFixed(4)}</td>
             <td>$${avgCost.toFixed(4)}</td>
             <td>
-                <button class="view-details" onclick="viewDetails(${globalIndex})">
-                    View Details
-                </button>
+                <div class="action-buttons">
+                    <button class="view-details" onclick="viewDetails(${globalIndex})">
+                        View Details
+                    </button>
+                    <a href="https://github.com/${username}/${projectName}/commit/${commit.commitHash}" 
+                       target="_blank" class="github-link-btn" title="View on GitHub">
+                        GitHub ↗
+                    </a>
+                </div>
             </td>
         `;
         

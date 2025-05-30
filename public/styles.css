@@ -384,8 +384,28 @@ tbody tr:hover {
     color: var(--bg-primary);
 }
 
+/* Table Links */
+.table-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.table-link:hover {
+    color: var(--accent-green);
+    text-decoration: underline;
+}
+
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 /* GitHub Link Buttons */
-.github-link {
+.github-link,
+.github-link-btn {
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
@@ -398,9 +418,11 @@ tbody tr:hover {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    white-space: nowrap;
 }
 
-.github-link:hover {
+.github-link:hover,
+.github-link-btn:hover {
     color: var(--accent-green);
     border-color: var(--accent-green);
 }
@@ -500,6 +522,33 @@ tfoot td {
 
 .value {
     color: var(--text-primary);
+}
+
+/* GitHub Links in Details Page */
+.commit-link,
+.user-link,
+.project-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.commit-link:hover,
+.user-link:hover,
+.project-link:hover {
+    color: var(--accent-green);
+    text-decoration: underline;
+}
+
+.commit-link::after,
+.user-link::after,
+.project-link::after {
+    content: '↗';
+    font-size: 0.8em;
+    opacity: 0.6;
 }
 
 /* Summary Stats */
