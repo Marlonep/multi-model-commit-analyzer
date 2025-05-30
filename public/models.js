@@ -293,35 +293,37 @@ class ModelsManager {
         const resultsDiv = document.getElementById('testResults');
         resultsDiv.innerHTML = '<div class="loading">Testing all models...</div>';
 
-        // Simulate API testing (in reality, this would call the actual analyzer)
-        const results = [];
-        for (const model of this.models) {
-            try {
-                await this.delay(1000); // Simulate API call delay
-                const success = Math.random() > 0.2; // 80% success rate for demo
-                results.push({
-                    model: model.modelName,
-                    status: success ? 'success' : 'error',
-                    message: success ? 'Model responding correctly' : 'API key invalid or model unavailable',
-                    responseTime: (Math.random() * 10 + 1).toFixed(2)
-                });
-                
-                // Update model status
-                model.status = success ? 'active' : 'error';
-            } catch (error) {
-                results.push({
-                    model: model.modelName,
-                    status: 'error',
-                    message: error.message,
-                    responseTime: 'N/A'
-                });
-                model.status = 'error';
-            }
-        }
+        try {
+            const response = await fetch('/api/test-models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
 
-        this.displayTestResults(results);
-        this.renderModelsTable();
-        this.updateStats();
+            const data = await response.json();
+            const results = data.results.map(result => ({
+                model: result.modelName,
+                status: result.status === 'active' ? 'success' : 'error',
+                message: result.error || 'Model responding correctly',
+                responseTime: result.responseTime
+            }));
+
+            // Update model statuses
+            data.results.forEach(result => {
+                const model = this.models.find(m => m.type === result.modelType);
+                if (model) {
+                    model.status = result.status;
+                }
+            });
+
+            this.displayTestResults(results);
+            this.renderModelsTable();
+            this.updateStats();
+        } catch (error) {
+            resultsDiv.innerHTML = `<div class="error">Error testing models: ${error.message}</div>`;
+        }
     }
 
     async testSingleModel(modelId) {
@@ -332,20 +334,32 @@ class ModelsManager {
         resultsDiv.innerHTML = `<div class="loading">Testing ${model.modelName}...</div>`;
 
         try {
-            await this.delay(1500); // Simulate API call
-            const success = Math.random() > 0.2; // 80% success rate for demo
-            
-            const result = {
-                model: model.modelName,
-                status: success ? 'success' : 'error',
-                message: success ? 'Model responding correctly' : 'API key invalid or model unavailable',
-                responseTime: (Math.random() * 10 + 1).toFixed(2)
-            };
+            const response = await fetch('/api/test-models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    modelIds: [model.type]
+                })
+            });
 
-            model.status = success ? 'active' : 'error';
-            this.displayTestResults([result]);
-            this.renderModelsTable();
-            this.updateStats();
+            const data = await response.json();
+            const result = data.results[0];
+            
+            if (result) {
+                const displayResult = {
+                    model: result.modelName,
+                    status: result.status === 'active' ? 'success' : 'error',
+                    message: result.error || 'Model responding correctly',
+                    responseTime: result.responseTime
+                };
+
+                model.status = result.status;
+                this.displayTestResults([displayResult]);
+                this.renderModelsTable();
+                this.updateStats();
+            }
         } catch (error) {
             this.displayTestResults([{
                 model: model.modelName,

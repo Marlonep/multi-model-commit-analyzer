@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { AIModels } from './analyzeCommit.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +12,7 @@ const PORT = 3000;
 
 // Serve static files
 app.use(express.static('public'));
+app.use(express.json());
 
 // API endpoint to get commit history
 app.get('/api/commits', async (req, res) => {
@@ -42,6 +44,54 @@ app.get('/api/commits/:index', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// API endpoint to test AI models
+app.post('/api/test-models', async (req, res) => {
+  try {
+    const { modelIds } = req.body;
+    const aiModels = new AIModels();
+    
+    const results = [];
+    const testModels = modelIds ? 
+      aiModels.models.filter(m => modelIds.includes(m.type)) : 
+      aiModels.models;
+    
+    for (const model of testModels) {
+      try {
+        const startTime = Date.now();
+        
+        // Simple test prompt
+        const testPrompt = "Respond with 'OK' if you can process this message.";
+        const result = await aiModels.getModelResponse(model, testPrompt);
+        const responseTime = (Date.now() - startTime) / 1000;
+        
+        results.push({
+          modelType: model.type,
+          modelName: model.name,
+          status: result && result.reasoning !== 'Error' ? 'active' : 'error',
+          responseTime: responseTime.toFixed(2),
+          error: result && result.reasoning.startsWith('Error') ? result.reasoning : null,
+          cost: result ? result.cost : 0,
+          tokens: result ? result.tokensUsed : 0
+        });
+      } catch (error) {
+        results.push({
+          modelType: model.type,
+          modelName: model.name,
+          status: 'error',
+          responseTime: 0,
+          error: error.message,
+          cost: 0,
+          tokens: 0
+        });
+      }
+    }
+    
+    res.json({ results });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
