@@ -295,6 +295,11 @@ Respond ONLY in this JSON format:
 
       // Parse JSON response
       try {
+        // Check if result is empty (o3-mini issue)
+        if (!result || result.trim() === '') {
+          throw new Error('Empty response from model');
+        }
+
         const jsonStart = result.indexOf('{');
         const jsonEnd = result.lastIndexOf('}') + 1;
         let parsed;
@@ -321,16 +326,17 @@ Respond ONLY in this JSON format:
           cost: cost
         });
       } catch (e) {
+        // Return error state with 0.0 values instead of default values
         return new ModelScore({
           modelName: modelInfo.name,
           provider: modelInfo.provider,
-          codeQuality: 3.0,
-          devLevel: 2.0,
-          complexity: 3.0,
-          estimatedHours: 1.0,
+          codeQuality: 0.0,
+          devLevel: 0.0,
+          complexity: 0.0,
+          estimatedHours: 0.0,
           aiPercentage: 0.0,
-          estimatedHoursWithAi: 1.0,
-          reasoning: `JSON parsing error: ${e.message}`,
+          estimatedHoursWithAi: 0.0,
+          reasoning: `Error: ${e.message}${result ? ` (Response: "${result.substring(0, 100)}...")` : ' (Empty response)'}`,
           responseTime: elapsedTime,
           tokensUsed: inputTokens + outputTokens,
           cost: cost
