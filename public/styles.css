@@ -257,8 +257,66 @@ header p {
 }
 
 .comprehensive-table table {
-    min-width: 2000px;
+    min-width: 2200px;
 }
+
+/* Comprehensive table column widths */
+#comprehensiveTable th:nth-child(1),  /* Date */
+#comprehensiveTable td:nth-child(1) { min-width: 140px; }
+
+#comprehensiveTable th:nth-child(2),  /* Hash */
+#comprehensiveTable td:nth-child(2) { min-width: 80px; }
+
+#comprehensiveTable th:nth-child(3),  /* User */
+#comprehensiveTable td:nth-child(3) { min-width: 120px; }
+
+#comprehensiveTable th:nth-child(4),  /* Project */
+#comprehensiveTable td:nth-child(4) { min-width: 180px; }
+
+#comprehensiveTable th:nth-child(5),  /* Files */
+#comprehensiveTable td:nth-child(5) { min-width: 60px; }
+
+#comprehensiveTable th:nth-child(6),  /* +Lines */
+#comprehensiveTable td:nth-child(6) { min-width: 70px; }
+
+#comprehensiveTable th:nth-child(7),  /* -Lines */
+#comprehensiveTable td:nth-child(7) { min-width: 70px; }
+
+#comprehensiveTable th:nth-child(8),  /* Message */
+#comprehensiveTable td:nth-child(8) { min-width: 300px; }
+
+#comprehensiveTable th:nth-child(9),  /* Quality */
+#comprehensiveTable td:nth-child(9) { min-width: 70px; }
+
+#comprehensiveTable th:nth-child(10), /* Dev Level */
+#comprehensiveTable td:nth-child(10) { min-width: 90px; }
+
+#comprehensiveTable th:nth-child(11), /* Complexity */
+#comprehensiveTable td:nth-child(11) { min-width: 90px; }
+
+#comprehensiveTable th:nth-child(12), /* Hours */
+#comprehensiveTable td:nth-child(12) { min-width: 60px; }
+
+#comprehensiveTable th:nth-child(13), /* AI % */
+#comprehensiveTable td:nth-child(13) { min-width: 60px; }
+
+#comprehensiveTable th:nth-child(14), /* AI Hours */
+#comprehensiveTable td:nth-child(14) { min-width: 80px; }
+
+#comprehensiveTable th:nth-child(15), /* Savings */
+#comprehensiveTable td:nth-child(15) { min-width: 120px; }
+
+#comprehensiveTable th:nth-child(16), /* Tokens */
+#comprehensiveTable td:nth-child(16) { min-width: 70px; }
+
+#comprehensiveTable th:nth-child(17), /* Total Cost */
+#comprehensiveTable td:nth-child(17) { min-width: 90px; }
+
+#comprehensiveTable th:nth-child(18), /* Avg/Model */
+#comprehensiveTable td:nth-child(18) { min-width: 90px; }
+
+#comprehensiveTable th:nth-child(19), /* Action */
+#comprehensiveTable td:nth-child(19) { min-width: 100px; }
 
 .comprehensive-table::-webkit-scrollbar {
     height: 10px;
@@ -296,6 +354,7 @@ th {
     border-bottom: 1px solid var(--border-color);
     text-transform: uppercase;
     font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 td {
