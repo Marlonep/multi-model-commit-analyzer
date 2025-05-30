@@ -687,6 +687,56 @@ tfoot td {
     margin-left: 4px;
 }
 
+/* Compact Code Analysis Styles */
+.code-stats-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+}
+
+.stacked-progress-bar {
+    height: 30px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    width: 100%;
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.code-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     header h1 {

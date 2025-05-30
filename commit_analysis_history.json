@@ -2632,5 +2632,92 @@
       "commentPercent": "4.1",
       "textPercent": "2.7"
     }
+  },
+  {
+    "commitHash": "92a7a01834065d83b8a458bc26b93254ba4166df",
+    "commitMessage": "Fix commit details navigation with sorted commits",
+    "timestamp": "2025-05-30T21:28:01.589Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 2,
+    "linesAdded": 95,
+    "linesDeleted": 0,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 4.179,
+        "tokensUsed": 1648,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4,
+        "devLevel": 2,
+        "complexity": 2.2,
+        "estimatedHours": 1.5,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 1.2,
+        "reasoning": "Clean JSON data addition with proper structure and formatting. The commit adds a single entry to an existing JSON history file with consistent schema. Mid-level understanding shown in maintaining data integrity. Moderate complexity due to nested object structure but straightforward data entry task. Low AI percentage as this appears to be manual data compilation work with human-specific analysis content.",
+        "responseTime": 4.518,
+        "tokensUsed": 1450,
+        "cost": 0.006198
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 4.5,
+        "devLevel": 1.5,
+        "complexity": 1,
+        "estimatedHours": 0.1,
+        "aiPercentage": 5,
+        "estimatedHoursWithAi": 0.08,
+        "reasoning": "The provided diff only shows the addition of a structured data entry to a JSON history file. This part of the commit is well-formatted and maintains the existing data structure, indicating high quality for a data update. The task itself is simple (adding data to an array), requiring a junior-level understanding of JSON. The complexity is minimal as it's just data addition with no logic. Estimating time and AI percentage solely on this visible change, it's a quick manual task with very little likely AI involvement beyond potentially formatting assistance. Note: The commit message suggests code changes related to navigation and sorting in a second file, which are not present in the provided diff and therefore cannot be scored.",
+        "responseTime": 9.856,
+        "tokensUsed": 1167,
+        "cost": 0.00013905
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4,
+        "devLevel": 2.1,
+        "complexity": 2.5,
+        "estimatedHours": 2,
+        "aiPercentage": 25,
+        "estimatedHoursWithAi": 1.5,
+        "reasoning": "The commit involves adding structured JSON data with consistent formatting and schema, indicating good code quality with no visible errors or typos. Developer level assessed as mid-level due to competent handling of data structure maintenance without advanced patterns. Complexity is moderate due to the structured nature of JSON data and the need to maintain integrity across nested objects. Estimated time reflects a straightforward data addition task, with low AI involvement as the work appears to be manual data compilation.",
+        "responseTime": 2.56,
+        "tokensUsed": 1286,
+        "cost": 0.00799
+      }
+    ],
+    "averageCodeQuality": 3.125,
+    "averageDevLevel": 1.4,
+    "averageComplexity": 1.425,
+    "averageEstimatedHours": 0.9,
+    "averageAiPercentage": 11.25,
+    "averageEstimatedHoursWithAi": 0.6950000000000001,
+    "totalTokens": 5551,
+    "totalCost": 0.014327050000000001,
+    "avgCostPerModel": 0.0035817625000000002,
+    "codeAnalysis": {
+      "totalLines": 6891,
+      "codeLines": 5990,
+      "commentLines": 264,
+      "textLines": 169,
+      "blankLines": 468,
+      "codePercent": "93.3",
+      "commentPercent": "4.1",
+      "textPercent": "2.6"
+    }
   }
 ]

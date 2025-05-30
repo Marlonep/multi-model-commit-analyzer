@@ -109,41 +109,28 @@
             <!-- Code Analysis -->
             <h2 class="section-title">Code Analysis</h2>
             <section class="code-analysis compact">
-                <div class="code-stats">
-                    <div class="stat-row">
+                <div class="code-stats-compact">
+                    <div class="stat-header">
                         <span class="label">Total Lines:</span>
                         <span id="totalLines" class="value">0</span>
                     </div>
-                    <div class="code-breakdown">
-                        <div class="code-type">
-                            <div class="type-header">
-                                <span>Code</span>
-                                <span id="codePercent">0%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div id="codeBar" class="progress-fill code-fill"></div>
-                            </div>
-                            <span class="line-count" id="codeLines">0 lines</span>
+                    <div class="stacked-progress-bar">
+                        <div id="codeBar" class="progress-segment code-fill" title="Code"></div>
+                        <div id="commentBar" class="progress-segment comment-fill" title="Comments"></div>
+                        <div id="textBar" class="progress-segment text-fill" title="Text/Docs"></div>
+                    </div>
+                    <div class="code-legend">
+                        <div class="legend-item">
+                            <span class="legend-color code-fill"></span>
+                            <span>Code <span id="codePercent">0%</span> (<span id="codeLines">0</span> lines)</span>
                         </div>
-                        <div class="code-type">
-                            <div class="type-header">
-                                <span>Comments</span>
-                                <span id="commentPercent">0%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div id="commentBar" class="progress-fill comment-fill"></div>
-                            </div>
-                            <span class="line-count" id="commentLines">0 lines</span>
+                        <div class="legend-item">
+                            <span class="legend-color comment-fill"></span>
+                            <span>Comments <span id="commentPercent">0%</span> (<span id="commentLines">0</span> lines)</span>
                         </div>
-                        <div class="code-type">
-                            <div class="type-header">
-                                <span>Text/Docs</span>
-                                <span id="textPercent">0%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div id="textBar" class="progress-fill text-fill"></div>
-                            </div>
-                            <span class="line-count" id="textLines">0 lines</span>
+                        <div class="legend-item">
+                            <span class="legend-color text-fill"></span>
+                            <span>Text/Docs <span id="textPercent">0%</span> (<span id="textLines">0</span> lines)</span>
                         </div>
                     </div>
                 </div>

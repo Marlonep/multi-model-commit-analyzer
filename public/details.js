@@ -63,22 +63,17 @@ function displayCommitDetails(commit) {
         document.getElementById('totalLines').textContent = 
             ca.totalLines.toLocaleString();
         
-        // Code
+        // Update legend values
         document.getElementById('codePercent').textContent = `${ca.codePercent}%`;
-        document.getElementById('codeLines').textContent = 
-            `${ca.codeLines.toLocaleString()} lines`;
-        document.getElementById('codeBar').style.width = `${ca.codePercent}%`;
-        
-        // Comments
+        document.getElementById('codeLines').textContent = ca.codeLines.toLocaleString();
         document.getElementById('commentPercent').textContent = `${ca.commentPercent}%`;
-        document.getElementById('commentLines').textContent = 
-            `${ca.commentLines.toLocaleString()} lines`;
-        document.getElementById('commentBar').style.width = `${ca.commentPercent}%`;
-        
-        // Text
+        document.getElementById('commentLines').textContent = ca.commentLines.toLocaleString();
         document.getElementById('textPercent').textContent = `${ca.textPercent}%`;
-        document.getElementById('textLines').textContent = 
-            `${ca.textLines.toLocaleString()} lines`;
+        document.getElementById('textLines').textContent = ca.textLines.toLocaleString();
+        
+        // Update stacked progress bar segments
+        document.getElementById('codeBar').style.width = `${ca.codePercent}%`;
+        document.getElementById('commentBar').style.width = `${ca.commentPercent}%`;
         document.getElementById('textBar').style.width = `${ca.textPercent}%`;
     } else {
         // Hide code analysis section if no data
