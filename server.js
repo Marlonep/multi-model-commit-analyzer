@@ -69,8 +69,8 @@ app.post('/api/test-models', async (req, res) => {
         
         results.push({
           modelType: model.type,
-          modelName: model.name,
-          status: result && result.reasoning !== 'Error' ? 'active' : 'error',
+          modelName: model.name === 'GPT-4' ? 'o3-mini' : model.name,
+          status: result && result.reasoning !== 'Error' && !result.reasoning.startsWith('Error') ? 'active' : 'error',
           responseTime: responseTime.toFixed(2),
           error: result && result.reasoning.startsWith('Error') ? result.reasoning : null,
           cost: result ? result.cost : 0,
@@ -79,7 +79,7 @@ app.post('/api/test-models', async (req, res) => {
       } catch (error) {
         results.push({
           modelType: model.type,
-          modelName: model.name,
+          modelName: model.name === 'GPT-4' ? 'o3-mini' : model.name,
           status: 'error',
           responseTime: 0,
           error: error.message,
