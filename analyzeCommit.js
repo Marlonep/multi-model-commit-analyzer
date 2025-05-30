@@ -232,7 +232,7 @@ Respond ONLY in this JSON format:
         result = response.choices[0].message.content;
         inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
         outputTokens = response.usage?.completion_tokens || estimateTokens(result);
-        modelKey = 'gpt-3.5-turbo';
+        modelKey = 'o3';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
           model: 'claude-sonnet-4-20250514',
@@ -243,7 +243,7 @@ Respond ONLY in this JSON format:
         result = response.content[0].text;
         inputTokens = response.usage?.input_tokens || estimateTokens(prompt);
         outputTokens = response.usage?.output_tokens || estimateTokens(result);
-        modelKey = 'claude-3-haiku-20240307';
+        modelKey = 'claude-sonnet-4-20250514';
       } else if (modelInfo.type === 'gemini') {
         const model = modelInfo.client.getGenerativeModel({ model: 'gemini-2.5-pro-preview-05-06' });
         const response = await model.generateContent(prompt);
@@ -251,7 +251,7 @@ Respond ONLY in this JSON format:
         // Gemini doesn't provide token counts, so we estimate
         inputTokens = estimateTokens(prompt);
         outputTokens = estimateTokens(result);
-        modelKey = 'gemini-1.5-flash';
+        modelKey = 'gemini-2.5-pro-preview-05-06';
       } else if (modelInfo.type === 'grok') {
         const response = await modelInfo.client.chat.completions.create({
           model: 'grok-3',
