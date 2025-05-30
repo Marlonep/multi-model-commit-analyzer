@@ -1066,5 +1066,92 @@
       "commentPercent": "5.4",
       "textPercent": "4.0"
     }
+  },
+  {
+    "commitHash": "3d406e3251bdbe009861530b9aa560c341c70465",
+    "commitMessage": "Configure latest AI models with updated API keys",
+    "timestamp": "2025-05-30T01:49:34.472Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 2,
+    "linesAdded": 90,
+    "linesDeleted": 3,
+    "modelScores": [
+      {
+        "modelName": "OpenAI o3",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: 401 Incorrect API key provided: sk-proj-********************************************************************************************************************************************************AMkA. You can find your API key at https://platform.openai.com/account/api-keys.",
+        "responseTime": 0,
+        "tokensUsed": 0,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 2.8,
+        "complexity": 2.1,
+        "estimatedHours": 0.75,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 0.5,
+        "reasoning": "High quality commit that properly updates model keys to match actual API calls, showing good attention to detail and consistency. The changes are simple string replacements but require understanding of the codebase structure. Senior-level work evidenced by systematic approach to updating all model references consistently. Low AI involvement as this requires domain knowledge of specific model names and API versions.",
+        "responseTime": 5.433,
+        "tokensUsed": 1312,
+        "cost": 0.00588
+      },
+      {
+        "modelName": "Gemini 2.5 Pro Preview",
+        "provider": "Google",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-05-06:generateContent: [400 Bad Request] API key expired. Please renew the API key. [{\"@type\":\"type.googleapis.com/google.rpc.ErrorInfo\",\"reason\":\"API_KEY_INVALID\",\"domain\":\"googleapis.com\",\"metadata\":{\"service\":\"generativelanguage.googleapis.com\"}},{\"@type\":\"type.googleapis.com/google.rpc.LocalizedMessage\",\"locale\":\"en-US\",\"message\":\"API key expired. Please renew the API key.\"}]",
+        "responseTime": 0,
+        "tokensUsed": 0,
+        "cost": 0
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.8,
+        "devLevel": 2.4,
+        "complexity": 2.9,
+        "estimatedHours": 3.25,
+        "aiPercentage": 30.5,
+        "estimatedHoursWithAi": 2.1,
+        "reasoning": "The commit updates AI model configurations and API keys, indicating a practical understanding of the codebase. Code quality is good with clear, focused changes, though not exceptional due to lack of extensive refactoring or optimization. Developer level suggests mid-level expertise given the familiarity with multiple AI model integrations. Complexity is moderate as it involves straightforward updates to model keys and versions. Estimated hours reflect a reasonable time for research and implementation of these changes. AI percentage is moderate as the structure suggests some templating or tool assistance, but core logic appears manually crafted.",
+        "responseTime": 2.927,
+        "tokensUsed": 1120,
+        "cost": 0.007350000000000001
+      }
+    ],
+    "averageCodeQuality": 2,
+    "averageDevLevel": 1.2999999999999998,
+    "averageComplexity": 1.25,
+    "averageEstimatedHours": 1,
+    "averageAiPercentage": 11.375,
+    "averageEstimatedHoursWithAi": 0.65,
+    "totalTokens": 2432,
+    "totalCost": 0.01323,
+    "avgCostPerModel": 0.0033075,
+    "codeAnalysis": {
+      "totalLines": 4635,
+      "codeLines": 3865,
+      "commentLines": 227,
+      "textLines": 169,
+      "blankLines": 374,
+      "codePercent": "90.7",
+      "commentPercent": "5.3",
+      "textPercent": "4.0"
+    }
   }
 ]

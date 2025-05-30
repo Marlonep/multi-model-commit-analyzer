@@ -223,15 +223,58 @@ Respond ONLY in this JSON format:
       let modelKey = '';
 
       if (modelInfo.type === 'openai') {
-        const response = await modelInfo.client.chat.completions.create({
-          model: 'o3',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 500
+        // o3 uses a different API endpoint and format
+        const apiKey = process.env.OPENAI_API_KEY;
+        const o3Response = await fetch('https://api.openai.com/v1/responses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'o3',
+            input: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'input_text',
+                    text: prompt
+                  }
+                ]
+              }
+            ],
+            text: {
+              format: {
+                type: 'text'
+              }
+            },
+            reasoning: {
+              effort: 'medium'
+            },
+            tools: [],
+            store: true
+          })
         });
-        result = response.choices[0].message.content;
-        inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
-        outputTokens = response.usage?.completion_tokens || estimateTokens(result);
+
+        if (!o3Response.ok) {
+          const errorText = await o3Response.text();
+          throw new Error(`o3 API error: ${o3Response.status} - ${errorText}`);
+        }
+
+        const o3Data = await o3Response.json();
+        
+        // Extract the response text from the o3 format
+        if (o3Data.output && o3Data.output[0] && o3Data.output[0].content) {
+          const outputContent = o3Data.output[0].content.find(c => c.type === 'output_text');
+          result = outputContent ? outputContent.text : 'No response generated';
+        } else {
+          result = 'No response generated';
+        }
+        
+        // o3 doesn't provide token counts in the same way, so we estimate
+        inputTokens = estimateTokens(prompt);
+        outputTokens = estimateTokens(result);
         modelKey = 'o3';
       } else if (modelInfo.type === 'claude') {
         const response = await modelInfo.client.messages.create({
