@@ -126,6 +126,31 @@ header p {
     color: var(--text-secondary);
 }
 
+/* Header with back button */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.back-button {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.back-button:hover {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+    background: var(--hover-bg);
+}
+
 .back-link {
     color: var(--accent-green);
     text-decoration: none;
@@ -359,18 +384,6 @@ tfoot td {
     margin-bottom: 0 !important;
 }
 
-/* Inline header layout */
-.inline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-secondary);
-    color: var(--accent-green);
-    padding: 20px 40px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 0;
-    height: 80px;
-}
 
 /* Section titles outside containers */
 .section-title {
