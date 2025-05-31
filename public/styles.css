@@ -372,15 +372,11 @@ tbody tr:hover {
     background: transparent;
     color: var(--accent-green);
     border: 1px solid var(--accent-green);
-    padding: 6px 8px;
+    padding: 6px 12px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-family: inherit;
     transition: all 0.3s;
-    min-width: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .view-details:hover {

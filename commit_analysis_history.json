@@ -3241,5 +3241,92 @@
       "commentPercent": "4.0",
       "textPercent": "2.4"
     }
+  },
+  {
+    "commitHash": "3b1c2283e905adddd38cbed9a0927add8b0e4701",
+    "commitMessage": "Replace 'View Details' button text with eye icon",
+    "timestamp": "2025-05-31T12:04:20.474Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 3,
+    "linesAdded": 97,
+    "linesDeleted": 6,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 4.933,
+        "tokensUsed": 1651,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.2,
+        "devLevel": 1.4,
+        "complexity": 1.8,
+        "estimatedHours": 1,
+        "aiPercentage": 25,
+        "estimatedHoursWithAi": 0.75,
+        "reasoning": "Simple UI change replacing text with icon. Clean implementation with proper JSON structure in history file. Low complexity as it's primarily a visual/UX improvement. Junior-level work due to straightforward nature of text-to-icon replacement. Moderate AI assistance likely for icon implementation patterns.",
+        "responseTime": 5.19,
+        "tokensUsed": 1439,
+        "cost": 0.006021
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 4.3,
+        "devLevel": 1.9,
+        "complexity": 2,
+        "estimatedHours": 1,
+        "aiPercentage": 35,
+        "estimatedHoursWithAi": 0.75,
+        "reasoning": "The commit involves replacing 'View Details' text with an eye icon in UI components. The code changes are straightforward, implementing standard practices like using an icon component (likely from a library), adding necessary styling (`cursor: pointer`), and including accessibility features (`aria-label`). The large number of added lines is primarily due to data entry in the JSON history file, not complex logic. Code quality is good due to clean implementation and accessibility consideration. Developer level reflects a standard junior/mid-level UI task. Complexity is low as the logic is minimal. AI percentage reflects the blend of promptable UI code changes and manual data entry.",
+        "responseTime": 14.574,
+        "tokensUsed": 1155,
+        "cost": 0.00013567499999999998
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.5,
+        "devLevel": 1.8,
+        "complexity": 2.5,
+        "estimatedHours": 2,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 1.5,
+        "reasoning": "Code quality is decent with no apparent syntax errors or typos in the commit message or diff, though the change (replacing button text with an icon) is relatively straightforward. Developer level is mid-range due to the simplicity of the task and lack of complex architecture or error handling. Complexity is moderate given 3 files changed and a reasonable number of lines added (97) versus deleted (6), indicating some integration but not high intricacy. Estimated hours reflect a simple UI update task. AI percentage is low as the change appears human-driven with specific context for a UI tweak.",
+        "responseTime": 2.971,
+        "tokensUsed": 1316,
+        "cost": 0.00842
+      }
+    ],
+    "averageCodeQuality": 3,
+    "averageDevLevel": 1.275,
+    "averageComplexity": 1.575,
+    "averageEstimatedHours": 1,
+    "averageAiPercentage": 18.75,
+    "averageEstimatedHoursWithAi": 0.75,
+    "totalTokens": 5561,
+    "totalCost": 0.014576675,
+    "avgCostPerModel": 0.00364416875,
+    "codeAnalysis": {
+      "totalLines": 7615,
+      "codeLines": 6687,
+      "commentLines": 279,
+      "textLines": 169,
+      "blankLines": 480,
+      "codePercent": "93.7",
+      "commentPercent": "3.9",
+      "textPercent": "2.4"
+    }
   }
 ]
