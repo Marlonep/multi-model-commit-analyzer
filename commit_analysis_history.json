@@ -3154,5 +3154,92 @@
       "commentPercent": "3.9",
       "textPercent": "2.5"
     }
+  },
+  {
+    "commitHash": "8ee4336e7c8acf0f4bdb766d4578bd5f315aaf61",
+    "commitMessage": "Fix GitHub URL generation with correct repository configuration",
+    "timestamp": "2025-05-30T22:38:44.634Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 4,
+    "linesAdded": 179,
+    "linesDeleted": 13,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 0,
+        "devLevel": 0,
+        "complexity": 0,
+        "estimatedHours": 0,
+        "aiPercentage": 0,
+        "estimatedHoursWithAi": 0,
+        "reasoning": "Error: Empty response from model (Empty response)",
+        "responseTime": 5.435,
+        "tokensUsed": 1647,
+        "cost": 0
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 4.3,
+        "devLevel": 1.7,
+        "complexity": 2.2,
+        "estimatedHours": 1.5,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 1,
+        "reasoning": "Clean JSON structure addition with proper formatting and consistent schema. The commit appears to be primarily data entry and configuration updates for GitHub URL generation. Code quality is high due to proper JSON formatting and field consistency. Developer level is junior-to-mid based on straightforward implementation patterns. Low AI percentage indicated by consistent human patterns and project-specific context.",
+        "responseTime": 5.844,
+        "tokensUsed": 1478,
+        "cost": 0.006678
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 3.7,
+        "devLevel": 2.3,
+        "complexity": 3.4,
+        "estimatedHours": 2.75,
+        "aiPercentage": 45.5,
+        "estimatedHoursWithAi": 1.25,
+        "reasoning": "The commit correctly implements dynamic GitHub URL generation by fetching repo configuration and updating the git store. Code quality is generally good, though error/loading states for fetches in initializeGitStore could be more explicit. Developer level appears mid-range, using standard patterns but the store structure mixes history and config fetching. Complexity is moderate involving API calls, state management, and component updates.",
+        "responseTime": 10.669,
+        "tokensUsed": 1099,
+        "cost": 0.00011774999999999999
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 4,
+        "devLevel": 1.8,
+        "complexity": 2.8,
+        "estimatedHours": 2,
+        "aiPercentage": 30,
+        "estimatedHoursWithAi": 1.5,
+        "reasoning": "Code quality is high with proper JSON structure and formatting in the commit data addition, though minor issues could exist in unshown files. Developer level appears mid-junior due to straightforward implementation of navigation links and data updates. Complexity is moderate with 4 files changed and a mix of UI and data modifications. Estimated time reflects a focused task of moderate scope. AI percentage is estimated low-moderate based on structured but not overly templated content.",
+        "responseTime": 2.874,
+        "tokensUsed": 1287,
+        "cost": 0.008015000000000001
+      }
+    ],
+    "averageCodeQuality": 3,
+    "averageDevLevel": 1.45,
+    "averageComplexity": 2.0999999999999996,
+    "averageEstimatedHours": 1.5625,
+    "averageAiPercentage": 22.625,
+    "averageEstimatedHoursWithAi": 0.9375,
+    "totalTokens": 5511,
+    "totalCost": 0.014810750000000001,
+    "avgCostPerModel": 0.0037026875000000002,
+    "codeAnalysis": {
+      "totalLines": 7528,
+      "codeLines": 6600,
+      "commentLines": 279,
+      "textLines": 169,
+      "blankLines": 480,
+      "codePercent": "93.6",
+      "commentPercent": "4.0",
+      "textPercent": "2.4"
+    }
   }
 ]

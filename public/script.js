@@ -75,8 +75,8 @@ function displayBasicInfo() {
             <td>-${commit.linesDeleted || 0}</td>
             <td title="${commit.commitMessage}">${truncate(commit.commitMessage, 40)}</td>
             <td>
-                <button class="view-details" onclick="viewDetails(${globalIndex})">
-                    View Details
+                <button class="view-details" onclick="viewDetails(${globalIndex})" title="View Details">
+                    👁️
                 </button>
             </td>
         `;
@@ -219,8 +219,8 @@ function displayComprehensive() {
             <td>$${avgCost.toFixed(4)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="view-details" onclick="viewDetails(${globalIndex})">
-                        View Details
+                    <button class="view-details" onclick="viewDetails(${globalIndex})" title="View Details">
+                        👁️
                     </button>
                     <a href="https://github.com/${githubUsername}/${projectName}/commit/${commit.commitHash}" 
                        target="_blank" class="github-link-btn" title="View on GitHub">
