@@ -28,6 +28,10 @@ const execAsync = promisify(exec);
 
 // Pricing per 1K tokens (as of 2025)
 const MODEL_PRICING = {
+  'o3-mini': {
+    input: 0.060,   // $60 per 1M input tokens
+    output: 0.240   // $240 per 1M output tokens
+  },
   'gpt-4': {
     input: 0.030,   // $30 per 1M input tokens
     output: 0.060   // $60 per 1M output tokens
@@ -245,7 +249,7 @@ Respond ONLY in this JSON format:
         const response = await modelInfo.client.chat.completions.create({
           model: 'o3-mini',
           messages: [{ role: 'user', content: prompt }],
-          max_completion_tokens: 500
+          max_completion_tokens: 8000  // Increased for o3-mini's internal reasoning
         });
         result = response.choices[0].message.content;
         inputTokens = response.usage?.prompt_tokens || estimateTokens(prompt);
