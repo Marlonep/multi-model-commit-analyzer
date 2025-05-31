@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link active">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/models.html" class="nav-link">AI Models</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <div class="header-content">
+                    <div>
+                        <h1>User Analysis Details</h1>
+                        <p>Comprehensive breakdown of user's commit history and performance metrics</p>
+                    </div>
+                    <a href="/users.html" class="back-button">← Back to Users</a>
+                </div>
+            </header>
+
+            <main>
+            <!-- User Info -->
+            <h2 class="section-title">User Information</h2>
+            <section class="commit-info compact">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">User:</span>
+                        <span id="userName" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total Commits:</span>
+                        <span id="totalCommits" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total Hours:</span>
+                        <span id="totalHours" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Time Saved:</span>
+                        <span id="timeSaved" class="value">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary Stats -->
+            <h2 class="section-title">Performance Summary</h2>
+            <section class="summary-stats compact">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgQuality">0.0</div>
+                        <div class="stat-label">Avg Quality</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgDevLevel">0.0</div>
+                        <div class="stat-label">Avg Dev Level</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgComplexity">0.0</div>
+                        <div class="stat-label">Avg Complexity</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgAiPercent">0%</div>
+                        <div class="stat-label">Avg AI Usage</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalLines">0</div>
+                        <div class="stat-label">Total Lines</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCost">$0.00</div>
+                        <div class="stat-label">Total Cost</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <!-- Performance Metrics Chart -->
+                <section class="chart-section">
+                    <h3>Performance Metrics</h3>
+                    <canvas id="metricsChart"></canvas>
+                </section>
+
+                <!-- Commits per Day Chart -->
+                <section class="chart-section">
+                    <h3>Commits per Day</h3>
+                    <canvas id="commitsPerDayChart"></canvas>
+                </section>
+
+                <!-- Lines of Code Chart -->
+                <section class="chart-section">
+                    <h3>Lines Added/Deleted per Day</h3>
+                    <canvas id="linesPerDayChart"></canvas>
+                </section>
+            </div>
+
+            <!-- User Commits Table -->
+            <h2 class="section-title">Commit History</h2>
+            <section class="table-section">
+                <div class="search-container">
+                    <input type="text" class="search-bar" id="commitsSearch" placeholder="Search commits...">
+                </div>
+                <div class="table-wrapper">
+                    <table id="userCommitsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Hash</th>
+                                <th>Project</th>
+                                <th>Message</th>
+                                <th>Files</th>
+                                <th>+Lines</th>
+                                <th>-Lines</th>
+                                <th>Quality</th>
+                                <th>Complexity</th>
+                                <th>AI %</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userCommitsBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="user-details.js"></script>
+</body>
+</html>

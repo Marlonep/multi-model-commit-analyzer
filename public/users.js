@@ -86,7 +86,11 @@ function displayUserStats(userStats) {
         const devLevel = getDevLevel(user.avgDevLevel);
         
         row.innerHTML = `
-            <td>${user.user}</td>
+            <td>
+                <a href="/user-details.html?user=${encodeURIComponent(user.user)}" class="table-link">
+                    ${user.user}
+                </a>
+            </td>
             <td>${user.commits}</td>
             <td>+${user.linesAdded.toLocaleString()}</td>
             <td>-${user.linesDeleted.toLocaleString()}</td>
@@ -96,7 +100,14 @@ function displayUserStats(userStats) {
             <td>${user.avgComplexity.toFixed(1)}/5</td>
             <td>${user.totalHours.toFixed(1)}h</td>
             <td>${user.avgAiPercentage.toFixed(0)}%</td>
-            <td>${getGitHubProfileButton(user.user)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="view-details" onclick="viewUserDetails('${user.user}')">
+                        Details
+                    </button>
+                    ${getGitHubProfileButton(user.user)}
+                </div>
+            </td>
         `;
         
         tbody.appendChild(row);
@@ -108,6 +119,10 @@ function getDevLevel(level) {
     if (level <= 1.5) return 'Jr';
     if (level <= 2.5) return 'Mid';
     return 'Sr';
+}
+
+function viewUserDetails(userName) {
+    window.location.href = `/user-details.html?user=${encodeURIComponent(userName)}`;
 }
 
 function getGitHubProfileButton(userName) {
