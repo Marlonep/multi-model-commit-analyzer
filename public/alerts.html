@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/alerts.html" class="nav-link active">Alerts</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Commit Alerts</h1>
+                <p>Review commits that contain potential outliers or inconsistencies</p>
+            </header>
+
+            <main>
+                <!-- Alert Summary -->
+                <section class="alert-summary">
+                    <div class="alert-stats">
+                        <div class="stat-card alert-error">
+                            <div class="stat-value" id="errorCount">0</div>
+                            <div class="stat-label">Error</div>
+                        </div>
+                        <div class="stat-card alert-abnormal">
+                            <div class="stat-value" id="abnormalCount">0</div>
+                            <div class="stat-label">Abnormal</div>
+                        </div>
+                        <div class="stat-card alert-ok">
+                            <div class="stat-value" id="okCount">0</div>
+                            <div class="stat-label">OK</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Filter Controls -->
+                <section class="filter-section">
+                    <div class="filter-controls">
+                        <label class="filter-label">
+                            <input type="checkbox" id="showError" checked>
+                            Show Error
+                        </label>
+                        <label class="filter-label">
+                            <input type="checkbox" id="showAbnormal" checked>
+                            Show Abnormal
+                        </label>
+                        <label class="filter-label">
+                            <input type="checkbox" id="showOk">
+                            Show OK
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Alerts Table -->
+                <section class="table-section">
+                    <h3>Commits Requiring Review</h3>
+                    <div class="search-container">
+                        <input type="text" class="search-bar" id="alertsSearch" placeholder="Search alerts...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="alertsTable">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Hash</th>
+                                    <th>User</th>
+                                    <th>Project</th>
+                                    <th>Message</th>
+                                    <th>Quality</th>
+                                    <th>Complexity</th>
+                                    <th>AI %</th>
+                                    <th>Alert Reason</th>
+                                    <th>Last Modified</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content danger-zone">
+            <h2>Delete Commit</h2>
+            <p class="danger-warning">⚠️ This action cannot be undone. This will permanently delete the commit analysis data.</p>
+            
+            <div class="commit-details">
+                <p><strong>Commit:</strong> <span id="deleteCommitHash"></span></p>
+                <p><strong>Message:</strong> <span id="deleteCommitMessage"></span></p>
+            </div>
+            
+            <p>Please type the commit hash to confirm:</p>
+            <input type="text" id="confirmHash" class="danger-input" placeholder="Enter commit hash">
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-danger" id="confirmDelete" onclick="confirmDeleteCommit()" disabled>
+                    Delete this commit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="alerts.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
@@ -136,6 +137,103 @@ app.post('/api/test-models', async (req, res) => {
     }
     
     res.json({ results });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to update commit status
+app.put('/api/commits/:hash/status', async (req, res) => {
+  try {
+    const { hash } = req.params;
+    const { status, changedBy } = req.body;
+    const dataFile = './commit_analysis_history.json';
+    
+    // Validate status
+    if (!['ok', 'abnormal', 'error'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be ok, abnormal, or error' });
+    }
+    
+    // Check if file exists
+    if (!fsSync.existsSync(dataFile)) {
+      return res.status(404).json({ error: 'No commits found' });
+    }
+    
+    // Read existing data
+    const data = await fs.readFile(dataFile, 'utf8');
+    let commits = JSON.parse(data);
+    
+    // Find all commits with this hash (handle duplicates)
+    const matchingCommits = commits.filter(c => c.commitHash === hash);
+    
+    if (matchingCommits.length === 0) {
+      return res.status(404).json({ error: 'Commit not found' });
+    }
+    
+    // Update all matching commits
+    let updatedCount = 0;
+    matchingCommits.forEach(commit => {
+      // Initialize statusLog if it doesn't exist
+      if (!commit.statusLog) {
+        commit.statusLog = [];
+      }
+      
+      // Add status change to log
+      commit.statusLog.push({
+        previousStatus: commit.status || 'ok',
+        newStatus: status,
+        changedBy: changedBy || 'System',
+        timestamp: new Date().toISOString(),
+        reason: 'Manual status change'
+      });
+      
+      // Update status
+      commit.status = status;
+      commit.manuallyReviewed = true;
+      updatedCount++;
+    });
+    
+    // Save updated data
+    await fs.writeFile(dataFile, JSON.stringify(commits, null, 2));
+    
+    res.json({ 
+      success: true, 
+      message: `Status updated successfully for ${updatedCount} commit(s)` 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to delete a commit
+app.delete('/api/commits/:hash', async (req, res) => {
+  try {
+    const { hash } = req.params;
+    const dataFile = './commit_analysis_history.json';
+    
+    // Check if file exists
+    if (!fsSync.existsSync(dataFile)) {
+      return res.status(404).json({ error: 'No commits found' });
+    }
+    
+    // Read existing data
+    const data = await fs.readFile(dataFile, 'utf8');
+    let commits = JSON.parse(data);
+    
+    // Find commit index
+    const commitIndex = commits.findIndex(c => c.commitHash === hash);
+    
+    if (commitIndex === -1) {
+      return res.status(404).json({ error: 'Commit not found' });
+    }
+    
+    // Remove commit
+    commits.splice(commitIndex, 1);
+    
+    // Save updated data
+    await fs.writeFile(dataFile, JSON.stringify(commits, null, 2));
+    
+    res.json({ success: true, message: 'Commit deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

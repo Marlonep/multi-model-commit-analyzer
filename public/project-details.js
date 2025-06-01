@@ -9,6 +9,8 @@ let activityChart = null;
 let contributorsChart = null;
 let codeChangesChart = null;
 let qualityTrendsChart = null;
+let contributorsByDayChart = null;
+let dailyLinesChart = null;
 
 // Fetch GitHub configuration
 async function loadGithubConfig() {
@@ -210,6 +212,8 @@ function createCharts() {
     createContributorsChart();
     createCodeChangesChart();
     createQualityTrendsChart();
+    createContributorsByDayChart();
+    createDailyLinesChart();
 }
 
 // Create activity timeline chart
@@ -314,12 +318,26 @@ function createContributorsChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
             plugins: {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: '#c9d1d9'
+                        color: '#c9d1d9',
+                        padding: 10,
+                        font: {
+                            size: 11
+                        }
                     }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
                 }
             }
         }
@@ -454,6 +472,197 @@ function createQualityTrendsChart() {
                     ticks: {
                         color: '#c9d1d9',
                         maxTicksLimit: 10
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create contributors by day stacked bar chart
+function createContributorsByDayChart() {
+    const ctx = document.getElementById('contributorsByDayChart').getContext('2d');
+    
+    // Group commits by date and contributor
+    const commitsByDateAndUser = {};
+    const allUsers = new Set();
+    
+    projectCommits.forEach(commit => {
+        const date = new Date(commit.timestamp).toLocaleDateString();
+        const user = commit.user;
+        
+        if (!commitsByDateAndUser[date]) {
+            commitsByDateAndUser[date] = {};
+        }
+        
+        commitsByDateAndUser[date][user] = (commitsByDateAndUser[date][user] || 0) + 1;
+        allUsers.add(user);
+    });
+    
+    // Sort dates
+    const dates = Object.keys(commitsByDateAndUser).sort((a, b) => new Date(a) - new Date(b));
+    const users = Array.from(allUsers).sort();
+    
+    // Generate colors for each user
+    const colors = [
+        'rgba(57, 255, 20, 0.8)',
+        'rgba(255, 215, 0, 0.8)',
+        'rgba(0, 191, 255, 0.8)',
+        'rgba(255, 69, 0, 0.8)',
+        'rgba(147, 112, 219, 0.8)',
+        'rgba(255, 182, 193, 0.8)',
+        'rgba(64, 224, 208, 0.8)',
+        'rgba(255, 140, 0, 0.8)',
+        'rgba(50, 205, 50, 0.8)',
+        'rgba(255, 105, 180, 0.8)'
+    ];
+    
+    // Create datasets for each user
+    const datasets = users.map((user, index) => {
+        const data = dates.map(date => commitsByDateAndUser[date][user] || 0);
+        return {
+            label: user,
+            data: data,
+            backgroundColor: colors[index % colors.length],
+            borderColor: colors[index % colors.length].replace('0.8', '1'),
+            borderWidth: 1
+        };
+    });
+    
+    contributorsByDayChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: {
+                        color: '#c9d1d9',
+                        maxTicksLimit: 15
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#c9d1d9'
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#c9d1d9'
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        afterTitle: function(context) {
+                            let total = 0;
+                            context.forEach(tooltipItem => {
+                                total += tooltipItem.parsed.y;
+                            });
+                            return 'Total: ' + total + ' commits';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create daily lines added/deleted chart
+function createDailyLinesChart() {
+    const ctx = document.getElementById('dailyLinesChart').getContext('2d');
+    
+    // Group lines by date
+    const linesByDate = {};
+    projectCommits.forEach(commit => {
+        const date = new Date(commit.timestamp).toLocaleDateString();
+        if (!linesByDate[date]) {
+            linesByDate[date] = { added: 0, deleted: 0 };
+        }
+        linesByDate[date].added += commit.linesAdded || 0;
+        linesByDate[date].deleted += commit.linesDeleted || 0;
+    });
+    
+    // Sort dates and prepare data
+    const dates = Object.keys(linesByDate).sort((a, b) => new Date(a) - new Date(b));
+    const linesAdded = dates.map(date => linesByDate[date].added);
+    const linesDeleted = dates.map(date => -linesByDate[date].deleted); // Negative for visual effect
+    
+    dailyLinesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Lines Added',
+                data: linesAdded,
+                backgroundColor: 'rgba(57, 255, 20, 0.6)',
+                borderColor: 'rgba(57, 255, 20, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Lines Deleted',
+                data: linesDeleted,
+                backgroundColor: 'rgba(255, 69, 0, 0.6)',
+                borderColor: 'rgba(255, 69, 0, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#c9d1d9'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            const value = Math.abs(context.parsed.y);
+                            label += value;
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        color: '#c9d1d9',
+                        callback: function(value) {
+                            return Math.abs(value);
+                        }
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#c9d1d9',
+                        maxTicksLimit: 15
                     },
                     grid: {
                         color: '#30363d'

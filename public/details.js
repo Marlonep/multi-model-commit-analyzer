@@ -126,6 +126,9 @@ function displayCommitDetails(commit) {
     
     // Model cards
     displayModelCards(commit.modelScores);
+    
+    // Status history
+    displayStatusHistory(commit);
 }
 
 // Display individual model analysis cards
@@ -188,6 +191,60 @@ function displayModelCards(modelScores) {
         
         container.appendChild(card);
     });
+}
+
+// Display status history
+function displayStatusHistory(commit) {
+    const container = document.getElementById('statusHistory');
+    
+    // Current status
+    const currentStatus = commit.status || 'ok';
+    const statusBadge = `<span class="status-badge status-${currentStatus}">${currentStatus.toUpperCase()}</span>`;
+    
+    if (!commit.statusLog || commit.statusLog.length === 0) {
+        container.innerHTML = `
+            <div class="status-history-item">
+                <p>Current Status: ${statusBadge}</p>
+                <p class="no-history">No status changes recorded</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Display current status and history
+    let html = `
+        <div class="status-history-item current-status">
+            <p>Current Status: ${statusBadge}</p>
+        </div>
+        <h4>Change History:</h4>
+        <div class="status-timeline">
+    `;
+    
+    // Display history in reverse chronological order
+    const sortedHistory = [...commit.statusLog].reverse();
+    
+    sortedHistory.forEach((change, index) => {
+        const date = new Date(change.timestamp);
+        const formattedDate = date.toLocaleString();
+        
+        html += `
+            <div class="status-change-item">
+                <div class="status-change-header">
+                    <span class="status-change-date">${formattedDate}</span>
+                    <span class="status-change-user">by ${change.changedBy}</span>
+                </div>
+                <div class="status-change-details">
+                    <span class="status-badge status-${change.previousStatus}">${change.previousStatus.toUpperCase()}</span>
+                    <span class="status-arrow">→</span>
+                    <span class="status-badge status-${change.newStatus}">${change.newStatus.toUpperCase()}</span>
+                </div>
+                <div class="status-change-reason">${change.reason}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 // Helper function

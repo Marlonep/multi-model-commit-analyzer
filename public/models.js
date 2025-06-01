@@ -107,8 +107,7 @@ class ModelsManager {
 
         this.models.forEach(model => {
             const row = document.createElement('tr');
-            row.className = model.status === 'active' ? 'status-active' : 
-                           model.status === 'inactive' ? 'status-inactive' : 'status-unknown';
+            row.className = `model-row model-${model.status}`;
             
             const parametersStr = Object.entries(model.parameters)
                 .map(([key, value]) => `${key}: ${value}`)
@@ -118,17 +117,19 @@ class ModelsManager {
                 <td><span class="provider-badge ${model.provider.toLowerCase()}">${model.provider}</span></td>
                 <td><strong>${model.modelName}</strong></td>
                 <td><code>${model.modelId}</code></td>
-                <td><span class="status-badge ${model.status}">${this.formatStatus(model.status)}</span></td>
+                <td><span class="status-badge status-${model.status}">${model.status.toUpperCase()}</span></td>
                 <td>${model.inputCost}</td>
                 <td>${model.outputCost}</td>
                 <td>${model.apiEndpoint}</td>
                 <td><small>${parametersStr}</small></td>
                 <td>${this.getLastUsed(model.modelId)}</td>
                 <td>
-                    <button class="btn small secondary test-model" data-model="${model.modelId}">Test</button>
-                    <button class="btn small secondary toggle-model" data-model="${model.modelId}">
-                        ${model.status === 'active' ? 'Disable' : 'Enable'}
-                    </button>
+                    <div class="action-buttons">
+                        <button class="btn small secondary test-model" data-model="${model.modelId}">Test</button>
+                        <button class="btn small secondary toggle-model" data-model="${model.modelId}">
+                            ${model.status === 'active' ? 'Disable' : 'Enable'}
+                        </button>
+                    </div>
                 </td>
             `;
             
@@ -210,15 +211,21 @@ class ModelsManager {
             if (!model) return;
 
             const row = document.createElement('tr');
+            // Determine performance status based on success rate
+            const performanceStatus = data.successRate === 100 ? 'excellent' : 
+                                    data.successRate >= 80 ? 'good' :
+                                    data.successRate >= 50 ? 'warning' : 'poor';
+            row.className = `performance-row performance-${performanceStatus}`;
+            
             row.innerHTML = `
                 <td><strong>${model.modelName}</strong></td>
                 <td><span class="quality-score quality-${Math.floor(data.avgQuality)}">${data.avgQuality.toFixed(1)}/5</span></td>
                 <td>${data.avgResponseTime.toFixed(1)}s</td>
                 <td>${data.totalTokens.toLocaleString()}</td>
                 <td>$${data.totalCost.toFixed(4)}</td>
-                <td><span class="success-rate">${data.successRate}%</span></td>
-                <td><span class="error-rate ${data.errorRate > 0 ? 'has-errors' : ''}">${data.errorRate}%</span></td>
-                <td><small>${data.lastError}</small></td>
+                <td><span class="status-badge status-${data.successRate === 100 ? 'success' : data.successRate >= 50 ? 'warning' : 'error'}">${data.successRate}%</span></td>
+                <td><span class="status-badge status-${data.errorRate === 0 ? 'success' : data.errorRate <= 20 ? 'warning' : 'error'}">${data.errorRate}%</span></td>
+                <td><small class="${data.lastError !== 'None' ? 'error-text' : ''}">${data.lastError}</small></td>
             `;
             tbody.appendChild(row);
         });
