@@ -6,7 +6,9 @@ let githubConfig = null;
 // Fetch GitHub configuration
 async function loadGithubConfig() {
     try {
-        const response = await fetch('/api/github-config');
+        const response = await fetch('/api/github-config', {
+            headers: getAuthHeaders()
+        });
         githubConfig = await response.json();
     } catch (error) {
         console.error('Error loading GitHub config:', error);
@@ -23,7 +25,18 @@ async function loadCommits() {
     try {
         await loadGithubConfig();
         
-        const response = await fetch('/api/commits');
+        const response = await fetch('/api/commits', {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error('Failed to load commits');
+        }
+        
         allCommits = await response.json();
         
         // Sort commits by timestamp descending (latest first)

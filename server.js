@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { AIModels } from './analyzeCommit.js';
+import { authenticateUser, verifyToken, requireAuth } from './auth.js';
+import cookieParser from 'cookie-parser';
 
 const execAsync = promisify(exec);
 
@@ -15,9 +17,92 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-// Serve static files
-app.use(express.static('public'));
+// Middleware
 app.use(express.json());
+app.use(cookieParser());
+
+// Serve login page
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Authentication middleware for static files
+app.use((req, res, next) => {
+    // Allow access to login page and its assets
+    if (req.path === '/login.html' || 
+        req.path === '/login.js' || 
+        req.path === '/styles.css' ||
+        req.path.startsWith('/api/login') ||
+        req.path.startsWith('/api/verify')) {
+        return next();
+    }
+    
+    // Check for token in Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+        if (decoded) {
+            req.user = decoded;
+            return next();
+        }
+    }
+    
+    // No valid token, redirect to login
+    if (req.path === '/' || req.path.endsWith('.html')) {
+        res.redirect('/login');
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+});
+
+// Serve static files after auth check
+app.use(express.static('public'));
+
+// Login endpoint
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+        
+        const result = await authenticateUser(username, password);
+        
+        if (!result) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+        
+        res.json({
+            token: result.token,
+            username: result.user.username,
+            name: result.user.name,
+            role: result.user.role
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Server error during login' });
+    }
+});
+
+// Verify token endpoint
+app.get('/api/verify', (req, res) => {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    
+    if (!decoded) {
+        return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    res.json({ valid: true, user: decoded });
+});
 
 // API endpoint to get commit history
 app.get('/api/commits', async (req, res) => {
