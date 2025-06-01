@@ -951,6 +951,10 @@ tfoot td {
     position: relative;
 }
 
+.progress-segment:not(:first-child) {
+    margin-left: -1px;
+}
+
 .code-legend {
     display: flex;
     gap: 20px;
