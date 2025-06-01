@@ -4,8 +4,7 @@ let githubConfig = null;
 const pagination = {
     comprehensive: { currentPage: 1, pageSize: 25, filteredData: [] },
     basic: { currentPage: 1, pageSize: 25, filteredData: [] },
-    scores: { currentPage: 1, pageSize: 25, filteredData: [] },
-    cost: { currentPage: 1, pageSize: 25, filteredData: [] }
+    scores: { currentPage: 1, pageSize: 25, filteredData: [] }
 };
 
 // Fetch GitHub configuration
@@ -40,12 +39,10 @@ async function loadCommitHistory() {
         pagination.comprehensive.filteredData = [...allCommits];
         pagination.basic.filteredData = [...allCommits];
         pagination.scores.filteredData = [...allCommits];
-        pagination.cost.filteredData = [...allCommits];
         
         displayComprehensive();
         displayBasicInfo();
         displayScores();
-        displayCosts();
         
         setupPagination();
     } catch (error) {
@@ -118,48 +115,6 @@ function displayScores() {
     updatePaginationInfo('scores');
 }
 
-// Display cost analysis table
-function displayCosts() {
-    const tbody = document.getElementById('costBody');
-    tbody.innerHTML = '';
-    
-    const pageData = getPaginatedData('cost');
-    
-    let grandTotalTokens = 0;
-    let grandTotalCost = 0;
-    
-    // Calculate grand totals from all filtered data, not just current page
-    pagination.cost.filteredData.forEach(commit => {
-        grandTotalTokens += commit.totalTokens || 0;
-        grandTotalCost += commit.totalCost || 0;
-    });
-    
-    // Display current page data
-    pageData.forEach(commit => {
-        const row = document.createElement('tr');
-        const date = new Date(commit.timestamp).toLocaleDateString();
-        const tokens = commit.totalTokens || 0;
-        const cost = commit.totalCost || 0;
-        const avgCost = commit.avgCostPerModel || 0;
-        
-        row.innerHTML = `
-            <td>${date}</td>
-            <td>${tokens.toLocaleString()}</td>
-            <td>$${cost.toFixed(4)}</td>
-            <td>$${avgCost.toFixed(4)}</td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-    
-    // Update grand totals
-    document.getElementById('totalTokens').textContent = grandTotalTokens.toLocaleString();
-    document.getElementById('totalCost').textContent = `$${grandTotalCost.toFixed(4)}`;
-    const avgCost = pagination.cost.filteredData.length > 0 ? grandTotalCost / pagination.cost.filteredData.length : 0;
-    document.getElementById('avgCost').textContent = `$${avgCost.toFixed(4)}`;
-    
-    updatePaginationInfo('cost');
-}
 
 // Display comprehensive table with all data
 function displayComprehensive() {
@@ -262,7 +217,6 @@ function setupSearchFunctionality() {
     // Setup search for each table
     setupTableSearch('basicSearch', 'basicInfoBody');
     setupTableSearch('scoresSearch', 'scoresBody');
-    setupTableSearch('costSearch', 'costBody');
     setupTableSearch('comprehensiveSearch', 'comprehensiveBody');
 }
 
@@ -284,35 +238,9 @@ function setupTableSearch(searchInputId, tableBodyId) {
             row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
         
-        // Update grand total if it's the cost table
-        if (tableBodyId === 'costBody') {
-            updateGrandTotal();
-        }
     });
 }
 
-// Update grand total for cost table when filtering
-function updateGrandTotal() {
-    const tbody = document.getElementById('costBody');
-    const rows = tbody.getElementsByTagName('tr');
-    let totalTokens = 0;
-    let totalCost = 0;
-    let visibleRows = 0;
-    
-    Array.from(rows).forEach(row => {
-        if (row.style.display !== 'none') {
-            const tokens = parseInt(row.cells[1].textContent) || 0;
-            const cost = parseFloat(row.cells[2].textContent.replace('$', '')) || 0;
-            totalTokens += tokens;
-            totalCost += cost;
-            visibleRows++;
-        }
-    });
-    
-    document.getElementById('totalTokens').textContent = totalTokens.toLocaleString();
-    document.getElementById('totalCost').textContent = `$${totalCost.toFixed(4)}`;
-    document.getElementById('avgCost').textContent = visibleRows > 0 ? `$${(totalCost / visibleRows).toFixed(4)}` : '$0.0000';
-}
 
 // Pagination Functions
 function getPaginatedData(tableType) {
@@ -368,9 +296,6 @@ function changePage(tableType, page) {
         case 'scores':
             displayScores();
             break;
-        case 'cost':
-            displayCosts();
-            break;
     }
 }
 
@@ -382,7 +307,7 @@ function changePageSize(tableType, newSize) {
 }
 
 function setupPagination() {
-    const tableTypes = ['comprehensive', 'basic', 'scores', 'cost'];
+    const tableTypes = ['comprehensive', 'basic', 'scores'];
     
     tableTypes.forEach(tableType => {
         // First page button
@@ -424,8 +349,7 @@ function setupPaginatedSearch() {
     const searchConfigs = [
         { inputId: 'comprehensiveSearch', tableType: 'comprehensive' },
         { inputId: 'basicSearch', tableType: 'basic' },
-        { inputId: 'scoresSearch', tableType: 'scores' },
-        { inputId: 'costSearch', tableType: 'cost' }
+        { inputId: 'scoresSearch', tableType: 'scores' }
     ];
     
     searchConfigs.forEach(config => {

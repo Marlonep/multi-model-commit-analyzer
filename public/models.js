@@ -1,4 +1,13 @@
 // AI Models Configuration and Management
+let allCommits = [];
+let pagination = {
+    cost: {
+        currentPage: 1,
+        pageSize: 25,
+        filteredData: []
+    }
+};
+
 class ModelsManager {
     constructor() {
         this.models = [];
@@ -99,6 +108,10 @@ class ModelsManager {
         this.updateStats();
         this.bindEvents();
         this.populateModelSelector();
+        await this.loadCostData();
+        this.displayCosts();
+        this.setupCostPagination();
+        this.setupCostSearch();
     }
 
     renderModelsTable() {
@@ -412,6 +425,185 @@ class ModelsManager {
             const matches = text.includes(searchTerm.toLowerCase());
             row.style.display = matches ? '' : 'none';
         });
+    }
+
+    // Cost Analysis Methods
+    async loadCostData() {
+        try {
+            const response = await fetch('/api/commits');
+            allCommits = await response.json();
+            pagination.cost.filteredData = [...allCommits];
+        } catch (error) {
+            console.error('Error loading commits:', error);
+            allCommits = [];
+            pagination.cost.filteredData = [];
+        }
+    }
+
+    displayCosts() {
+        const tbody = document.getElementById('costBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const pageData = this.getPaginatedData('cost');
+        
+        let grandTotalTokens = 0;
+        let grandTotalCost = 0;
+        
+        // Calculate grand totals from all filtered data, not just current page
+        pagination.cost.filteredData.forEach(commit => {
+            grandTotalTokens += commit.totalTokens || 0;
+            grandTotalCost += commit.totalCost || 0;
+        });
+        
+        // Display current page data
+        pageData.forEach(commit => {
+            const row = document.createElement('tr');
+            const date = new Date(commit.timestamp).toLocaleDateString();
+            const tokens = commit.totalTokens || 0;
+            const cost = commit.totalCost || 0;
+            const avgCost = commit.avgCostPerModel || 0;
+            
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${tokens.toLocaleString()}</td>
+                <td>$${cost.toFixed(4)}</td>
+                <td>$${avgCost.toFixed(4)}</td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+        
+        // Update grand totals
+        const totalTokensEl = document.getElementById('totalTokens');
+        const totalCostEl = document.getElementById('totalCost');
+        const avgCostEl = document.getElementById('avgCost');
+        
+        if (totalTokensEl) totalTokensEl.textContent = grandTotalTokens.toLocaleString();
+        if (totalCostEl) totalCostEl.textContent = `$${grandTotalCost.toFixed(4)}`;
+        
+        const avgCost = pagination.cost.filteredData.length > 0 ? grandTotalCost / pagination.cost.filteredData.length : 0;
+        if (avgCostEl) avgCostEl.textContent = `$${avgCost.toFixed(4)}`;
+        
+        this.updatePaginationInfo('cost');
+    }
+
+    getPaginatedData(tableType) {
+        const pag = pagination[tableType];
+        const startIndex = (pag.currentPage - 1) * pag.pageSize;
+        const endIndex = startIndex + pag.pageSize;
+        return pag.filteredData.slice(startIndex, endIndex);
+    }
+
+    getTotalPages(tableType) {
+        const pag = pagination[tableType];
+        return Math.ceil(pag.filteredData.length / pag.pageSize);
+    }
+
+    updatePaginationInfo(tableType) {
+        const pag = pagination[tableType];
+        const totalPages = this.getTotalPages(tableType);
+        const pageInfo = document.getElementById(`${tableType}PageInfo`);
+        
+        if (pageInfo) {
+            pageInfo.textContent = `Page ${pag.currentPage} of ${totalPages}`;
+        }
+        
+        // Update button states
+        const firstBtn = document.getElementById(`${tableType}FirstPage`);
+        const prevBtn = document.getElementById(`${tableType}PrevPage`);
+        const nextBtn = document.getElementById(`${tableType}NextPage`);
+        const lastBtn = document.getElementById(`${tableType}LastPage`);
+        
+        if (firstBtn) firstBtn.disabled = pag.currentPage === 1;
+        if (prevBtn) prevBtn.disabled = pag.currentPage === 1;
+        if (nextBtn) nextBtn.disabled = pag.currentPage === totalPages;
+        if (lastBtn) lastBtn.disabled = pag.currentPage === totalPages;
+    }
+
+    changePage(tableType, newPage) {
+        const totalPages = this.getTotalPages(tableType);
+        if (newPage >= 1 && newPage <= totalPages) {
+            pagination[tableType].currentPage = newPage;
+            if (tableType === 'cost') {
+                this.displayCosts();
+            }
+        }
+    }
+
+    changePageSize(tableType, newSize) {
+        pagination[tableType].pageSize = parseInt(newSize);
+        pagination[tableType].currentPage = 1;
+        if (tableType === 'cost') {
+            this.displayCosts();
+        }
+    }
+
+    setupCostPagination() {
+        const tableType = 'cost';
+        
+        // First page button
+        const firstBtn = document.getElementById(`${tableType}FirstPage`);
+        if (firstBtn) {
+            firstBtn.addEventListener('click', () => this.changePage(tableType, 1));
+        }
+        
+        // Previous page button
+        const prevBtn = document.getElementById(`${tableType}PrevPage`);
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => this.changePage(tableType, pagination[tableType].currentPage - 1));
+        }
+        
+        // Next page button
+        const nextBtn = document.getElementById(`${tableType}NextPage`);
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => this.changePage(tableType, pagination[tableType].currentPage + 1));
+        }
+        
+        // Last page button
+        const lastBtn = document.getElementById(`${tableType}LastPage`);
+        if (lastBtn) {
+            lastBtn.addEventListener('click', () => this.changePage(tableType, this.getTotalPages(tableType)));
+        }
+        
+        // Page size selector
+        const sizeSelect = document.getElementById(`${tableType}PageSize`);
+        if (sizeSelect) {
+            sizeSelect.addEventListener('change', (e) => this.changePageSize(tableType, e.target.value));
+        }
+    }
+
+    setupCostSearch() {
+        const searchInput = document.getElementById('costSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterCostData(e.target.value.toLowerCase());
+            });
+        }
+    }
+
+    filterCostData(searchTerm) {
+        if (searchTerm === '') {
+            pagination.cost.filteredData = [...allCommits];
+        } else {
+            pagination.cost.filteredData = allCommits.filter(commit => {
+                const searchableText = [
+                    commit.commitMessage,
+                    commit.user,
+                    commit.project,
+                    new Date(commit.timestamp).toLocaleDateString(),
+                    (commit.totalTokens || 0).toString(),
+                    (commit.totalCost || 0).toFixed(4),
+                    (commit.avgCostPerModel || 0).toFixed(4)
+                ].join(' ').toLowerCase();
+                
+                return searchableText.includes(searchTerm);
+            });
+        }
+        
+        pagination.cost.currentPage = 1;
+        this.displayCosts();
     }
 
     delay(ms) {
