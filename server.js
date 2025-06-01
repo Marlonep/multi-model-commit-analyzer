@@ -21,18 +21,24 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve login page
+// Serve static files that don't need auth (login assets)
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    const loginPath = path.join(__dirname, 'public', 'login.html');
+    res.sendFile(loginPath);
 });
 
-// Authentication middleware for static files
+app.get('/login.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.js'));
+});
+
+app.get('/styles.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'styles.css'));
+});
+
+// Authentication middleware for all other routes
 app.use((req, res, next) => {
-    // Allow access to login page and its assets
-    if (req.path === '/login.html' || 
-        req.path === '/login.js' || 
-        req.path === '/styles.css' ||
-        req.path.startsWith('/api/login') ||
+    // Allow access to login API endpoints
+    if (req.path.startsWith('/api/login') ||
         req.path.startsWith('/api/verify')) {
         return next();
     }

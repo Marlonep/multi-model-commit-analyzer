@@ -51,29 +51,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Check if already logged in
-    const token = localStorage.getItem('token');
-    if (token) {
-        // Verify token is still valid
-        fetch('/api/verify', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                // Token is valid, redirect to main page
-                window.location.href = '/';
-            } else {
-                // Token is invalid, clear it
-                localStorage.removeItem('token');
-                localStorage.removeItem('username');
-            }
-        })
-        .catch(() => {
-            // Error verifying token, clear it
-            localStorage.removeItem('token');
-            localStorage.removeItem('username');
-        });
-    }
+    // Don't check if already logged in to prevent loops
 });

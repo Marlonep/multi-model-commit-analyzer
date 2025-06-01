@@ -44,6 +44,8 @@ async function checkAuth() {
         return true;
     } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
         window.location.href = '/login';
         return false;
     }
@@ -110,6 +112,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
-    await checkAuth();
-    addLogoutButton();
+    // Only check auth on protected pages
+    if (window.location.pathname !== '/login.js' && window.location.pathname !== '/styles.css') {
+        await checkAuth();
+        addLogoutButton();
+    }
 });

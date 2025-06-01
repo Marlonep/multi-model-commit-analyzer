@@ -17,16 +17,10 @@ async function initializeUsers() {
     try {
         // Check if users file exists
         await fs.access(usersPath);
-        const users = JSON.parse(await fs.readFile(usersPath, 'utf8'));
-        
-        // Update admin password if it's not hashed
-        const adminUser = users.find(u => u.username === 'admin');
-        if (adminUser && !adminUser.password.startsWith('$2a$')) {
-            adminUser.password = await bcrypt.hash('admin123', 10);
-            await fs.writeFile(usersPath, JSON.stringify(users, null, 2));
-        }
+        // File exists, don't regenerate
+        return;
     } catch (error) {
-        // Create default users file
+        // Create default users file only if it doesn't exist
         const defaultUsers = [
             {
                 id: 1,
@@ -37,6 +31,7 @@ async function initializeUsers() {
             }
         ];
         await fs.writeFile(usersPath, JSON.stringify(defaultUsers, null, 2));
+        console.log('Created default users.json file');
     }
 }
 

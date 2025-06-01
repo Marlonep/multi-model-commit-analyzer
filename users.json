@@ -1,9 +1,9 @@
 [
-    {
-        "id": 1,
-        "username": "admin",
-        "password": "$2a$10$YourHashedPasswordHere",
-        "role": "admin",
-        "name": "Administrator"
-    }
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "$2b$10$TKR0lofZVaffqgKsBoL.KOku95vAcEy78amOS2qK.HjYzOYQIS0qG",
+    "role": "admin",
+    "name": "Administrator"
+  }
 ]
