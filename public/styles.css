@@ -723,9 +723,14 @@ tfoot td {
 /* Model Badges */
 .model-badges {
     margin-top: 8px;
+    min-height: 24px; /* Reserve space even when empty */
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
+}
+
+.model-badges:empty {
+    min-height: 24px; /* Maintain spacing for models without badges */
 }
 
 .model-badge {

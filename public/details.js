@@ -151,7 +151,7 @@ function displayModelCards(modelScores) {
                 <div>
                     <div class="model-name">${score.modelName}</div>
                     <div class="model-provider">${score.provider}</div>
-                    ${modelBadges.length > 0 ? `<div class="model-badges">${modelBadges.map(badge => `<span class="model-badge ${badge.type}">${badge.text}</span>`).join('')}</div>` : ''}
+                    <div class="model-badges">${modelBadges.map(badge => `<span class="model-badge ${badge.type}">${badge.text}</span>`).join('')}</div>
                 </div>
             </div>
             
