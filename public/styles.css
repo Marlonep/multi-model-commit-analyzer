@@ -280,10 +280,26 @@ header p {
     border: 1px solid var(--accent-green);
     max-width: 100%;
     overflow-x: auto;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .comprehensive-table table {
     min-width: 2200px;
+}
+
+.comprehensive-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-primary);
+}
+
+.comprehensive-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-primary);
 }
 
 /* Comprehensive table column widths */
