@@ -33,8 +33,6 @@ body {
 
 main {
     padding: 20px;
-    flex: 1;
-    overflow: hidden;
 }
 
 /* App Layout with Sidebar */
@@ -99,11 +97,9 @@ main {
     flex: 1;
     margin-left: 200px;
     padding: 0;
-    height: 100vh;
+    min-height: 100vh;
     width: calc(100% - 200px);
     overflow-x: auto;
-    display: flex;
-    flex-direction: column;
 }
 
 /* Header */
@@ -177,9 +173,6 @@ header p {
     margin-bottom: 25px;
     width: 100%;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
 }
 
 .table-section h3 {
@@ -287,7 +280,7 @@ header p {
     border: 1px solid var(--accent-green);
     max-width: 100%;
     overflow-x: auto;
-    flex: 1;
+    max-height: calc(100vh - 250px);
     overflow-y: auto;
 }
 
