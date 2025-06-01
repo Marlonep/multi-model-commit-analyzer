@@ -109,6 +109,11 @@ function displayProjectStats(projectStats) {
             <td>${project.totalHours.toFixed(1)}h</td>
             <td>${project.avgAiPercentage.toFixed(0)}%</td>
             <td>${getGitHubRepoButton(project.project)}</td>
+            <td>
+                <button class="view-details" onclick="viewProjectDetails('${encodeURIComponent(project.project)}')">
+                    Details
+                </button>
+            </td>
         `;
         
         tbody.appendChild(row);
@@ -140,6 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProjectStats();
     setupSearchFunctionality();
 });
+
+// Navigate to project details page
+function viewProjectDetails(projectName) {
+    window.location.href = `/project-details.html?project=${projectName}`;
+}
 
 // Search functionality
 function setupSearchFunctionality() {
