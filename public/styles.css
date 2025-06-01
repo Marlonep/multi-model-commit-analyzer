@@ -720,6 +720,46 @@ tfoot td {
     font-size: 0.9rem;
 }
 
+/* Model Badges */
+.model-badges {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.model-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.model-badge.most-expensive {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+.model-badge.cheapest {
+    background: rgba(57, 255, 20, 0.2);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+.model-badge.slowest {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+    border: 1px solid #ff9800;
+}
+
+.model-badge.fastest {
+    background: rgba(0, 191, 255, 0.2);
+    color: #00bfff;
+    border: 1px solid #00bfff;
+}
+
 .model-scores {
     display: grid;
     gap: 10px;

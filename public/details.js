@@ -136,17 +136,22 @@ function displayModelCards(modelScores) {
     const container = document.getElementById('modelCards');
     container.innerHTML = '';
     
+    // Calculate badges for comparisons
+    const badges = calculateModelBadges(modelScores);
+    
     modelScores.forEach(score => {
         const card = document.createElement('div');
         card.className = 'model-card';
         
         const devLevel = getDevLevel(score.devLevel);
+        const modelBadges = badges[score.modelName] || [];
         
         card.innerHTML = `
             <div class="model-header">
                 <div>
                     <div class="model-name">${score.modelName}</div>
                     <div class="model-provider">${score.provider}</div>
+                    ${modelBadges.length > 0 ? `<div class="model-badges">${modelBadges.map(badge => `<span class="model-badge ${badge.type}">${badge.text}</span>`).join('')}</div>` : ''}
                 </div>
             </div>
             
@@ -250,6 +255,54 @@ function getDevLevel(level) {
     if (level <= 1.5) return 'Jr';
     if (level <= 2.5) return 'Mid';
     return 'Sr';
+}
+
+function calculateModelBadges(modelScores) {
+    if (!modelScores || modelScores.length === 0) return {};
+    
+    const badges = {};
+    
+    // Initialize badges for each model
+    modelScores.forEach(score => {
+        badges[score.modelName] = [];
+    });
+    
+    // Filter out models with 0 cost or 0 time (error states)
+    const validScores = modelScores.filter(score => score.cost > 0 && score.responseTime > 0);
+    
+    if (validScores.length === 0) return badges;
+    
+    // Find extremes
+    const costs = validScores.map(s => s.cost);
+    const times = validScores.map(s => s.responseTime);
+    
+    const maxCost = Math.max(...costs);
+    const minCost = Math.min(...costs);
+    const maxTime = Math.max(...times);
+    const minTime = Math.min(...times);
+    
+    // Assign badges (can be multiple models with same extreme values)
+    validScores.forEach(score => {
+        const modelBadges = badges[score.modelName];
+        
+        // Cost badges
+        if (score.cost === maxCost) {
+            modelBadges.push({ type: 'most-expensive', text: '💰 Most Expensive' });
+        }
+        if (score.cost === minCost) {
+            modelBadges.push({ type: 'cheapest', text: '💸 Cheapest' });
+        }
+        
+        // Speed badges  
+        if (score.responseTime === maxTime) {
+            modelBadges.push({ type: 'slowest', text: '🐌 Slowest' });
+        }
+        if (score.responseTime === minTime) {
+            modelBadges.push({ type: 'fastest', text: '⚡ Fastest' });
+        }
+    });
+    
+    return badges;
 }
 
 function getTokenPrice(modelName, tokens) {
