@@ -383,7 +383,52 @@ class CommitDatabase {
 
   async saveAnalysis(analysis) {
     await this.loadHistory();
-    this.history.push(analysis);
+    
+    // Check if this commit already exists (might be updating from "analyzing" status)
+    const existingIndex = this.history.findIndex(item => item.commitHash === analysis.commitHash);
+    
+    if (existingIndex !== -1) {
+      // Update existing entry
+      this.history[existingIndex] = analysis;
+    } else {
+      // Add new entry
+      this.history.push(analysis);
+    }
+    
+    await fs.writeFile(this.dbFile, JSON.stringify(this.history, null, 2));
+  }
+  
+  async saveInitialCommit(commitInfo, user, project) {
+    await this.loadHistory();
+    
+    // Check if already exists
+    const exists = this.history.some(item => item.commitHash === commitInfo.hash);
+    if (exists) return;
+    
+    // Create initial entry with "analyzing" status
+    const initialEntry = {
+      commitHash: commitInfo.hash,
+      commitMessage: commitInfo.message,
+      timestamp: new Date().toISOString(),
+      user,
+      project,
+      fileChanges: commitInfo.filesChanged,
+      linesAdded: commitInfo.linesAdded,
+      linesDeleted: commitInfo.linesDeleted,
+      status: 'analyzing',
+      modelScores: [],
+      averageCodeQuality: 0,
+      averageDevLevel: 0,
+      averageComplexity: 0,
+      averageEstimatedHours: 0,
+      averageAiPercentage: 0,
+      averageEstimatedHoursWithAi: 0,
+      totalTokens: 0,
+      totalCost: 0,
+      avgCostPerModel: 0
+    };
+    
+    this.history.push(initialEntry);
     await fs.writeFile(this.dbFile, JSON.stringify(this.history, null, 2));
   }
 }
@@ -665,6 +710,11 @@ async function main() {
   console.log(`Author: ${commitInfo.author} | Date: ${commitInfo.date}`);
   console.log(`Files: ${commitInfo.filesChanged} | +${commitInfo.linesAdded} -${commitInfo.linesDeleted}`);
 
+  // Save initial commit with "analyzing" status
+  const db = new CommitDatabase();
+  await db.saveInitialCommit(commitInfo, user, project);
+  console.log('\n✅ Commit saved with "Analyzing" status');
+
   // Run code line analysis on the repository
   console.log('\n📊 Running code analysis on repository...');
   const lineAnalyzer = new LineAnalyzer();
@@ -705,7 +755,7 @@ async function main() {
   const totalTokens = modelScores.reduce((sum, s) => sum + s.tokensUsed, 0);
   const avgCostPerModel = totalCost / modelScores.length;
 
-  // Create analysis record
+  // Create analysis record (status will be determined by frontend based on scores)
   const analysis = new CommitAnalysis({
     commitHash: commitInfo.hash,
     commitMessage: commitInfo.message,
@@ -750,7 +800,6 @@ async function main() {
   console.log(`Average Cost per Model: $${(totalCost / modelScores.length).toFixed(4)}`);
 
   // Save to database and show history
-  const db = new CommitDatabase();
   await db.saveAnalysis(analysis);
 
   const history = await db.loadHistory();

@@ -57,6 +57,14 @@ async function loadAlerts() {
 
 // Analyze commit to determine status
 function analyzeCommitStatus(commit) {
+    // If commit is still analyzing, return that status
+    if (commit.status === 'analyzing') {
+        return {
+            status: 'analyzing',
+            reason: 'AI models are currently analyzing this commit...'
+        };
+    }
+    
     // If commit has been manually reviewed and has a status, preserve it
     if (commit.manuallyReviewed && commit.status) {
         return {
@@ -142,34 +150,43 @@ function updateSummary() {
     const counts = {
         error: 0,
         abnormal: 0,
-        ok: 0
+        ok: 0,
+        analyzing: 0
     };
     
     allCommits.forEach(commit => {
-        counts[commit.status]++;
+        counts[commit.status] = (counts[commit.status] || 0) + 1;
     });
     
-    document.getElementById('errorCount').textContent = counts.error;
-    document.getElementById('abnormalCount').textContent = counts.abnormal;
-    document.getElementById('okCount').textContent = counts.ok;
+    document.getElementById('errorCount').textContent = counts.error || 0;
+    document.getElementById('abnormalCount').textContent = counts.abnormal || 0;
+    document.getElementById('okCount').textContent = counts.ok || 0;
+    
+    // Update analyzing count if it exists, or add it dynamically
+    const analyzingElement = document.getElementById('analyzingCount');
+    if (analyzingElement) {
+        analyzingElement.textContent = counts.analyzing || 0;
+    }
 }
 
 // Apply filters
 function applyFilters() {
+    const showAnalyzing = document.getElementById('showAnalyzing').checked;
     const showError = document.getElementById('showError').checked;
     const showAbnormal = document.getElementById('showAbnormal').checked;
     const showOk = document.getElementById('showOk').checked;
     
     filteredCommits = allCommits.filter(commit => {
+        if (commit.status === 'analyzing' && showAnalyzing) return true;
         if (commit.status === 'error' && showError) return true;
         if (commit.status === 'abnormal' && showAbnormal) return true;
         if (commit.status === 'ok' && showOk) return true;
         return false;
     });
     
-    // Sort by status severity (error first, then abnormal, then ok)
+    // Sort by status severity (analyzing first, then error, then abnormal, then ok)
     filteredCommits.sort((a, b) => {
-        const statusOrder = { 'error': 0, 'abnormal': 1, 'ok': 2 };
+        const statusOrder = { 'analyzing': 0, 'error': 1, 'abnormal': 2, 'ok': 3 };
         return statusOrder[a.status] - statusOrder[b.status];
     });
     
@@ -200,7 +217,9 @@ function displayAlerts() {
             <td>
                 <select class="status-select status-${commit.status}" 
                         onchange="changeCommitStatus('${commit.commitHash}', this.value, event)"
-                        data-current="${commit.status}">
+                        data-current="${commit.status}"
+                        ${commit.status === 'analyzing' ? 'disabled' : ''}>
+                    <option value="analyzing" ${commit.status === 'analyzing' ? 'selected' : ''}>ANALYZING</option>
                     <option value="ok" ${commit.status === 'ok' ? 'selected' : ''}>OK</option>
                     <option value="abnormal" ${commit.status === 'abnormal' ? 'selected' : ''}>ABNORMAL</option>
                     <option value="error" ${commit.status === 'error' ? 'selected' : ''}>ERROR</option>
@@ -364,6 +383,7 @@ function truncate(str, length) {
 // Setup event listeners
 function setupEventListeners() {
     // Filter checkboxes
+    document.getElementById('showAnalyzing').addEventListener('change', applyFilters);
     document.getElementById('showError').addEventListener('change', applyFilters);
     document.getElementById('showAbnormal').addEventListener('change', applyFilters);
     document.getElementById('showOk').addEventListener('change', applyFilters);

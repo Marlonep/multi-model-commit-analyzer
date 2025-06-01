@@ -179,14 +179,12 @@ function displayModelCards(modelScores) {
             
             <div class="cost-info">
                 <span>Tokens: ${(score.tokensUsed || 0).toLocaleString()}</span>
-                <span>Cost: $${(score.cost || 0).toFixed(4)}</span>
+                <span>Token Price: $${getTokenPrice(score.modelName, score.tokensUsed || 0)}</span>
+                <span>Total Cost: $${(score.cost || 0).toFixed(4)}</span>
                 <span>Time: ${score.responseTime.toFixed(2)}s</span>
             </div>
             
-            <div class="reasoning">
-                <strong>Reasoning:</strong><br>
-                ${score.reasoning}
-            </div>
+            <div class="reasoning"><strong>Reasoning:</strong>${sanitizeReasoning(score.reasoning)}</div>
         `;
         
         container.appendChild(card);
@@ -247,11 +245,69 @@ function displayStatusHistory(commit) {
     container.innerHTML = html;
 }
 
-// Helper function
+// Helper functions
 function getDevLevel(level) {
     if (level <= 1.5) return 'Jr';
     if (level <= 2.5) return 'Mid';
     return 'Sr';
+}
+
+function getTokenPrice(modelName, tokens) {
+    // Model pricing per 1K tokens (based on the pricing from analyzeCommit.js)
+    const MODEL_PRICING = {
+        'GPT-4': {
+            input: 0.030,   // $30 per 1M input tokens
+            output: 0.060   // $60 per 1M output tokens
+        },
+        'Claude Sonnet 4': {
+            input: 0.003,   // $3 per 1M input tokens
+            output: 0.015   // $15 per 1M output tokens
+        },
+        'Gemini 2.5 Flash Preview': {
+            input: 0.000075, // $0.075 per 1M input tokens
+            output: 0.00030  // $0.30 per 1M output tokens
+        },
+        'Grok 3': {
+            input: 0.005,   // $5 per 1M input tokens
+            output: 0.015   // $15 per 1M output tokens
+        }
+    };
+    
+    const pricing = MODEL_PRICING[modelName];
+    if (!pricing || tokens === 0) {
+        return '0.0000';
+    }
+    
+    // Estimate that about 70% are input tokens, 30% are output tokens
+    const inputTokens = Math.floor(tokens * 0.7);
+    const outputTokens = Math.floor(tokens * 0.3);
+    
+    // Calculate cost: (tokens / 1000) * price_per_1k_tokens
+    const inputCost = (inputTokens / 1000) * pricing.input;
+    const outputCost = (outputTokens / 1000) * pricing.output;
+    const totalCost = inputCost + outputCost;
+    
+    return totalCost.toFixed(4);
+}
+
+function sanitizeReasoning(reasoning) {
+    if (!reasoning) return ' No reasoning provided';
+    
+    // Check if it's an error message
+    if (reasoning.startsWith('Error:')) {
+        // Hide API keys in error messages
+        let sanitized = reasoning.replace(/sk-[a-zA-Z0-9\*]+/g, 'sk-***[HIDDEN]***');
+        
+        // Truncate very long error messages
+        if (sanitized.length > 300) {
+            sanitized = sanitized.substring(0, 297) + '...';
+        }
+        
+        return ` <span class="error-text">${sanitized}</span>`;
+    }
+    
+    // For regular reasoning, add single space and return
+    return ` ${reasoning}`;
 }
 
 // Load details when page loads

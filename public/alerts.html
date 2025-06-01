@@ -34,6 +34,10 @@
                 <!-- Alert Summary -->
                 <section class="alert-summary">
                     <div class="alert-stats">
+                        <div class="stat-card alert-analyzing">
+                            <div class="stat-value" id="analyzingCount">0</div>
+                            <div class="stat-label">Analyzing</div>
+                        </div>
                         <div class="stat-card alert-error">
                             <div class="stat-value" id="errorCount">0</div>
                             <div class="stat-label">Error</div>
@@ -52,6 +56,10 @@
                 <!-- Filter Controls -->
                 <section class="filter-section">
                     <div class="filter-controls">
+                        <label class="filter-label">
+                            <input type="checkbox" id="showAnalyzing" checked>
+                            Show Analyzing
+                        </label>
                         <label class="filter-label">
                             <input type="checkbox" id="showError" checked>
                             Show Error
