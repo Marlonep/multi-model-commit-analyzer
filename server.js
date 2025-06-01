@@ -37,9 +37,10 @@ app.get('/styles.css', (req, res) => {
 
 // Authentication middleware for all other routes
 app.use((req, res, next) => {
-    // Allow access to login API endpoints
+    // Allow access to login API endpoints and favicon
     if (req.path.startsWith('/api/login') ||
-        req.path.startsWith('/api/verify')) {
+        req.path.startsWith('/api/verify') ||
+        req.path === '/favicon.ico') {
         return next();
     }
     
@@ -64,6 +65,11 @@ app.use((req, res, next) => {
 
 // Serve static files after auth check
 app.use(express.static('public'));
+
+// Redirect root to analytics
+app.get('/', (req, res) => {
+    res.redirect('/analytics.html');
+});
 
 // Login endpoint
 app.post('/api/login', async (req, res) => {

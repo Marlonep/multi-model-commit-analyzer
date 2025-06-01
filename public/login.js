@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
                 
-                // Redirect to main page
-                window.location.href = '/';
+                // Redirect to analytics page
+                window.location.href = '/analytics.html';
             } else {
                 // Show error message
                 errorMessage.textContent = data.error || 'Login failed';
