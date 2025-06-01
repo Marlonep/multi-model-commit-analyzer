@@ -877,6 +877,19 @@ tfoot td {
     align-items: center;
     color: var(--text-primary);
     font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.type-header.code-type-header {
+    color: var(--success-color);
+}
+
+.type-header.comment-type-header {
+    color: #ff9800;
+}
+
+.type-header.text-type-header {
+    color: #00bfff;
 }
 
 .progress-bar {
@@ -885,6 +898,7 @@ tfoot td {
     border: 1px solid var(--border-color);
     position: relative;
     overflow: hidden;
+    border-radius: 4px;
 }
 
 .progress-fill {
@@ -893,15 +907,18 @@ tfoot td {
 }
 
 .code-fill {
-    background: var(--accent-green);
+    background: rgba(57, 255, 20, 0.2);
+    border-right: 1px solid var(--success-color);
 }
 
 .comment-fill {
-    background: #ffd700;
+    background: rgba(255, 152, 0, 0.2);
+    border-right: 1px solid #ff9800;
 }
 
 .text-fill {
-    background: #00bfff;
+    background: rgba(0, 191, 255, 0.2);
+    border-right: 1px solid #00bfff;
 }
 
 .line-count {
@@ -951,7 +968,18 @@ tfoot td {
     width: 16px;
     height: 16px;
     border-radius: 3px;
-    border: 1px solid var(--border-color);
+}
+
+.legend-color.code-fill {
+    border: 1px solid var(--success-color);
+}
+
+.legend-color.comment-fill {
+    border: 1px solid #ff9800;
+}
+
+.legend-color.text-fill {
+    border: 1px solid #00bfff;
 }
 
 /* Analysis Grid - Side by Side Layout */
