@@ -1,4 +1,4 @@
-// Global variables
+// Productivity Analysis Page
 let allCommits = [];
 let filteredCommits = [];
 let githubConfig = null;
@@ -29,29 +29,34 @@ async function loadCommits() {
         // Sort commits by timestamp descending (latest first)
         allCommits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
-        // Initialize filtered data
+        // Initialize with all commits
         filteredCommits = [...allCommits];
         
-        displayComprehensive();
+        displayScores();
         setupSearch();
     } catch (error) {
         console.error('Error loading commits:', error);
     }
 }
 
-// Display comprehensive table with all data
-function displayComprehensive() {
-    const tbody = document.getElementById('comprehensiveBody');
+// Display analysis scores table
+function displayScores() {
+    const tbody = document.getElementById('scoresBody');
     tbody.innerHTML = '';
     
     filteredCommits.forEach((commit, index) => {
         const row = document.createElement('tr');
-        const date = new Date(commit.timestamp).toLocaleString();
-        const devLevel = getDevLevel(commit.averageDevLevel);
+        const date = new Date(commit.timestamp).toLocaleDateString();
+        const shortHash = commit.commitHash.substring(0, 8);
+        
+        // Calculate savings
         const savings = commit.averageEstimatedHours - (commit.averageEstimatedHoursWithAi || 0);
         const savingsPercent = commit.averageEstimatedHours > 0 ? 
             Math.round((savings / commit.averageEstimatedHours) * 100) : 0;
-        const shortHash = commit.commitHash.substring(0, 8);
+        
+        // Determine developer level
+        const devLevel = commit.averageDevLevel <= 1.5 ? 'Jr' : 
+                        commit.averageDevLevel <= 2.5 ? 'Mid' : 'Sr';
         
         row.innerHTML = `
             <td>${date}</td>
@@ -73,10 +78,6 @@ function displayComprehensive() {
                     ${commit.project}
                 </a>
             </td>
-            <td>${commit.fileChanges}</td>
-            <td>+${commit.linesAdded}</td>
-            <td>-${commit.linesDeleted}</td>
-            <td title="${commit.commitMessage}">${truncate(commit.commitMessage, 30)}</td>
             <td>${commit.averageCodeQuality.toFixed(1)}</td>
             <td>${commit.averageDevLevel.toFixed(1)} (${devLevel})</td>
             <td>${commit.averageComplexity.toFixed(1)}</td>
@@ -84,15 +85,10 @@ function displayComprehensive() {
             <td>${(commit.averageAiPercentage || 0).toFixed(0)}%</td>
             <td>${(commit.averageEstimatedHoursWithAi || 0).toFixed(1)}</td>
             <td>${savings.toFixed(1)}h (${savingsPercent}%)</td>
-            <td>${(commit.totalTokens || 0).toLocaleString()}</td>
-            <td>$${(commit.totalCost || 0).toFixed(4)}</td>
-            <td>$${(commit.avgCostPerModel || 0).toFixed(4)}</td>
             <td>
-                <div class="action-buttons">
-                    <button class="view-details" onclick="viewCommitDetails(${allCommits.indexOf(commit)})">
-                        Details
-                    </button>
-                </div>
+                <button class="view-details" onclick="viewCommitDetails(${allCommits.indexOf(commit)})">
+                    Details
+                </button>
             </td>
         `;
         
@@ -105,20 +101,9 @@ function viewCommitDetails(index) {
     window.location.href = `/details.html?index=${index}`;
 }
 
-// Helper functions
-function getDevLevel(level) {
-    if (level <= 1.5) return 'Jr';
-    if (level <= 2.5) return 'Mid';
-    return 'Sr';
-}
-
-function truncate(str, length) {
-    return str.length > length ? str.substring(0, length) + '...' : str;
-}
-
 // Setup search functionality
 function setupSearch() {
-    const searchInput = document.getElementById('comprehensiveSearch');
+    const searchInput = document.getElementById('scoresSearch');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -131,18 +116,20 @@ function setupSearch() {
                         commit.commitMessage,
                         commit.user,
                         commit.project,
-                        new Date(commit.timestamp).toLocaleString(),
-                        commit.commitHash,
+                        new Date(commit.timestamp).toLocaleDateString(),
                         commit.averageCodeQuality.toFixed(1),
                         commit.averageDevLevel.toFixed(1),
-                        commit.averageComplexity.toFixed(1)
+                        commit.averageComplexity.toFixed(1),
+                        commit.averageEstimatedHours.toFixed(1),
+                        (commit.averageAiPercentage || 0).toFixed(0),
+                        (commit.averageEstimatedHoursWithAi || 0).toFixed(1)
                     ].join(' ').toLowerCase();
                     
                     return searchableText.includes(searchTerm);
                 });
             }
             
-            displayComprehensive();
+            displayScores();
         });
     }
 }

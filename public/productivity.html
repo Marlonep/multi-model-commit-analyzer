@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Statistics - Commit Analyzer</title>
+    <title>Productivity Analysis - Commit Analyzer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,10 +15,10 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="/" class="nav-link">Commits</a></li>
-                <li><a href="/users.html" class="nav-link active">Users</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
-                <li><a href="/productivity.html" class="nav-link">Productivity</a></li>
+                <li><a href="/productivity.html" class="nav-link active">Productivity</a></li>
                 <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
             </ul>
@@ -27,35 +27,36 @@
         <!-- Main Content -->
         <div class="main-content">
             <header>
-                <h1>User Statistics</h1>
-                <p>Historical analysis of all contributors</p>
+                <h1>Productivity Analysis</h1>
+                <p>AI-powered development productivity metrics and analysis scores</p>
             </header>
 
             <main>
-                <!-- Users Table -->
+                <!-- Analysis Scores Section -->
                 <section class="table-section">
-                    <h3>Developer Contributions</h3>
+                    <h3>Analysis Scores</h3>
                     <div class="search-container">
-                        <input type="text" class="search-bar" id="usersSearch" placeholder="Search users...">
+                        <input type="text" class="search-bar" id="scoresSearch" placeholder="Search analysis scores...">
                     </div>
                     <div class="table-wrapper">
-                        <table id="usersTable">
+                        <table id="scoresTable">
                             <thead>
                                 <tr>
+                                    <th>Date</th>
+                                    <th>Hash</th>
                                     <th>User</th>
-                                    <th>Commits</th>
-                                    <th>+Lines</th>
-                                    <th>-Lines</th>
-                                    <th>Last Commit</th>
-                                    <th>Avg Quality</th>
-                                    <th>Avg Dev Level</th>
-                                    <th>Avg Complex</th>
-                                    <th>Total Hours</th>
-                                    <th>Avg AI %</th>
-                                    <th>GitHub</th>
+                                    <th>Project</th>
+                                    <th>Quality</th>
+                                    <th>Dev Level</th>
+                                    <th>Complexity</th>
+                                    <th>Hours</th>
+                                    <th>AI %</th>
+                                    <th>AI Hours</th>
+                                    <th>Savings</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="usersBody">
+                            <tbody id="scoresBody">
                                 <!-- Data will be populated here -->
                             </tbody>
                         </table>
@@ -65,6 +66,6 @@
         </div>
     </div>
 
-    <script src="users.js"></script>
+    <script src="productivity.js"></script>
 </body>
 </html>
