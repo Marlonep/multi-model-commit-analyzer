@@ -908,17 +908,17 @@ tfoot td {
 
 .code-fill {
     background: rgba(57, 255, 20, 0.2);
-    border-right: 1px solid var(--success-color);
+    border: 1px solid var(--success-color);
 }
 
 .comment-fill {
     background: rgba(255, 152, 0, 0.2);
-    border-right: 1px solid #ff9800;
+    border: 1px solid #ff9800;
 }
 
 .text-fill {
     background: rgba(0, 191, 255, 0.2);
-    border-right: 1px solid #00bfff;
+    border: 1px solid #00bfff;
 }
 
 .line-count {
