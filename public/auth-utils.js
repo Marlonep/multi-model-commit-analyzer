@@ -52,7 +52,16 @@ async function checkAuth() {
 }
 
 // Logout function
-function logout() {
+async function logout() {
+    try {
+        await fetch('/api/logout', {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+    
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     window.location.href = '/login';

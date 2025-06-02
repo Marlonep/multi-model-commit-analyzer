@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import { AIModels } from './analyzeCommit.js';
 import { authenticateUser, verifyToken, requireAuth } from './auth.js';
 import cookieParser from 'cookie-parser';
+import session from 'express-session';
 
 const execAsync = promisify(exec);
 
@@ -20,6 +21,16 @@ const PORT = 3000;
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: false, // Set to true in production with HTTPS
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 
 // Serve static files that don't need auth (login assets)
 app.get('/login', (req, res) => {
@@ -44,7 +55,13 @@ app.use((req, res, next) => {
         return next();
     }
     
-    // Check for token in Authorization header
+    // Check session first
+    if (req.session && req.session.userId) {
+        req.user = { id: req.session.userId, username: req.session.username };
+        return next();
+    }
+    
+    // Check for token in Authorization header (for API calls)
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
@@ -55,7 +72,7 @@ app.use((req, res, next) => {
         }
     }
     
-    // No valid token, redirect to login
+    // No valid auth, handle based on request type
     if (req.path === '/' || req.path.endsWith('.html')) {
         res.redirect('/login');
     } else {
@@ -86,6 +103,11 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid username or password' });
         }
         
+        // Set session
+        req.session.userId = result.user.id;
+        req.session.username = result.user.username;
+        req.session.save();
+        
         res.json({
             token: result.token,
             username: result.user.username,
@@ -114,6 +136,16 @@ app.get('/api/verify', (req, res) => {
     }
     
     res.json({ valid: true, user: decoded });
+});
+
+// Logout endpoint
+app.post('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Could not log out' });
+        }
+        res.json({ success: true });
+    });
 });
 
 // API endpoint to get commit history

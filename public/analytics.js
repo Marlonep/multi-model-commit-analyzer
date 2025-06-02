@@ -1,7 +1,18 @@
 // Fetch and display organization analytics
 async function loadAnalytics() {
     try {
-        const response = await fetch('/api/commits');
+        const response = await fetch('/api/commits', {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error('Failed to load commits');
+        }
+        
         const commits = await response.json();
         
         calculateOrganizationStats(commits);
