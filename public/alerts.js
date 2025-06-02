@@ -48,6 +48,9 @@ async function loadAlerts() {
         // Update summary counts
         updateSummary();
         
+        // Initialize card visual states
+        setTimeout(updateAllCardVisualStates, 100);
+        
         // Apply filters and display
         applyFilters();
     } catch (error) {
@@ -262,6 +265,25 @@ function displayAlerts() {
             </td>
         `;
         
+        // Add click handler for row (except on interactive elements)
+        row.addEventListener('click', (e) => {
+            // Don't trigger if clicking on links, buttons, or select elements
+            if (e.target.tagName === 'A' || 
+                e.target.tagName === 'BUTTON' || 
+                e.target.tagName === 'SELECT' ||
+                e.target.closest('a') ||
+                e.target.closest('button') ||
+                e.target.closest('select')) {
+                return;
+            }
+            
+            // Navigate to commit details
+            viewCommitDetails(allCommits.indexOf(commit));
+        });
+        
+        // Add hover effect for clickable rows
+        row.style.cursor = 'pointer';
+        
         tbody.appendChild(row);
     });
 }
@@ -380,13 +402,80 @@ function truncate(str, length) {
     return str.length > length ? str.substring(0, length) + '...' : str;
 }
 
+// Toggle filter and update card appearance
+function toggleFilter(filterType) {
+    const checkbox = document.getElementById(`show${filterType.charAt(0).toUpperCase() + filterType.slice(1)}`);
+    const card = document.querySelector(`.stat-card.alert-${filterType}`);
+    const checkIndicator = card.querySelector('.check-indicator');
+    
+    // Toggle checkbox
+    checkbox.checked = !checkbox.checked;
+    
+    // Update visual state
+    updateCardVisualState(card, checkbox.checked, checkIndicator);
+    
+    // Apply filters
+    applyFilters();
+}
+
+// Update card visual state
+function updateCardVisualState(card, isChecked, checkIndicator) {
+    if (isChecked) {
+        card.classList.add('active');
+        checkIndicator.classList.remove('hidden');
+    } else {
+        card.classList.remove('active');
+        checkIndicator.classList.add('hidden');
+    }
+}
+
+// Update all card visual states based on checkbox states
+function updateAllCardVisualStates() {
+    const filters = ['analyzing', 'error', 'abnormal', 'ok'];
+    
+    filters.forEach(filterType => {
+        const checkbox = document.getElementById(`show${filterType.charAt(0).toUpperCase() + filterType.slice(1)}`);
+        const card = document.querySelector(`.stat-card.alert-${filterType}`);
+        const checkIndicator = card?.querySelector('.check-indicator');
+        
+        if (card && checkIndicator) {
+            updateCardVisualState(card, checkbox.checked, checkIndicator);
+        }
+    });
+}
+
 // Setup event listeners
 function setupEventListeners() {
     // Filter checkboxes
-    document.getElementById('showAnalyzing').addEventListener('change', applyFilters);
-    document.getElementById('showError').addEventListener('change', applyFilters);
-    document.getElementById('showAbnormal').addEventListener('change', applyFilters);
-    document.getElementById('showOk').addEventListener('change', applyFilters);
+    document.getElementById('showAnalyzing').addEventListener('change', () => {
+        updateAllCardVisualStates();
+        applyFilters();
+    });
+    document.getElementById('showError').addEventListener('change', () => {
+        updateAllCardVisualStates();
+        applyFilters();
+    });
+    document.getElementById('showAbnormal').addEventListener('change', () => {
+        updateAllCardVisualStates();
+        applyFilters();
+    });
+    document.getElementById('showOk').addEventListener('change', () => {
+        updateAllCardVisualStates();
+        applyFilters();
+    });
+    
+    // Clickable stat cards
+    document.querySelectorAll('.stat-card.clickable').forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Don't trigger if clicking on the checkbox itself
+            if (e.target.classList.contains('filter-checkbox')) return;
+            
+            const filterType = card.dataset.filter;
+            if (filterType) {
+                toggleFilter(filterType);
+            }
+        });
+    });
     
     // Search functionality
     const searchInput = document.getElementById('alertsSearch');

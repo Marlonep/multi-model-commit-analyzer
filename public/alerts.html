@@ -32,47 +32,33 @@
             </header>
 
             <main>
-                <!-- Alert Summary -->
+                <!-- Unified Alert Summary with Filters -->
                 <section class="alert-summary">
                     <div class="alert-stats">
-                        <div class="stat-card alert-analyzing">
+                        <div class="stat-card alert-analyzing clickable" data-filter="analyzing">
+                            <input type="checkbox" id="showAnalyzing" class="filter-checkbox" checked>
                             <div class="stat-value" id="analyzingCount">0</div>
                             <div class="stat-label">Analyzing</div>
+                            <div class="check-indicator">✓</div>
                         </div>
-                        <div class="stat-card alert-error">
+                        <div class="stat-card alert-error clickable" data-filter="error">
+                            <input type="checkbox" id="showError" class="filter-checkbox" checked>
                             <div class="stat-value" id="errorCount">0</div>
                             <div class="stat-label">Error</div>
+                            <div class="check-indicator">✓</div>
                         </div>
-                        <div class="stat-card alert-abnormal">
+                        <div class="stat-card alert-abnormal clickable" data-filter="abnormal">
+                            <input type="checkbox" id="showAbnormal" class="filter-checkbox" checked>
                             <div class="stat-value" id="abnormalCount">0</div>
                             <div class="stat-label">Abnormal</div>
+                            <div class="check-indicator">✓</div>
                         </div>
-                        <div class="stat-card alert-ok">
+                        <div class="stat-card alert-ok clickable" data-filter="ok">
+                            <input type="checkbox" id="showOk" class="filter-checkbox">
                             <div class="stat-value" id="okCount">0</div>
                             <div class="stat-label">OK</div>
+                            <div class="check-indicator">✓</div>
                         </div>
-                    </div>
-                </section>
-
-                <!-- Filter Controls -->
-                <section class="filter-section">
-                    <div class="filter-controls">
-                        <label class="filter-label">
-                            <input type="checkbox" id="showAnalyzing" checked>
-                            Show Analyzing
-                        </label>
-                        <label class="filter-label">
-                            <input type="checkbox" id="showError" checked>
-                            Show Error
-                        </label>
-                        <label class="filter-label">
-                            <input type="checkbox" id="showAbnormal" checked>
-                            Show Abnormal
-                        </label>
-                        <label class="filter-label">
-                            <input type="checkbox" id="showOk">
-                            Show OK
-                        </label>
                     </div>
                 </section>
 

@@ -306,6 +306,29 @@ header p {
     overflow-x: auto;
 }
 
+/* Table wrapper scrollbar */
+.table-wrapper::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+.table-wrapper::-webkit-scrollbar-corner {
+    background: var(--bg-primary);
+}
+
 /* Search Bar */
 .search-container {
     margin-bottom: 15px;
@@ -428,21 +451,25 @@ header p {
 #comprehensiveTable td:nth-child(19) { min-width: 100px; }
 
 .comprehensive-table::-webkit-scrollbar {
+    width: 10px;
     height: 10px;
 }
 
 .comprehensive-table::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+    background: var(--bg-primary);
 }
 
 .comprehensive-table::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
+    background: var(--border-color);
+    border-radius: 5px;
 }
 
 .comprehensive-table::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: var(--text-secondary);
+}
+
+.comprehensive-table::-webkit-scrollbar-corner {
+    background: var(--bg-primary);
 }
 
 table {
@@ -1536,6 +1563,102 @@ tfoot td {
     font-size: 0.9em;
     color: var(--text-secondary);
     max-width: 300px;
+}
+
+/* Unified alert stat cards with checkboxes */
+.stat-card.clickable {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.stat-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .filter-checkbox {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.stat-card .check-indicator {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card .check-indicator.hidden {
+    opacity: 0;
+}
+
+/* Alert stat card colors */
+.stat-card.alert-analyzing {
+    background: rgba(0, 191, 255, 0.1);
+    border-color: rgba(0, 191, 255, 0.3);
+}
+
+.stat-card.alert-analyzing .stat-value {
+    color: #00bfff;
+}
+
+.stat-card.alert-error {
+    background: rgba(255, 68, 68, 0.1);
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+.stat-card.alert-error .stat-value {
+    color: #ff4444;
+}
+
+.stat-card.alert-abnormal {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: rgba(255, 152, 0, 0.3);
+}
+
+.stat-card.alert-abnormal .stat-value {
+    color: #ff9800;
+}
+
+.stat-card.alert-ok {
+    background: rgba(57, 255, 20, 0.1);
+    border-color: rgba(57, 255, 20, 0.3);
+}
+
+.stat-card.alert-ok .stat-value {
+    color: var(--accent-green);
+}
+
+/* Active state for checked cards - bolder border */
+.stat-card.alert-analyzing.active {
+    border: 3px solid #00bfff;
+    box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.3);
+}
+
+.stat-card.alert-error.active {
+    border: 3px solid #ff4444;
+    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.3);
+}
+
+.stat-card.alert-abnormal.active {
+    border: 3px solid #ff9800;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+}
+
+.stat-card.alert-ok.active {
+    border: 3px solid var(--accent-green);
+    box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.3);
 }
 
 /* Delete Modal Styles */

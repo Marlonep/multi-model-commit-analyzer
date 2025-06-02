@@ -109,6 +109,23 @@ function displayComprehensive() {
             </td>
         `;
         
+        // Add click handler for row (except on interactive elements)
+        row.addEventListener('click', (e) => {
+            // Don't trigger if clicking on links or buttons
+            if (e.target.tagName === 'A' || 
+                e.target.tagName === 'BUTTON' || 
+                e.target.closest('a') ||
+                e.target.closest('button')) {
+                return;
+            }
+            
+            // Navigate to commit details
+            viewCommitDetails(allCommits.indexOf(commit));
+        });
+        
+        // Add hover effect for clickable rows
+        row.style.cursor = 'pointer';
+        
         tbody.appendChild(row);
     });
 }
