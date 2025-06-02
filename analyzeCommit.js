@@ -100,6 +100,7 @@ class CommitAnalysis {
     this.commitHash = data.commitHash;
     this.commitMessage = data.commitMessage;
     this.timestamp = data.timestamp;
+    this.analyzedAt = data.analyzedAt || data.timestamp; // Fallback for old data
     this.user = data.user;
     this.project = data.project;
     this.fileChanges = data.fileChanges;
@@ -759,7 +760,8 @@ async function main() {
   const analysis = new CommitAnalysis({
     commitHash: commitInfo.hash,
     commitMessage: commitInfo.message,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(commitInfo.date).toISOString(), // Original GitHub commit date
+    analyzedAt: new Date().toISOString(), // When we analyzed it
     user,
     project,
     fileChanges: commitInfo.filesChanged,
