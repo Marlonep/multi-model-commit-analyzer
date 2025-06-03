@@ -723,6 +723,20 @@
         "changedBy": "User",
         "timestamp": "2025-06-01T05:19:00.758Z",
         "reason": "Manual status change"
+      },
+      {
+        "previousStatus": "ok",
+        "newStatus": "abnormal",
+        "changedBy": "User",
+        "timestamp": "2025-06-02T23:21:38.555Z",
+        "reason": "Manual status change"
+      },
+      {
+        "previousStatus": "abnormal",
+        "newStatus": "ok",
+        "changedBy": "User",
+        "timestamp": "2025-06-02T23:21:47.795Z",
+        "reason": "Manual status change"
       }
     ],
     "status": "ok",
@@ -5599,5 +5613,93 @@
     "status": "ok",
     "manuallyReviewed": true,
     "analyzedAt": "2025-06-02T01:44:29.330Z"
+  },
+  {
+    "commitHash": "229e9b81012ec3d06c748dea0348f56b77e446ee",
+    "commitMessage": "Unify alert interface with interactive filter cards and add clickable table rows for better UX",
+    "timestamp": "2025-06-02T02:11:24.000Z",
+    "analyzedAt": "2025-06-02T02:11:43.198Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "fileChanges": 4,
+    "linesAdded": 251,
+    "linesDeleted": 36,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 4.2,
+        "devLevel": 2.3,
+        "complexity": 2.8,
+        "estimatedHours": 2.75,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 1.25,
+        "reasoning": "The commit presents clean, well-organized modifications to the alert UI with added interactive elements. The changes, spread over four files and affecting basic UI components (adding clickable cards, checkboxes, and visual indicators), are implemented without syntax errors or notable style issues, which indicates a mid-level developer's work. Overall, the modifications are moderately complex and more likely manually developed than heavily AI assisted.",
+        "responseTime": 11.579,
+        "tokensUsed": 2414,
+        "cost": 0.40421999999999997
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 3.8,
+        "devLevel": 2.1,
+        "complexity": 2.8,
+        "estimatedHours": 3.5,
+        "aiPercentage": 35,
+        "estimatedHoursWithAi": 2,
+        "reasoning": "Clean HTML structure with consistent patterns and good semantic markup. The implementation shows solid understanding of interactive UI patterns with filter cards and checkboxes. However, the approach is relatively straightforward - adding data attributes, checkboxes, and styling classes without complex logic. The 251 lines added suggest significant UI restructuring across 4 files. Code appears human-written with natural naming conventions and structure, though some repetitive patterns could indicate partial AI assistance.",
+        "responseTime": 5.943,
+        "tokensUsed": 1298,
+        "cost": 0.006066
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 3.7,
+        "devLevel": 2.3,
+        "complexity": 3.4,
+        "estimatedHours": 2.75,
+        "aiPercentage": 45.5,
+        "estimatedHoursWithAi": 1.25,
+        "reasoning": "The commit introduces interactive filter cards and clickable table rows, affecting multiple files (HTML, JS, likely CSS). This involves DOM manipulation, event handling, and filtering logic, indicating moderate complexity. The HTML changes shown include standard practices like data attributes and class names for scripting, but a visible syntax error (incomplete `div` tag) in the provided snippet lowers the quality score. The task complexity and patterns suggest a mid-level developer and a likely candidate for AI assistance in generating code snippets for the interaction logic.",
+        "responseTime": 12.594,
+        "tokensUsed": 1141,
+        "cost": 0.00012877499999999997
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.8,
+        "devLevel": 2.2,
+        "complexity": 3.2,
+        "estimatedHours": 3.5,
+        "aiPercentage": 35,
+        "estimatedHoursWithAi": 2,
+        "reasoning": "Code quality is good with no visible syntax errors or typos in the provided diff; structure appears logical for a UI update with interactive elements. Developer level suggests mid-level due to effective use of filters and clickable elements, though lacking advanced patterns. Complexity is moderate given 4 files changed and integration of UI interactivity with filters and table rows. Estimated time reflects effort for UI design and logic integration. AI percentage is moderate as the code shows some standardized patterns but retains unique styling and structure.",
+        "responseTime": 2.585,
+        "tokensUsed": 1120,
+        "cost": 0.007250000000000001
+      }
+    ],
+    "averageCodeQuality": 3.875,
+    "averageDevLevel": 2.225,
+    "averageComplexity": 3.05,
+    "averageEstimatedHours": 3.125,
+    "averageAiPercentage": 32.625,
+    "averageEstimatedHoursWithAi": 1.625,
+    "totalTokens": 5973,
+    "totalCost": 0.417664775,
+    "avgCostPerModel": 0.10441619375,
+    "codeAnalysis": {
+      "totalLines": 13040,
+      "codeLines": 11450,
+      "commentLines": 524,
+      "textLines": 229,
+      "blankLines": 837,
+      "codePercent": "93.8",
+      "commentPercent": "4.3",
+      "textPercent": "1.9"
+    }
   }
 ]

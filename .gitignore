@@ -4,6 +4,7 @@ npm-debug.log*
 .DS_Store
 *.log
 commit_analysis_history.json
+user-details.json
 
 # Python (kept for reference)
 __pycache__/

@@ -102,11 +102,11 @@ function displayCommitDetails(commit) {
         
         // Update legend values
         document.getElementById('codePercent').textContent = `${ca.codePercent}%`;
-        document.getElementById('codeLines').textContent = ca.codeLines.toLocaleString();
+        document.getElementById('codeLines').textContent = `${ca.codeLines.toLocaleString()} lines`;
         document.getElementById('commentPercent').textContent = `${ca.commentPercent}%`;
-        document.getElementById('commentLines').textContent = ca.commentLines.toLocaleString();
+        document.getElementById('commentLines').textContent = `${ca.commentLines.toLocaleString()} lines`;
         document.getElementById('textPercent').textContent = `${ca.textPercent}%`;
-        document.getElementById('textLines').textContent = ca.textLines.toLocaleString();
+        document.getElementById('textLines').textContent = `${ca.textLines.toLocaleString()} lines`;
         
         // Update stacked progress bar segments
         document.getElementById('codeBar').style.width = `${ca.codePercent}%`;

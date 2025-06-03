@@ -22,6 +22,8 @@
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/productivity.html" class="nav-link">Productivity</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/tools.html" class="nav-link">Tools</a></li>
+                <li><a href="/settings.html" class="nav-link">Settings</a></li>
             </ul>
         </nav>
 
@@ -57,6 +59,86 @@
                     <div class="info-item">
                         <span class="label">Time Saved:</span>
                         <span id="timeSaved" class="value">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Information -->
+            <h2 class="section-title">Contact Information</h2>
+            <section class="contact-info compact">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Email:</span>
+                        <span id="userEmail" class="value editable" data-field="email" contenteditable="false">Loading...</span>
+                        <button class="edit-btn" onclick="toggleEdit('email')">✏️</button>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Phone:</span>
+                        <span id="userPhone" class="value editable" data-field="phone" contenteditable="false">Loading...</span>
+                        <button class="edit-btn" onclick="toggleEdit('phone')">✏️</button>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">WhatsApp:</span>
+                        <input type="checkbox" id="whatsappAvailable" class="whatsapp-checkbox" disabled>
+                        <label for="whatsappAvailable" class="whatsapp-label">Available on WhatsApp</label>
+                        <button class="edit-btn" onclick="toggleWhatsAppEdit()">✏️</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Organizations -->
+            <h2 class="section-title">Organizations</h2>
+            <section class="organizations-section compact">
+                <div class="organizations-list" id="organizationsList">
+                    <!-- Organizations will be populated here -->
+                </div>
+                <button class="add-org-btn" onclick="showAddOrganization()">+ Add Organization</button>
+            </section>
+
+            <!-- Contribution Graph -->
+            <h2 class="section-title">Contribution Activity</h2>
+            <section class="contribution-section">
+                <div class="contribution-header">
+                    <div class="contribution-stats">
+                        <span class="contribution-count" id="yearContributions">0</span>
+                        <span class="contribution-label">contributions in the last year</span>
+                    </div>
+                    <div class="contribution-year-selector">
+                        <select id="yearSelector" class="year-select">
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="contribution-graph-wrapper">
+                    <div class="contribution-graph">
+                        <div class="months-labels" id="monthsLabels"></div>
+                        <div class="graph-container">
+                            <div class="weekdays-labels">
+                                <div class="weekday-label"></div>
+                                <div class="weekday-label">Mon</div>
+                                <div class="weekday-label"></div>
+                                <div class="weekday-label">Wed</div>
+                                <div class="weekday-label"></div>
+                                <div class="weekday-label">Fri</div>
+                                <div class="weekday-label"></div>
+                            </div>
+                            <div class="contribution-grid" id="contributionGrid"></div>
+                        </div>
+                    </div>
+                    <div class="contribution-legend">
+                        <span class="legend-label">Less</span>
+                        <div class="legend-scale">
+                            <div class="legend-item" data-level="0" title="No contributions"></div>
+                            <div class="legend-item" data-level="1" title="Low contributions"></div>
+                            <div class="legend-item" data-level="2" title="Medium-low contributions"></div>
+                            <div class="legend-item" data-level="3" title="Medium-high contributions"></div>
+                            <div class="legend-item" data-level="4" title="High contributions"></div>
+                        </div>
+                        <span class="legend-label">More</span>
                     </div>
                 </div>
             </section>

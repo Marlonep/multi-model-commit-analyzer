@@ -368,6 +368,88 @@ app.delete('/api/commits/:hash', async (req, res) => {
   }
 });
 
+// API endpoint to get user details
+app.get('/api/users/:username/details', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const dataFile = './user-details.json';
+    
+    // Check if file exists
+    if (!fsSync.existsSync(dataFile)) {
+      await fs.writeFile(dataFile, JSON.stringify({}, null, 2));
+    }
+    
+    // Read user details
+    const data = await fs.readFile(dataFile, 'utf8');
+    const allUserDetails = JSON.parse(data);
+    
+    // Return user details or empty object if not found
+    const userDetails = allUserDetails[username] || {
+      email: '',
+      phone: '',
+      whatsappAvailable: false,
+      organizations: []
+    };
+    
+    res.json(userDetails);
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ error: 'Failed to fetch user details' });
+  }
+});
+
+// API endpoint to update user details
+app.put('/api/users/:username/details', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const userDetails = req.body;
+    const dataFile = './user-details.json';
+    
+    // Validate input
+    if (!userDetails || typeof userDetails !== 'object') {
+      return res.status(400).json({ error: 'Invalid user details provided' });
+    }
+    
+    // Validate required fields
+    if (!('email' in userDetails) || !('phone' in userDetails) || 
+        !('whatsappAvailable' in userDetails) || !('organizations' in userDetails)) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: email, phone, whatsappAvailable, organizations' 
+      });
+    }
+    
+    // Check if file exists
+    if (!fsSync.existsSync(dataFile)) {
+      await fs.writeFile(dataFile, JSON.stringify({}, null, 2));
+    }
+    
+    // Read existing data
+    const data = await fs.readFile(dataFile, 'utf8');
+    const allUserDetails = JSON.parse(data);
+    
+    // Update user details
+    allUserDetails[username] = {
+      email: userDetails.email || '',
+      phone: userDetails.phone || '',
+      whatsappAvailable: Boolean(userDetails.whatsappAvailable),
+      organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Save updated data
+    await fs.writeFile(dataFile, JSON.stringify(allUserDetails, null, 2));
+    
+    res.json({ 
+      success: true, 
+      message: 'User details updated successfully',
+      details: allUserDetails[username]
+    });
+  } catch (error) {
+    console.error('Error updating user details:', error);
+    res.status(500).json({ error: 'Failed to update user details' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`

@@ -4,6 +4,14 @@ const userName = urlParams.get('user');
 let userCommits = [];
 let githubConfig = null;
 
+// User data will be fetched from API
+let userData = {
+    email: '',
+    phone: '',
+    whatsappAvailable: false,
+    organizations: []
+};
+
 // Chart instances
 let metricsChart = null;
 let commitsPerDayChart = null;
@@ -35,6 +43,12 @@ async function loadUserDetails() {
         // Load GitHub config first
         await loadGithubConfig();
         
+        // Fetch user details from API
+        const userDetailsResponse = await fetch(`/api/users/${userName}/details`);
+        if (userDetailsResponse.ok) {
+            userData = await userDetailsResponse.json();
+        }
+        
         // Fetch all commits
         const response = await fetch('/api/commits');
         const allCommits = await response.json();
@@ -47,6 +61,9 @@ async function loadUserDetails() {
         
         displayUserInfo();
         displayUserStats();
+        displayContactInfo();
+        displayOrganizations();
+        displayContributionGraph();
         displayCommitsTable();
         createCharts();
     } catch (error) {
@@ -91,6 +108,214 @@ function displayUserStats() {
     document.getElementById('avgAiPercent').textContent = avgAiPercent.toFixed(0) + '%';
     document.getElementById('totalLines').textContent = totalLines.toLocaleString();
     document.getElementById('totalCost').textContent = '$' + totalCost.toFixed(2);
+}
+
+// Display contribution graph
+function displayContributionGraph() {
+    const currentYear = new Date().getFullYear();
+    const yearSelector = document.getElementById('yearSelector');
+    
+    // Set current year as selected
+    yearSelector.value = currentYear;
+    
+    // Build contribution graph for current year
+    buildContributionGraph(currentYear);
+    
+    // Add year selector event listener
+    yearSelector.addEventListener('change', (e) => {
+        buildContributionGraph(parseInt(e.target.value));
+    });
+}
+
+// Build contribution graph for a specific year
+function buildContributionGraph(year) {
+    const startDate = new Date(year, 0, 1); // January 1st
+    let endDate = new Date(year, 11, 31); // December 31st
+    const today = new Date();
+    
+    // If the selected year is current year, use today or the latest commit date, whichever is later
+    if (year === today.getFullYear()) {
+        // Find the latest commit date for this year
+        let latestCommitDate = today;
+        userCommits.forEach(commit => {
+            const commitDate = new Date(commit.timestamp);
+            if (commitDate.getFullYear() === year && commitDate > latestCommitDate) {
+                latestCommitDate = commitDate;
+            }
+        });
+        
+        // Use the later of today or the latest commit date
+        endDate = new Date(Math.max(today.getTime(), latestCommitDate.getTime()));
+    }
+    
+    // Calculate contributions per day
+    const contributionsMap = {};
+    let totalContributions = 0;
+    
+    userCommits.forEach(commit => {
+        const commitDate = new Date(commit.timestamp);
+        if (commitDate.getFullYear() === year) {
+            const dateKey = commitDate.toISOString().split('T')[0];
+            contributionsMap[dateKey] = (contributionsMap[dateKey] || 0) + 1;
+            totalContributions++;
+        }
+    });
+    
+    // Update contribution count
+    document.getElementById('yearContributions').textContent = totalContributions;
+    
+    // Generate month labels
+    const monthsLabels = document.getElementById('monthsLabels');
+    monthsLabels.innerHTML = '';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Find the first Sunday on or before January 1st (for grid alignment)
+    const firstDay = new Date(year, 0, 1);
+    const gridStartDay = new Date(firstDay);
+    gridStartDay.setDate(firstDay.getDate() - firstDay.getDay());
+    
+    // Calculate the number of weeks needed to cover from gridStartDay to endDate
+    const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const totalWeeks = Math.ceil((endDate.getTime() - gridStartDay.getTime() + millisecondsPerWeek) / millisecondsPerWeek);
+    const weeksToShow = Math.max(53, totalWeeks); // At least 53 weeks, but more if needed
+    
+    // Calculate week positions for each month
+    const monthPositions = [];
+    
+    // Generate month labels for all months in the date range
+    const currentMonth = new Date(gridStartDay);
+    currentMonth.setDate(1); // Set to first day of month
+    
+    while (currentMonth <= endDate) {
+        // Set time to noon to avoid timezone issues
+        const monthStart = new Date(currentMonth);
+        monthStart.setHours(12, 0, 0, 0);
+        const gridStartNoon = new Date(gridStartDay);
+        gridStartNoon.setHours(12, 0, 0, 0);
+        
+        // Calculate days since grid start
+        const daysSinceStart = Math.round((monthStart - gridStartNoon) / (24 * 60 * 60 * 1000));
+        // Calculate which week column this falls into
+        const weekColumn = Math.floor(daysSinceStart / 7);
+        
+        // Only add if this month is within our display year
+        if (monthStart.getFullYear() === year) {
+            monthPositions.push({
+                month: months[monthStart.getMonth()],
+                week: weekColumn
+            });
+        }
+        
+        // Move to next month
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
+    }
+    
+    // Create month labels directly without container
+    monthsLabels.innerHTML = '';
+    
+    monthPositions.forEach((pos, index) => {
+        const monthLabel = document.createElement('div');
+        monthLabel.className = 'month-label';
+        monthLabel.textContent = pos.month;
+        monthLabel.style.position = 'absolute';
+        monthLabel.style.left = (pos.week * 14) + 'px'; // week * (cell width + gap) = 12 + 2
+        
+        // Don't show month label if it's outside the grid or overlaps with previous
+        if (pos.week < weeksToShow) {
+            // Check if this label would overlap with the previous one
+            if (index > 0 && pos.week - monthPositions[index - 1].week < 3) {
+                // Skip this label if it's too close to the previous one
+                return;
+            }
+            monthsLabels.appendChild(monthLabel);
+        }
+    });
+    
+    // Generate contribution grid
+    const grid = document.getElementById('contributionGrid');
+    grid.innerHTML = '';
+    
+    // Set the grid template columns dynamically based on weeks to show
+    grid.style.gridTemplateColumns = `repeat(${weeksToShow}, 12px)`;
+    
+    // Create the grid
+    const currentDate = new Date(gridStartDay);
+    const tooltip = createTooltip();
+    
+    for (let week = 0; week < weeksToShow; week++) {
+        for (let day = 0; day < 7; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'contribution-day';
+            
+            const dateKey = currentDate.toISOString().split('T')[0];
+            const contributions = contributionsMap[dateKey] || 0;
+            
+            // Calculate contribution level (0-4)
+            let level = 0;
+            if (contributions > 0) {
+                if (contributions === 1) level = 1;
+                else if (contributions <= 3) level = 2;
+                else if (contributions <= 5) level = 3;
+                else level = 4;
+            }
+            
+            dayElement.setAttribute('data-level', level);
+            dayElement.setAttribute('data-date', dateKey);
+            dayElement.setAttribute('data-count', contributions);
+            
+            // Only show days within the year and up to endDate
+            if (currentDate.getFullYear() === year && currentDate <= endDate) {
+                dayElement.style.visibility = 'visible';
+            } else {
+                dayElement.style.visibility = 'hidden';
+            }
+            
+            // Add hover tooltip
+            dayElement.addEventListener('mouseenter', (e) => showTooltip(e, tooltip));
+            dayElement.addEventListener('mouseleave', () => hideTooltip(tooltip));
+            
+            grid.appendChild(dayElement);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    }
+}
+
+// Create tooltip element
+function createTooltip() {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'contribution-tooltip';
+    tooltip.style.display = 'none';
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+// Show tooltip
+function showTooltip(event, tooltip) {
+    const target = event.target;
+    const date = new Date(target.getAttribute('data-date'));
+    const count = parseInt(target.getAttribute('data-count'));
+    
+    const dateStr = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    tooltip.innerHTML = `
+        <strong>${count} contribution${count !== 1 ? 's' : ''}</strong> on ${dateStr}
+    `;
+    
+    // Position tooltip
+    const rect = target.getBoundingClientRect();
+    tooltip.style.display = 'block';
+    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+    tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+}
+
+// Hide tooltip
+function hideTooltip(tooltip) {
+    tooltip.style.display = 'none';
 }
 
 // Display commits table
@@ -367,6 +592,218 @@ function setupSearch() {
         });
     }
 }
+
+// Display contact information
+function displayContactInfo() {
+    document.getElementById('userEmail').textContent = userData.email || 'Not provided';
+    document.getElementById('userPhone').textContent = userData.phone || 'Not provided';
+    document.getElementById('whatsappAvailable').checked = userData.whatsappAvailable || false;
+}
+
+// Display organizations
+function displayOrganizations() {
+    const orgsList = document.getElementById('organizationsList');
+    orgsList.innerHTML = '';
+    
+    if (!userData.organizations || userData.organizations.length === 0) {
+        orgsList.innerHTML = '<p style="color: #8b949e; text-align: center;">No organizations added yet</p>';
+        return;
+    }
+    
+    userData.organizations.forEach(org => {
+        const orgCard = document.createElement('div');
+        orgCard.className = 'organization-card';
+        orgCard.innerHTML = `
+            <div class="org-header">
+                <h4 class="org-name">${org.name}</h4>
+                <button class="remove-org-btn" onclick="removeOrganization(${org.id})" title="Remove">×</button>
+            </div>
+            <div class="org-details">
+                <span class="org-role">${org.role}</span>
+                <span class="org-date">Joined: ${new Date(org.joinDate).toLocaleDateString()}</span>
+            </div>
+        `;
+        orgsList.appendChild(orgCard);
+    });
+}
+
+// Toggle edit mode for contact fields
+async function toggleEdit(field) {
+    const element = document.querySelector(`[data-field="${field}"]`);
+    const button = element.nextElementSibling;
+    
+    if (element.contentEditable === 'false') {
+        element.contentEditable = 'true';
+        element.focus();
+        button.textContent = '✓';
+        element.classList.add('editing');
+        
+        // Select all text for easier editing
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+    } else {
+        element.contentEditable = 'false';
+        button.textContent = '✏️';
+        element.classList.remove('editing');
+        
+        // Update the local data
+        if (field === 'email') {
+            userData.email = element.textContent;
+        } else if (field === 'phone') {
+            userData.phone = element.textContent;
+        }
+        
+        // Save to API
+        await saveUserDetails();
+    }
+}
+
+// Toggle WhatsApp edit mode
+async function toggleWhatsAppEdit() {
+    const checkbox = document.getElementById('whatsappAvailable');
+    const button = checkbox.parentElement.querySelector('.edit-btn');
+    
+    if (checkbox.disabled) {
+        checkbox.disabled = false;
+        button.textContent = '✓';
+    } else {
+        checkbox.disabled = true;
+        button.textContent = '✏️';
+        userData.whatsappAvailable = checkbox.checked;
+        
+        // Save to API
+        await saveUserDetails();
+    }
+}
+
+// Show add organization dialog
+async function showAddOrganization() {
+    const orgName = prompt('Enter organization name:');
+    if (!orgName) return;
+    
+    const role = prompt('Enter your role:');
+    if (!role) return;
+    
+    const newOrg = {
+        id: Date.now(), // Simple ID generation
+        name: orgName,
+        role: role,
+        joinDate: new Date().toISOString()
+    };
+    
+    if (!userData.organizations) {
+        userData.organizations = [];
+    }
+    userData.organizations.push(newOrg);
+    displayOrganizations();
+    
+    // Save to API
+    await saveUserDetails();
+}
+
+// Remove organization
+async function removeOrganization(orgId) {
+    if (confirm('Are you sure you want to remove this organization?')) {
+        userData.organizations = userData.organizations.filter(org => org.id !== orgId);
+        displayOrganizations();
+        
+        // Save to API
+        await saveUserDetails();
+    }
+}
+
+// Save user details to API
+async function saveUserDetails() {
+    try {
+        const response = await fetch(`/api/users/${userName}/details`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showNotification('Changes saved successfully!', 'success');
+        } else {
+            const error = await response.json();
+            showNotification('Failed to save changes: ' + error.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error saving user details:', error);
+        showNotification('Failed to save changes. Please try again.', 'error');
+    }
+}
+
+// Show notification message
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    // Set background color based on type
+    if (type === 'success') {
+        notification.style.backgroundColor = '#28a745';
+    } else if (type === 'error') {
+        notification.style.backgroundColor = '#dc3545';
+    } else {
+        notification.style.backgroundColor = '#17a2b8';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {

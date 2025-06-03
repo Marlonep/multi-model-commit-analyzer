@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
+                <li><a href="/productivity.html" class="nav-link">Productivity</a></li>
+                <li><a href="/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/tools.html" class="nav-link active">Tools</a></li>
+                <li><a href="/settings.html" class="nav-link">Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Developer Tools</h1>
+                <p>Manage and track development tools used by the team</p>
+            </header>
+
+            <main>
+                <!-- Filters and Actions -->
+                <section class="filters-section">
+                    <div class="filters-container">
+                        <div class="search-container">
+                            <input type="text" class="search-bar" id="toolsSearch" placeholder="Search tools...">
+                        </div>
+                        <div class="filter-group">
+                            <select id="categoryFilter" class="filter-select">
+                                <option value="">All Categories</option>
+                                <option value="IDE/Code Editors">IDE/Code Editors</option>
+                                <option value="Version Control">Version Control</option>
+                                <option value="CI/CD">CI/CD</option>
+                                <option value="Project Management">Project Management</option>
+                                <option value="Communication">Communication</option>
+                                <option value="Testing">Testing</option>
+                                <option value="Monitoring">Monitoring</option>
+                                <option value="AI Assistants">AI Assistants</option>
+                                <option value="Cloud Services">Cloud Services</option>
+                                <option value="Database Tools">Database Tools</option>
+                                <option value="API Development">API Development</option>
+                                <option value="Security">Security</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" id="addToolBtn">Add New Tool</button>
+                    </div>
+                </section>
+
+                <!-- Tools Table -->
+                <section class="table-section">
+                    <div class="table-wrapper">
+                        <table id="toolsTable">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Price per Seat</th>
+                                    <th>Website</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="toolsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Tool Modal -->
+    <div id="toolModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Tool</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="toolForm">
+                    <input type="hidden" id="toolId">
+                    
+                    <div class="form-group">
+                        <label for="toolImage">Image URL</label>
+                        <input type="url" id="toolImage" class="form-control" placeholder="https://example.com/logo.png">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toolName">Tool Name *</label>
+                        <input type="text" id="toolName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toolCategory">Category *</label>
+                        <select id="toolCategory" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="IDE/Code Editors">IDE/Code Editors</option>
+                            <option value="Version Control">Version Control</option>
+                            <option value="CI/CD">CI/CD</option>
+                            <option value="Project Management">Project Management</option>
+                            <option value="Communication">Communication</option>
+                            <option value="Testing">Testing</option>
+                            <option value="Monitoring">Monitoring</option>
+                            <option value="AI Assistants">AI Assistants</option>
+                            <option value="Cloud Services">Cloud Services</option>
+                            <option value="Database Tools">Database Tools</option>
+                            <option value="API Development">API Development</option>
+                            <option value="Security">Security</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toolDescription">Description *</label>
+                        <textarea id="toolDescription" class="form-control" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toolPrice">Price per Seat</label>
+                        <input type="text" id="toolPrice" class="form-control" placeholder="e.g., $10/month, Free, Custom">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toolWebsite">Website</label>
+                        <input type="url" id="toolWebsite" class="form-control" placeholder="https://example.com">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Tool</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth-utils.js"></script>
+    <script src="tools.js"></script>
+</body>
+</html>
