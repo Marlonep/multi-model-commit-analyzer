@@ -12,9 +12,9 @@ async function loadGithubConfig() {
         console.error('Error loading GitHub config:', error);
         // Fallback configuration
         githubConfig = {
-            username: 'Marlonep',
+            username: 'Nuclea-Solutions',
             repository: 'multi-model-commit-analyzer',
-            baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+            baseUrl: 'https://github.com/Nuclea-Solutions/multi-model-commit-analyzer'
         };
     }
 }

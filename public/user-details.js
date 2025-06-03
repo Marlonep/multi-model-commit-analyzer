@@ -9,7 +9,9 @@ let userData = {
     email: '',
     phone: '',
     whatsappAvailable: false,
-    organizations: []
+    minHoursPerDay: 8,
+    organizations: [],
+    tools: []
 };
 
 // Chart instances
@@ -20,7 +22,9 @@ let linesPerDayChart = null;
 // Fetch GitHub configuration
 async function loadGithubConfig() {
     try {
-        const response = await fetch('/api/github-config');
+        const response = await fetch('/api/github-config', {
+            headers: getAuthHeaders()
+        });
         githubConfig = await response.json();
     } catch (error) {
         console.error('Error loading GitHub config:', error);
@@ -44,13 +48,26 @@ async function loadUserDetails() {
         await loadGithubConfig();
         
         // Fetch user details from API
-        const userDetailsResponse = await fetch(`/api/users/${userName}/details`);
+        const userDetailsResponse = await fetch(`/api/users/${userName}/details`, {
+            headers: getAuthHeaders()
+        });
         if (userDetailsResponse.ok) {
-            userData = await userDetailsResponse.json();
+            const fetchedData = await userDetailsResponse.json();
+            // Ensure all required fields exist
+            userData = {
+                email: fetchedData.email || '',
+                phone: fetchedData.phone || '',
+                whatsappAvailable: fetchedData.whatsappAvailable || false,
+                minHoursPerDay: fetchedData.minHoursPerDay || 8,
+                organizations: fetchedData.organizations || [],
+                tools: fetchedData.tools || []
+            };
         }
         
         // Fetch all commits
-        const response = await fetch('/api/commits');
+        const response = await fetch('/api/commits', {
+            headers: getAuthHeaders()
+        });
         const allCommits = await response.json();
         
         // Filter commits for this user
@@ -63,6 +80,8 @@ async function loadUserDetails() {
         displayUserStats();
         displayContactInfo();
         displayOrganizations();
+        displayTools();
+        displayToolSubscriptions();
         displayContributionGraph();
         displayCommitsTable();
         createCharts();
@@ -568,7 +587,9 @@ function truncate(str, length) {
 
 function viewCommitDetails(index) {
     // Get the global index in all commits
-    fetch('/api/commits')
+    fetch('/api/commits', {
+        headers: getAuthHeaders()
+    })
         .then(response => response.json())
         .then(allCommits => {
             const commit = userCommits[index];
@@ -598,6 +619,7 @@ function displayContactInfo() {
     document.getElementById('userEmail').textContent = userData.email || 'Not provided';
     document.getElementById('userPhone').textContent = userData.phone || 'Not provided';
     document.getElementById('whatsappAvailable').checked = userData.whatsappAvailable || false;
+    document.getElementById('minHoursPerDay').textContent = userData.minHoursPerDay || 8;
 }
 
 // Display organizations
@@ -654,6 +676,10 @@ async function toggleEdit(field) {
             userData.email = element.textContent;
         } else if (field === 'phone') {
             userData.phone = element.textContent;
+        } else if (field === 'minHoursPerDay') {
+            const hours = parseFloat(element.textContent);
+            userData.minHoursPerDay = isNaN(hours) || hours <= 0 ? 8 : hours;
+            element.textContent = userData.minHoursPerDay; // Update display with validated value
         }
         
         // Save to API
@@ -720,9 +746,7 @@ async function saveUserDetails() {
     try {
         const response = await fetch(`/api/users/${userName}/details`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(userData)
         });
         
@@ -736,6 +760,341 @@ async function saveUserDetails() {
     } catch (error) {
         console.error('Error saving user details:', error);
         showNotification('Failed to save changes. Please try again.', 'error');
+    }
+}
+
+// Display selected tools
+function displayTools() {
+    const toolsList = document.getElementById('selectedToolsList');
+    toolsList.innerHTML = '';
+    
+    if (!userData.tools || userData.tools.length === 0) {
+        toolsList.innerHTML = '<div class="no-tools-message">No tools selected</div>';
+        return;
+    }
+    
+    // Get active tools
+    const activeTools = userData.tools.filter(tool => {
+        // Handle both old format (string) and new format (object)
+        if (typeof tool === 'string') {
+            return true;
+        }
+        return tool.status === 'active';
+    });
+    
+    activeTools.forEach(tool => {
+        const toolId = typeof tool === 'string' ? tool : tool.toolId;
+        const toolChip = document.createElement('div');
+        toolChip.className = 'tool-chip';
+        toolChip.setAttribute('data-tool-id', toolId);
+        
+        // We'll update this with actual tool data
+        toolChip.innerHTML = `
+            <span class="tool-name-loading">Loading...</span>
+            <button class="remove-tool" onclick="removeTool('${toolId}')">&times;</button>
+        `;
+        
+        toolsList.appendChild(toolChip);
+    });
+    
+    if (activeTools.length === 0) {
+        toolsList.innerHTML = '<div class="no-tools-message">No active tools</div>';
+    }
+    
+    // Load tool details
+    loadToolDetails();
+}
+
+// Load actual tool details from tools data
+async function loadToolDetails() {
+    try {
+        const availableTools = await window.getAvailableTools();
+        const toolChips = document.querySelectorAll('.tool-chip');
+        
+        toolChips.forEach(chip => {
+            const toolId = chip.getAttribute('data-tool-id');
+            const tool = availableTools.find(t => t.id === toolId);
+            
+            if (tool) {
+                chip.innerHTML = `
+                    ${tool.image ? `<img src="${tool.image}" alt="${tool.name}" class="tool-icon">` : ''}
+                    <span class="tool-name">${tool.name}</span>
+                    <button class="remove-tool" onclick="removeTool('${toolId}')">&times;</button>
+                `;
+            } else {
+                chip.innerHTML = `
+                    <span class="tool-name">Unknown Tool</span>
+                    <button class="remove-tool" onclick="removeTool('${toolId}')">&times;</button>
+                `;
+            }
+        });
+    } catch (error) {
+        console.error('Error loading tool details:', error);
+    }
+}
+
+// Display tool subscriptions table
+async function displayToolSubscriptions() {
+    const tbody = document.getElementById('toolSubscriptionsBody');
+    tbody.innerHTML = '';
+    
+    if (!userData.tools || userData.tools.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No tool subscriptions</td></tr>';
+        updateSubscriptionSummary(0, 0);
+        return;
+    }
+    
+    try {
+        const availableTools = await window.getAvailableTools();
+        let activeCount = 0;
+        let totalMonthlyCost = 0;
+        
+        userData.tools.forEach(toolData => {
+            // Handle both old format (string) and new format (object)
+            let toolId, status, subscribedDate;
+            
+            if (typeof toolData === 'string') {
+                // Old format - convert to new
+                toolId = toolData;
+                status = 'active';
+                subscribedDate = new Date().toISOString();
+            } else {
+                toolId = toolData.toolId;
+                status = toolData.status;
+                subscribedDate = toolData.subscribedDate;
+            }
+            
+            const tool = availableTools.find(t => t.id === toolId);
+            if (!tool) return;
+            
+            const row = document.createElement('tr');
+            const isActive = status === 'active';
+            const monthlyCost = tool.costPerMonth || 0;
+            
+            if (isActive) {
+                activeCount++;
+                totalMonthlyCost += monthlyCost;
+            }
+            
+            row.innerHTML = `
+                <td>
+                    ${tool.image ? `<img src="${tool.image}" alt="${tool.name}" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">` : ''}
+                    ${tool.name}
+                </td>
+                <td>
+                    <span class="subscription-status ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                </td>
+                <td>
+                    <span class="subscription-cost ${monthlyCost === 0 ? 'free' : ''}">
+                        ${monthlyCost === 0 ? 'Free' : `$${monthlyCost.toFixed(2)}/month`}
+                    </span>
+                </td>
+                <td>${new Date(subscribedDate).toLocaleDateString()}</td>
+                <td>
+                    <div class="subscription-actions">
+                        ${isActive ? 
+                            `<button class="btn-cancel-subscription" onclick="cancelSubscription('${toolId}')">Cancel</button>` :
+                            `<button class="btn-reactivate-subscription" onclick="reactivateSubscription('${toolId}')">Reactivate</button>`
+                        }
+                    </div>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+        
+        updateSubscriptionSummary(activeCount, totalMonthlyCost);
+        
+    } catch (error) {
+        console.error('Error displaying tool subscriptions:', error);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger-color);">Error loading subscriptions</td></tr>';
+    }
+}
+
+// Update subscription summary
+function updateSubscriptionSummary(activeCount, totalCost) {
+    document.getElementById('activeSubscriptionsCount').textContent = activeCount;
+    document.getElementById('totalMonthlyCost').textContent = `$${totalCost.toFixed(2)}`;
+}
+
+// Cancel a subscription
+async function cancelSubscription(toolId) {
+    if (!confirm('Are you sure you want to cancel this subscription?')) {
+        return;
+    }
+    
+    // Find and update the tool subscription
+    userData.tools = userData.tools.map(tool => {
+        if (typeof tool === 'string') {
+            // Convert old format to new format
+            if (tool === toolId) {
+                return {
+                    toolId: tool,
+                    status: 'inactive',
+                    subscribedDate: new Date().toISOString()
+                };
+            }
+            return {
+                toolId: tool,
+                status: 'active',
+                subscribedDate: new Date().toISOString()
+            };
+        } else if (tool.toolId === toolId) {
+            return {
+                ...tool,
+                status: 'inactive'
+            };
+        }
+        return tool;
+    });
+    
+    await saveUserDetails();
+    displayTools();
+    displayToolSubscriptions();
+}
+
+// Reactivate a subscription
+async function reactivateSubscription(toolId) {
+    // Find and update the tool subscription
+    userData.tools = userData.tools.map(tool => {
+        if (typeof tool === 'string') {
+            // Convert old format to new format
+            return {
+                toolId: tool,
+                status: tool === toolId ? 'active' : 'active',
+                subscribedDate: new Date().toISOString()
+            };
+        } else if (tool.toolId === toolId) {
+            return {
+                ...tool,
+                status: 'active'
+            };
+        }
+        return tool;
+    });
+    
+    await saveUserDetails();
+    displayTools();
+    displayToolSubscriptions();
+}
+
+// Show tool selector modal
+async function showToolSelector() {
+    const modal = document.getElementById('toolSelectorModal');
+    const toolsGrid = document.getElementById('toolsGrid');
+    
+    // Load available tools
+    try {
+        const availableTools = await window.getAvailableTools();
+        
+        // Filter out already selected tools
+        const unselectedTools = availableTools.filter(tool => {
+            if (!userData.tools || userData.tools.length === 0) return true;
+            
+            // Check if tool is already in user's tools (handle both formats)
+            return !userData.tools.some(userTool => {
+                const toolId = typeof userTool === 'string' ? userTool : userTool.toolId;
+                return toolId === tool.id;
+            });
+        });
+        
+        // Populate tools grid
+        toolsGrid.innerHTML = '';
+        unselectedTools.forEach(tool => {
+            const toolCard = document.createElement('div');
+            toolCard.className = 'tool-card';
+            toolCard.innerHTML = `
+                <div class="tool-card-content">
+                    ${tool.image ? `<img src="${tool.image}" alt="${tool.name}" class="tool-card-icon">` : '<div class="tool-card-icon-placeholder">?</div>'}
+                    <h4 class="tool-card-name">${tool.name}</h4>
+                    <span class="tool-card-category">${tool.category}</span>
+                    <p class="tool-card-description">${tool.description}</p>
+                </div>
+            `;
+            
+            toolCard.addEventListener('click', () => selectTool(tool.id));
+            toolsGrid.appendChild(toolCard);
+        });
+        
+        if (unselectedTools.length === 0) {
+            toolsGrid.innerHTML = '<div class="no-tools-available">All available tools have been selected</div>';
+        }
+        
+        modal.style.display = 'block';
+        
+        // Setup search functionality
+        const searchInput = document.getElementById('toolSearchInput');
+        searchInput.value = '';
+        searchInput.focus();
+        searchInput.addEventListener('input', () => filterToolsInModal(unselectedTools));
+        
+    } catch (error) {
+        console.error('Error loading tools:', error);
+        toolsGrid.innerHTML = '<div class="error-message">Failed to load tools</div>';
+    }
+}
+
+// Filter tools in modal based on search
+function filterToolsInModal(tools) {
+    const searchTerm = document.getElementById('toolSearchInput').value.toLowerCase();
+    const toolCards = document.querySelectorAll('.tool-card');
+    
+    toolCards.forEach((card, index) => {
+        const tool = tools[index];
+        const matches = !searchTerm || 
+            tool.name.toLowerCase().includes(searchTerm) ||
+            tool.category.toLowerCase().includes(searchTerm) ||
+            tool.description.toLowerCase().includes(searchTerm);
+        
+        card.style.display = matches ? 'block' : 'none';
+    });
+}
+
+// Hide tool selector modal
+function hideToolSelector() {
+    const modal = document.getElementById('toolSelectorModal');
+    modal.style.display = 'none';
+}
+
+// Select a tool
+async function selectTool(toolId) {
+    if (!userData.tools) {
+        userData.tools = [];
+    }
+    
+    // Check if tool already exists (handle both formats)
+    const toolExists = userData.tools.some(tool => {
+        const existingToolId = typeof tool === 'string' ? tool : tool.toolId;
+        return existingToolId === toolId;
+    });
+    
+    if (!toolExists) {
+        // Add as new format
+        userData.tools.push({
+            toolId: toolId,
+            status: 'active',
+            subscribedDate: new Date().toISOString()
+        });
+        displayTools();
+        displayToolSubscriptions();
+        await saveUserDetails();
+    }
+    
+    hideToolSelector();
+}
+
+// Remove a tool
+async function removeTool(toolId) {
+    if (!userData.tools) return;
+    
+    if (confirm('Are you sure you want to remove this tool completely?')) {
+        userData.tools = userData.tools.filter(tool => {
+            const currentToolId = typeof tool === 'string' ? tool : tool.toolId;
+            return currentToolId !== toolId;
+        });
+        displayTools();
+        displayToolSubscriptions();
+        await saveUserDetails();
     }
 }
 
@@ -805,8 +1164,28 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Make functions available globally for onclick handlers
+window.toggleEdit = toggleEdit;
+window.toggleWhatsAppEdit = toggleWhatsAppEdit;
+window.showAddOrganization = showAddOrganization;
+window.removeOrganization = removeOrganization;
+window.viewCommitDetails = viewCommitDetails;
+window.showToolSelector = showToolSelector;
+window.hideToolSelector = hideToolSelector;
+window.removeTool = removeTool;
+window.cancelSubscription = cancelSubscription;
+window.reactivateSubscription = reactivateSubscription;
+
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {
     loadUserDetails();
     setupSearch();
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('toolSelectorModal');
+    if (event.target === modal) {
+        hideToolSelector();
+    }
 });

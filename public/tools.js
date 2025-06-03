@@ -1,11 +1,14 @@
 // Tools Management
 let tools = [];
 let filteredTools = [];
+let users = [];
+let exchangeRate = 17.5;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
     loadTools();
+    loadUsers();
     setupEventListeners();
 });
 
@@ -27,6 +30,15 @@ function setupEventListeners() {
     // Form submission
     document.getElementById('toolForm').addEventListener('submit', handleToolSubmit);
     
+    // Cost calculator controls
+    document.getElementById('userSelect').addEventListener('change', calculateUserToolsCost);
+    document.getElementById('updateRateBtn').addEventListener('click', updateExchangeRate);
+    document.getElementById('exchangeRate').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            updateExchangeRate();
+        }
+    });
+    
     // Close modal when clicking outside
     window.addEventListener('click', function(event) {
         const modal = document.getElementById('toolModal');
@@ -36,161 +48,61 @@ function setupEventListeners() {
     });
 }
 
-// Load tools from localStorage or initialize with sample data
-function loadTools() {
-    const savedTools = localStorage.getItem('developerTools');
-    // Check if we need to update with new tools (version check)
-    const toolsVersion = localStorage.getItem('developerToolsVersion');
-    const currentVersion = '2'; // Increment this when adding new default tools
-    
-    if (savedTools && toolsVersion === currentVersion) {
-        tools = JSON.parse(savedTools);
-    } else {
-        // Initialize with sample tools or merge new tools
-        localStorage.setItem('developerToolsVersion', currentVersion);
-        // Initialize with sample tools
-        tools = [
-            {
-                id: generateId(),
-                image: 'https://code.visualstudio.com/assets/favicon.ico',
-                name: 'Visual Studio Code',
-                category: 'IDE/Code Editors',
-                description: 'Free, open-source code editor with extensive plugin ecosystem',
-                price: 'Free',
-                website: 'https://code.visualstudio.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://github.githubassets.com/favicons/favicon.svg',
-                name: 'GitHub',
-                category: 'Version Control',
-                description: 'Web-based hosting service for version control using Git',
-                price: '$4/user/month',
-                website: 'https://github.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://www.jenkins.io/favicon.ico',
-                name: 'Jenkins',
-                category: 'CI/CD',
-                description: 'Open-source automation server for continuous integration and delivery',
-                price: 'Free',
-                website: 'https://www.jenkins.io/'
-            },
-            {
-                id: generateId(),
-                image: 'https://cdn.worldvectorlogo.com/logos/jira-1.svg',
-                name: 'Jira',
-                category: 'Project Management',
-                description: 'Issue tracking and project management tool for agile teams',
-                price: '$7.75/user/month',
-                website: 'https://www.atlassian.com/software/jira'
-            },
-            {
-                id: generateId(),
-                image: 'https://a.slack-edge.com/80588/marketing/img/icons/icon_slack_hash_colored.png',
-                name: 'Slack',
-                category: 'Communication',
-                description: 'Team collaboration and messaging platform',
-                price: '$7.25/user/month',
-                website: 'https://slack.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png',
-                name: 'Docker',
-                category: 'Cloud Services',
-                description: 'Platform for developing, shipping, and running applications in containers',
-                price: '$5/user/month',
-                website: 'https://www.docker.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://www.postman.com/_ar-assets/images/favicon-1-48.png',
-                name: 'Postman',
-                category: 'API Development',
-                description: 'API development and testing platform',
-                price: '$12/user/month',
-                website: 'https://www.postman.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://github.com/favicon.ico',
-                name: 'GitHub Copilot',
-                category: 'AI Assistants',
-                description: 'AI-powered code completion and suggestion tool',
-                price: '$10/user/month',
-                website: 'https://github.com/features/copilot'
-            },
-            {
-                id: generateId(),
-                image: 'https://lh3.googleusercontent.com/sYGCKFdty43En6UhLRd_M0ZxiLbTHhdVmuRe0M0OvnCVmNiWeLhtBRmAYL5vvEZJ_WwihKzYh-3wMsaYUDvvKh9e-g=w128-h128-e365-rj-sc0x00ffffff',
-                name: 'Google Workspace',
-                category: 'Communication',
-                description: 'Suite of cloud computing, productivity and collaboration tools',
-                price: '$12/user/month',
-                website: 'https://workspace.google.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://app.flutterflow.io/favicon.png',
-                name: 'FlutterFlow',
-                category: 'IDE/Code Editors',
-                description: 'Visual development platform for building native mobile and web apps',
-                price: '$30/user/month',
-                website: 'https://flutterflow.io/'
-            },
-            {
-                id: generateId(),
-                image: 'https://claude.ai/favicon.ico',
-                name: 'Claude',
-                category: 'AI Assistants',
-                description: 'AI assistant by Anthropic for analysis, writing, and coding',
-                price: '$20/user/month',
-                website: 'https://claude.ai/'
-            },
-            {
-                id: generateId(),
-                image: 'https://chat.openai.com/apple-touch-icon.png',
-                name: 'OpenAI ChatGPT',
-                category: 'AI Assistants',
-                description: 'Advanced AI language model for various tasks including coding',
-                price: '$20/user/month',
-                website: 'https://openai.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685481c559f160ea06b.png',
-                name: 'Google AI Studio',
-                category: 'AI Assistants',
-                description: 'Platform for prototyping and building with Google\'s Gemini models',
-                price: 'Free',
-                website: 'https://aistudio.google.com/'
-            },
-            {
-                id: generateId(),
-                image: 'https://x.ai/favicon.ico',
-                name: 'Grok',
-                category: 'AI Assistants',
-                description: 'AI assistant by xAI with real-time knowledge and humor',
-                price: '$16/user/month',
-                website: 'https://x.ai/'
-            },
-            {
-                id: generateId(),
-                image: 'https://cdn.sanity.io/images/599r6htc/localized/46a76c802176eb17b04e12108de7e7e0f3736dc6-1024x1024.png?w=48&h=48&q=75&fit=max&auto=format',
-                name: 'Figma',
-                category: 'Other',
-                description: 'Collaborative interface design and prototyping tool',
-                price: '$15/user/month',
-                website: 'https://www.figma.com/'
-            }
-        ];
-        saveTools();
+// Load tools from JSON file and localStorage for user customizations
+async function loadTools() {
+    try {
+        // First load tools from JSON file
+        const response = await fetch('/tools-data.json');
+        const data = await response.json();
+        const defaultTools = data.tools;
+        
+        // Check for user customizations in localStorage
+        const savedTools = localStorage.getItem('developerTools');
+        const toolsVersion = localStorage.getItem('developerToolsVersion');
+        const currentVersion = '3'; // Increment this when updating default tools
+        
+        if (savedTools && toolsVersion === currentVersion) {
+            // Merge default tools with saved customizations
+            const savedToolsArray = JSON.parse(savedTools);
+            const defaultIds = defaultTools.map(t => t.id);
+            
+            // Start with default tools
+            tools = [...defaultTools];
+            
+            // Add any custom tools that don't exist in defaults
+            savedToolsArray.forEach(savedTool => {
+                if (!defaultIds.includes(savedTool.id) && !savedTool.id.startsWith('tool_')) {
+                    tools.push(savedTool);
+                }
+            });
+        } else {
+            // Use default tools from JSON
+            tools = defaultTools;
+            localStorage.setItem('developerToolsVersion', currentVersion);
+            saveTools();
+        }
+        
+        filteredTools = [...tools];
+        renderTools();
+    } catch (error) {
+        console.error('Error loading tools:', error);
+        // Fallback to empty array if file loading fails
+        tools = [];
+        filteredTools = [];
+        renderTools();
     }
-    
-    filteredTools = [...tools];
-    renderTools();
+}
+
+// Also export function to get all available tools for other pages
+window.getAvailableTools = async function() {
+    try {
+        const response = await fetch('/tools-data.json');
+        const data = await response.json();
+        return data.tools;
+    } catch (error) {
+        console.error('Error loading tools data:', error);
+        return [];
+    }
 }
 
 // Save tools to localStorage
@@ -349,3 +261,139 @@ window.resetTools = function() {
     localStorage.removeItem('developerToolsVersion');
     location.reload();
 };
+
+// Load users for the cost calculator
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/users', {
+            headers: getAuthHeaders()
+        });
+        users = await response.json();
+        
+        // Populate user select dropdown
+        const userSelect = document.getElementById('userSelect');
+        userSelect.innerHTML = '<option value="">Select a user...</option>';
+        
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.name;
+            option.textContent = user.name;
+            userSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading users:', error);
+    }
+}
+
+// Parse price string to get numeric value
+function parsePriceToNumber(priceString) {
+    if (!priceString || priceString.toLowerCase() === 'free') {
+        return 0;
+    }
+    
+    // Remove currency symbols and convert to lowercase
+    const cleanPrice = priceString.replace(/[$,]/g, '').toLowerCase();
+    
+    // Extract numeric value
+    const match = cleanPrice.match(/(\d+\.?\d*)/);
+    if (match) {
+        return parseFloat(match[1]);
+    }
+    
+    return 0;
+}
+
+// Update exchange rate
+function updateExchangeRate() {
+    const rateInput = document.getElementById('exchangeRate');
+    const newRate = parseFloat(rateInput.value);
+    
+    if (isNaN(newRate) || newRate <= 0) {
+        alert('Please enter a valid exchange rate');
+        rateInput.value = exchangeRate;
+        return;
+    }
+    
+    exchangeRate = newRate;
+    
+    // Recalculate if a user is selected
+    const selectedUser = document.getElementById('userSelect').value;
+    if (selectedUser) {
+        calculateUserToolsCost();
+    }
+}
+
+// Calculate tools cost for selected user
+async function calculateUserToolsCost() {
+    const selectedUser = document.getElementById('userSelect').value;
+    const costTableWrapper = document.getElementById('costTableWrapper');
+    const noUserSelected = document.getElementById('noUserSelected');
+    const costTableBody = document.getElementById('costTableBody');
+    
+    if (!selectedUser) {
+        costTableWrapper.style.display = 'none';
+        noUserSelected.style.display = 'block';
+        return;
+    }
+    
+    try {
+        // Fetch user details to get their tools
+        const response = await fetch(`/api/users/${selectedUser}/details`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch user details');
+        }
+        
+        const userDetails = await response.json();
+        const userTools = userDetails.tools || [];
+        
+        // Show cost table
+        costTableWrapper.style.display = 'block';
+        noUserSelected.style.display = 'none';
+        
+        // Clear existing rows
+        costTableBody.innerHTML = '';
+        
+        let totalUSD = 0;
+        
+        // Calculate costs for each tool
+        userTools.forEach(toolId => {
+            const tool = tools.find(t => t.id === toolId);
+            if (tool) {
+                const row = document.createElement('tr');
+                const costUSD = parsePriceToNumber(tool.price);
+                const costMXN = costUSD * exchangeRate;
+                
+                totalUSD += costUSD;
+                
+                row.innerHTML = `
+                    <td>${escapeHtml(tool.name)}</td>
+                    <td>${costUSD === 0 ? 'Free' : '$' + costUSD.toFixed(2)}</td>
+                    <td>${costUSD === 0 ? 'Free' : '$' + costMXN.toFixed(2) + ' MX'}</td>
+                `;
+                
+                costTableBody.appendChild(row);
+            }
+        });
+        
+        // Update totals
+        const totalMXN = totalUSD * exchangeRate;
+        document.getElementById('totalUSD').innerHTML = '<strong>$' + totalUSD.toFixed(2) + '</strong>';
+        document.getElementById('totalMXN').innerHTML = '<strong>$' + totalMXN.toFixed(2) + ' MX</strong>';
+        
+        // Show message if no tools
+        if (userTools.length === 0) {
+            costTableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="empty-message">This user has no tools selected</td>
+                </tr>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error calculating tools cost:', error);
+        alert('Error loading user tools. Please try again.');
+    }
+}

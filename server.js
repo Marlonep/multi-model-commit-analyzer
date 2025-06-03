@@ -46,6 +46,11 @@ app.get('/styles.css', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'styles.css'));
 });
 
+// Serve tools data JSON file (public endpoint)
+app.get('/tools-data.json', (req, res) => {
+    res.sendFile(path.join(__dirname, 'tools-data.json'));
+});
+
 // Authentication middleware for all other routes
 app.use((req, res, next) => {
     // Allow access to login API endpoints and favicon
@@ -208,17 +213,17 @@ app.get('/api/github-config', async (req, res) => {
     } else {
       // Fallback configuration
       res.json({
-        username: 'Marlonep',
+        username: 'Nuclea-Solutions',
         repository: 'multi-model-commit-analyzer',
-        baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+        baseUrl: 'https://github.com/Nuclea-Solutions/multi-model-commit-analyzer'
       });
     }
   } catch (error) {
     // Fallback configuration on error
     res.json({
-      username: 'Marlonep',
+      username: 'Nuclea-Solutions',
       repository: 'multi-model-commit-analyzer',
-      baseUrl: 'https://github.com/Marlonep/multi-model-commit-analyzer'
+      baseUrl: 'https://github.com/Nuclea-Solutions/multi-model-commit-analyzer'
     });
   }
 });
@@ -368,6 +373,28 @@ app.delete('/api/commits/:hash', async (req, res) => {
   }
 });
 
+// API endpoint to get all user details (for dropdowns, etc.)
+app.get('/api/users/all/details', async (req, res) => {
+  try {
+    const dataFile = './user-details.json';
+    
+    // Check if file exists
+    if (!fsSync.existsSync(dataFile)) {
+      await fs.writeFile(dataFile, JSON.stringify({}, null, 2));
+      return res.json({});
+    }
+    
+    // Read the file
+    const data = await fs.readFile(dataFile, 'utf8');
+    const userDetails = JSON.parse(data);
+    
+    res.json(userDetails);
+  } catch (error) {
+    console.error('Error reading user details:', error);
+    res.status(500).json({ error: 'Failed to load user details' });
+  }
+});
+
 // API endpoint to get user details
 app.get('/api/users/:username/details', async (req, res) => {
   try {
@@ -384,12 +411,23 @@ app.get('/api/users/:username/details', async (req, res) => {
     const allUserDetails = JSON.parse(data);
     
     // Return user details or empty object if not found
-    const userDetails = allUserDetails[username] || {
+    let userDetails = allUserDetails[username] || {
       email: '',
       phone: '',
       whatsappAvailable: false,
-      organizations: []
+      minHoursPerDay: 8,
+      organizations: [],
+      tools: []
     };
+    
+    // Migrate tools if they're in old format (array of strings)
+    if (userDetails.tools && userDetails.tools.length > 0 && typeof userDetails.tools[0] === 'string') {
+      userDetails.tools = userDetails.tools.map(toolId => ({
+        toolId,
+        status: 'active',
+        subscribedDate: new Date().toISOString()
+      }));
+    }
     
     res.json(userDetails);
   } catch (error) {
@@ -427,12 +465,25 @@ app.put('/api/users/:username/details', async (req, res) => {
     const data = await fs.readFile(dataFile, 'utf8');
     const allUserDetails = JSON.parse(data);
     
+    // Handle tools migration from array to objects
+    let tools = userDetails.tools || [];
+    if (tools.length > 0 && typeof tools[0] === 'string') {
+      // Migrate old format (array of IDs) to new format (array of objects)
+      tools = tools.map(toolId => ({
+        toolId,
+        status: 'active',
+        subscribedDate: allUserDetails[username]?.tools?.find(t => t.toolId === toolId)?.subscribedDate || new Date().toISOString()
+      }));
+    }
+    
     // Update user details
     allUserDetails[username] = {
       email: userDetails.email || '',
       phone: userDetails.phone || '',
       whatsappAvailable: Boolean(userDetails.whatsappAvailable),
+      minHoursPerDay: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
       organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
+      tools: tools,
       lastUpdated: new Date().toISOString()
     };
     
@@ -447,6 +498,62 @@ app.put('/api/users/:username/details', async (req, res) => {
   } catch (error) {
     console.error('Error updating user details:', error);
     res.status(500).json({ error: 'Failed to update user details' });
+  }
+});
+
+// API endpoint to get daily commits data
+app.get('/api/daily-commits', async (req, res) => {
+  try {
+    const dataFile = './daily-commits.json';
+    
+    // Check if file exists
+    if (!fsSync.existsSync(dataFile)) {
+      // Return empty data if file doesn't exist
+      return res.json({ dailyCommits: [] });
+    }
+    
+    // Read daily commits data
+    const data = await fs.readFile(dataFile, 'utf8');
+    const dailyCommits = JSON.parse(data);
+    
+    res.json(dailyCommits);
+  } catch (error) {
+    console.error('Error fetching daily commits:', error);
+    res.status(500).json({ error: 'Failed to fetch daily commits' });
+  }
+});
+
+// API endpoint to generate daily report
+app.post('/api/generate-daily-report', async (req, res) => {
+  try {
+    // Import the generateDailyReport function
+    const { generateDailyReport } = await import('./generateDailyReport.js');
+    
+    // Get optional date parameter from request body
+    const { date } = req.body;
+    
+    // Run the report generation
+    const result = await generateDailyReport(date);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Daily report generated successfully',
+        daysProcessed: result.daysProcessed,
+        summariesGenerated: result.summariesGenerated
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to generate daily report'
+      });
+    }
+  } catch (error) {
+    console.error('Error generating daily report:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Failed to generate daily report' 
+    });
   }
 });
 

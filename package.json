@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "analyze": "node analyzeCommit.js",
-    "test": "node testAnalyzer.js"
+    "test": "node testAnalyzer.js",
+    "generate-daily-report": "node generateDailyReport.js",
+    "start": "node server.js"
   },
   "keywords": [
     "git",

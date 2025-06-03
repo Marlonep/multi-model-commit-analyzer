@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Commits - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
+                <li><a href="/daily-commits.html" class="nav-link active">Daily Commits</a></li>
+                <li><a href="/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/tools.html" class="nav-link">Tools</a></li>
+                <li><a href="/settings.html" class="nav-link">Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Daily Commit Summaries</h1>
+            </header>
+            
+            <main>
+                <!-- Filters Section -->
+                <section class="filters-section">
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label for="startDate">Start Date:</label>
+                            <input type="date" id="startDate" class="filter-input">
+                        </div>
+                        <div class="filter-group">
+                            <label for="endDate">End Date:</label>
+                            <input type="date" id="endDate" class="filter-input">
+                        </div>
+                        <div class="filter-group">
+                            <label for="userFilter">User:</label>
+                            <select id="userFilter" class="filter-select">
+                                <option value="">All Users</option>
+                            </select>
+                        </div>
+                        <button id="applyFilters" class="btn-primary">Apply Filters</button>
+                        <button id="resetFilters" class="btn-secondary">Reset</button>
+                    </div>
+                </section>
+                
+                <!-- Actions Section -->
+                <section class="actions-section">
+                    <button id="generateReport" class="btn-primary">Generate Daily Report</button>
+                </section>
+                
+                <!-- Summary Stats -->
+                <section class="summary-stats-section">
+                    <div class="summary-stats">
+                        <div class="stat-card">
+                            <h3>Total Days</h3>
+                            <p id="totalDays">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Days</h3>
+                            <p id="activeDays">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Users</h3>
+                            <p id="totalUsers">0</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Table Section -->
+                <section class="table-section">
+                    <div class="table-wrapper">
+                    <table id="dailyCommitsTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Avg Code Quality</th>
+                                <th>Avg Complexity</th>
+                                <th>Avg Dev Level</th>
+                                <th>Total Hours</th>
+                                <th>Hours Diff</th>
+                                <th>Commit Count</th>
+                                <th>Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dailyCommitsBody">
+                            <tr>
+                                <td colspan="10" class="loading">Loading daily commits...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <script src="auth-utils.js"></script>
+    <script src="daily-commits.js"></script>
+</body>
+</html>

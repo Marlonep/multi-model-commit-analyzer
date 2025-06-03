@@ -1,0 +1,154 @@
+{
+  "tools": [
+    {
+      "id": "tool_vscode",
+      "image": "https://code.visualstudio.com/assets/favicon.ico",
+      "name": "Visual Studio Code",
+      "category": "IDE/Code Editors",
+      "description": "Free, open-source code editor with extensive plugin ecosystem",
+      "price": "Free",
+      "costPerMonth": null,
+      "website": "https://code.visualstudio.com/"
+    },
+    {
+      "id": "tool_github",
+      "image": "https://github.githubassets.com/favicons/favicon.svg",
+      "name": "GitHub",
+      "category": "Version Control",
+      "description": "Web-based hosting service for version control using Git",
+      "price": "$4/user/month",
+      "costPerMonth": 4,
+      "website": "https://github.com/"
+    },
+    {
+      "id": "tool_jenkins",
+      "image": "https://www.jenkins.io/favicon.ico",
+      "name": "Jenkins",
+      "category": "CI/CD",
+      "description": "Open-source automation server for continuous integration and delivery",
+      "price": "Free",
+      "costPerMonth": null,
+      "website": "https://www.jenkins.io/"
+    },
+    {
+      "id": "tool_jira",
+      "image": "https://cdn.worldvectorlogo.com/logos/jira-1.svg",
+      "name": "Jira",
+      "category": "Project Management",
+      "description": "Issue tracking and project management tool for agile teams",
+      "price": "$7.75/user/month",
+      "costPerMonth": 7.75,
+      "website": "https://www.atlassian.com/software/jira"
+    },
+    {
+      "id": "tool_slack",
+      "image": "https://a.slack-edge.com/80588/marketing/img/icons/icon_slack_hash_colored.png",
+      "name": "Slack",
+      "category": "Communication",
+      "description": "Team collaboration and messaging platform",
+      "price": "$7.25/user/month",
+      "costPerMonth": 7.25,
+      "website": "https://slack.com/"
+    },
+    {
+      "id": "tool_docker",
+      "image": "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png",
+      "name": "Docker",
+      "category": "Cloud Services",
+      "description": "Platform for developing, shipping, and running applications in containers",
+      "price": "$5/user/month",
+      "costPerMonth": 5,
+      "website": "https://www.docker.com/"
+    },
+    {
+      "id": "tool_postman",
+      "image": "https://www.postman.com/_ar-assets/images/favicon-1-48.png",
+      "name": "Postman",
+      "category": "API Development",
+      "description": "API development and testing platform",
+      "price": "$12/user/month",
+      "costPerMonth": 12,
+      "website": "https://www.postman.com/"
+    },
+    {
+      "id": "tool_github_copilot",
+      "image": "https://github.com/favicon.ico",
+      "name": "GitHub Copilot",
+      "category": "AI Assistants",
+      "description": "AI-powered code completion and suggestion tool",
+      "price": "$10/user/month",
+      "costPerMonth": 10,
+      "website": "https://github.com/features/copilot"
+    },
+    {
+      "id": "tool_google_workspace",
+      "image": "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico",
+      "name": "Google Workspace",
+      "category": "Communication",
+      "description": "Suite of cloud computing, productivity and collaboration tools",
+      "price": "$12/user/month",
+      "costPerMonth": 12,
+      "website": "https://workspace.google.com/"
+    },
+    {
+      "id": "tool_flutterflow",
+      "image": "https://app.flutterflow.io/favicon.png",
+      "name": "FlutterFlow",
+      "category": "IDE/Code Editors",
+      "description": "Visual development platform for building native mobile and web apps",
+      "price": "$30/user/month",
+      "costPerMonth": 30,
+      "website": "https://flutterflow.io/"
+    },
+    {
+      "id": "tool_claude",
+      "image": "https://claude.ai/favicon.ico",
+      "name": "Claude",
+      "category": "AI Assistants",
+      "description": "AI assistant by Anthropic for analysis, writing, and coding",
+      "price": "$20/user/month",
+      "costPerMonth": 20,
+      "website": "https://claude.ai/"
+    },
+    {
+      "id": "tool_openai_chatgpt",
+      "image": "https://cdn.oaistatic.com/assets/favicon-o20kmmos.svg",
+      "name": "OpenAI ChatGPT",
+      "category": "AI Assistants",
+      "description": "Advanced AI language model for various tasks including coding",
+      "price": "$20/user/month",
+      "costPerMonth": 20,
+      "website": "https://openai.com/"
+    },
+    {
+      "id": "tool_google_ai_studio",
+      "image": "https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685481c559f160ea06b.png",
+      "name": "Google AI Studio",
+      "category": "AI Assistants",
+      "description": "Platform for prototyping and building with Google's Gemini models",
+      "price": "Free",
+      "costPerMonth": null,
+      "website": "https://aistudio.google.com/"
+    },
+    {
+      "id": "tool_grok",
+      "image": "https://x.ai/favicon.ico",
+      "name": "Grok",
+      "category": "AI Assistants",
+      "description": "AI assistant by xAI with real-time knowledge and humor",
+      "price": "$16/user/month",
+      "costPerMonth": 16,
+      "website": "https://x.ai/"
+    },
+    {
+      "id": "tool_figma",
+      "image": "https://cdn.sanity.io/images/599r6htc/localized/46a76c802176eb17b04e12108de7e7e0f3736dc6-1024x1024.png?w=48&h=48&q=75&fit=max&auto=format",
+      "name": "Figma",
+      "category": "Other",
+      "description": "Collaborative interface design and prototyping tool",
+      "price": "$15/user/month",
+      "costPerMonth": 15,
+      "website": "https://www.figma.com/"
+    }
+  ]
+}

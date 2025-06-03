@@ -20,7 +20,7 @@
                 <li><a href="/users.html" class="nav-link active">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
-                <li><a href="/productivity.html" class="nav-link">Productivity</a></li>
+                <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
                 <li><a href="/tools.html" class="nav-link">Tools</a></li>
                 <li><a href="/settings.html" class="nav-link">Settings</a></li>
@@ -83,6 +83,11 @@
                         <label for="whatsappAvailable" class="whatsapp-label">Available on WhatsApp</label>
                         <button class="edit-btn" onclick="toggleWhatsAppEdit()">✏️</button>
                     </div>
+                    <div class="info-item">
+                        <span class="label">Min Hours/Day:</span>
+                        <span id="minHoursPerDay" class="value editable" data-field="minHoursPerDay" contenteditable="false">8</span>
+                        <button class="edit-btn" onclick="toggleEdit('minHoursPerDay')">✏️</button>
+                    </div>
                 </div>
             </section>
 
@@ -93,6 +98,48 @@
                     <!-- Organizations will be populated here -->
                 </div>
                 <button class="add-org-btn" onclick="showAddOrganization()">+ Add Organization</button>
+            </section>
+
+            <!-- Developer Tools -->
+            <h2 class="section-title">Developer Tools</h2>
+            <section class="developer-tools-section compact">
+                <div class="tools-container">
+                    <div class="selected-tools" id="selectedToolsList">
+                        <!-- Selected tools will be displayed as chips here -->
+                    </div>
+                    <button class="add-tool-btn" onclick="showToolSelector()">+ Add Tool</button>
+                </div>
+            </section>
+
+            <!-- Tool Subscriptions -->
+            <h2 class="section-title">Tool Subscriptions</h2>
+            <section class="tool-subscriptions-section">
+                <div class="subscriptions-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Active Subscriptions:</span>
+                        <span id="activeSubscriptionsCount" class="summary-value">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Total Monthly Cost:</span>
+                        <span id="totalMonthlyCost" class="summary-value">$0.00</span>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="toolSubscriptionsTable">
+                        <thead>
+                            <tr>
+                                <th>Tool Name</th>
+                                <th>Status</th>
+                                <th>Monthly Cost</th>
+                                <th>Subscribed Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="toolSubscriptionsBody">
+                            <!-- Subscriptions will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <!-- Contribution Graph -->
@@ -229,7 +276,41 @@
         </div>
     </div>
 
+    <!-- Tool Selector Modal -->
+    <div id="toolSelectorModal" class="modal">
+        <div class="modal-content tool-selector-modal">
+            <div class="modal-header">
+                <h3>Select Developer Tools</h3>
+                <span class="close" onclick="hideToolSelector()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="tool-search-container">
+                    <input type="text" id="toolSearchInput" class="tool-search" placeholder="Search tools...">
+                </div>
+                <div class="tools-grid" id="toolsGrid">
+                    <!-- Available tools will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="hideToolSelector()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="auth-utils.js"></script>
+    <script>
+        // Load tools data without initializing the tools page
+        window.getAvailableTools = async function() {
+            try {
+                const response = await fetch('/tools-data.json');
+                const data = await response.json();
+                return data.tools;
+            } catch (error) {
+                console.error('Error loading tools data:', error);
+                return [];
+            }
+        };
+    </script>
     <script src="user-details.js"></script>
 </body>
 </html>
