@@ -103,6 +103,7 @@ class CommitAnalysis {
     this.analyzedAt = data.analyzedAt || data.timestamp; // Fallback for old data
     this.user = data.user;
     this.project = data.project;
+    this.organization = data.organization;
     this.fileChanges = data.fileChanges;
     this.linesAdded = data.linesAdded;
     this.linesDeleted = data.linesDeleted;
@@ -399,7 +400,7 @@ class CommitDatabase {
     await fs.writeFile(this.dbFile, JSON.stringify(this.history, null, 2));
   }
   
-  async saveInitialCommit(commitInfo, user, project) {
+  async saveInitialCommit(commitInfo, user, project, organization) {
     await this.loadHistory();
     
     // Check if already exists
@@ -413,6 +414,7 @@ class CommitDatabase {
       timestamp: new Date().toISOString(),
       user,
       project,
+      organization,
       fileChanges: commitInfo.filesChanged,
       linesAdded: commitInfo.linesAdded,
       linesDeleted: commitInfo.linesDeleted,
@@ -431,6 +433,22 @@ class CommitDatabase {
     
     this.history.push(initialEntry);
     await fs.writeFile(this.dbFile, JSON.stringify(this.history, null, 2));
+  }
+}
+
+async function getOrganizationFromRemote() {
+  try {
+    // Get the remote URL
+    const { stdout: remoteUrl } = await execAsync('git remote get-url origin');
+    const url = remoteUrl.trim();
+    
+    // Extract organization from GitHub URL
+    // Format: https://github.com/organization/repository.git or git@github.com:organization/repository.git
+    const match = url.match(/github\.com[:/]([^/]+)\//);
+    return match ? match[1] : 'Unknown';
+  } catch (error) {
+    console.warn('Could not determine organization from git remote:', error.message);
+    return 'Unknown';
   }
 }
 
@@ -695,8 +713,11 @@ async function main() {
     }
   }
 
+  // Get organization from git remote
+  const organization = await getOrganizationFromRemote();
+
   console.log('🚀 Enhanced Multi-Model Commit Analyzer');
-  console.log(`📝 User: ${user} | Project: ${project}`);
+  console.log(`📝 User: ${user} | Project: ${project} | Organization: ${organization}`);
   console.log('='.repeat(80));
 
   // Get commit diff and info
@@ -713,7 +734,7 @@ async function main() {
 
   // Save initial commit with "analyzing" status
   const db = new CommitDatabase();
-  await db.saveInitialCommit(commitInfo, user, project);
+  await db.saveInitialCommit(commitInfo, user, project, organization);
   console.log('\n✅ Commit saved with "Analyzing" status');
 
   // Run code line analysis on the repository
@@ -764,6 +785,7 @@ async function main() {
     analyzedAt: new Date().toISOString(), // When we analyzed it
     user,
     project,
+    organization,
     fileChanges: commitInfo.filesChanged,
     linesAdded: commitInfo.linesAdded,
     linesDeleted: commitInfo.linesDeleted,

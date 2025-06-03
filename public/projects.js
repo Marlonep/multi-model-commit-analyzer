@@ -24,6 +24,7 @@ function aggregateProjectData(commits) {
         if (!projectMap.has(project)) {
             projectMap.set(project, {
                 project: project,
+                organization: commit.organization || 'Unknown',
                 commits: 0,
                 linesAdded: 0,
                 linesDeleted: 0,
@@ -65,6 +66,7 @@ function aggregateProjectData(commits) {
     projectMap.forEach(stats => {
         projectStats.push({
             project: stats.project,
+            organization: stats.organization,
             commits: stats.commits,
             linesAdded: stats.linesAdded,
             linesDeleted: stats.linesDeleted,
@@ -99,6 +101,7 @@ function displayProjectStats(projectStats) {
         
         row.innerHTML = `
             <td>${displayName}</td>
+            <td>${project.organization}</td>
             <td>${project.commits}</td>
             <td>+${project.linesAdded.toLocaleString()}</td>
             <td>-${project.linesDeleted.toLocaleString()}</td>

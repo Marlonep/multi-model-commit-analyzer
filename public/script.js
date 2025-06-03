@@ -86,6 +86,7 @@ function displayComprehensive() {
                     ${commit.project}
                 </a>
             </td>
+            <td>${commit.organization || 'Unknown'}</td>
             <td>${commit.fileChanges}</td>
             <td>+${commit.linesAdded}</td>
             <td>-${commit.linesDeleted}</td>
@@ -161,6 +162,7 @@ function setupSearch() {
                         commit.commitMessage,
                         commit.user,
                         commit.project,
+                        commit.organization || '',
                         new Date(commit.timestamp).toLocaleString(),
                         commit.commitHash,
                         commit.averageCodeQuality.toFixed(1),

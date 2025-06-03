@@ -75,7 +75,8 @@
     "totalTokens": 4819,
     "totalCost": 0.00958515,
     "avgCostPerModel": 0.0023962875,
-    "analyzedAt": "2025-05-29T00:07:18.189Z"
+    "analyzedAt": "2025-05-29T00:07:18.189Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "6238e23e35702d3094169e9e9096f256fb2891a2",
@@ -163,7 +164,8 @@
       "commentPercent": "0.0",
       "textPercent": "2.5"
     },
-    "analyzedAt": "2025-05-29T00:20:54.749Z"
+    "analyzedAt": "2025-05-29T00:20:54.749Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "0f9c884a7cad52b5a68cf928843604988254e995",
@@ -251,7 +253,8 @@
       "commentPercent": "0.0",
       "textPercent": "5.3"
     },
-    "analyzedAt": "2025-05-29T00:28:20.186Z"
+    "analyzedAt": "2025-05-29T00:28:20.186Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "514b871ec6a7ed94ca00fef4fb0f9efde1916454",
@@ -364,7 +367,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-29T00:36:08.674Z"
+    "analyzedAt": "2025-05-29T00:36:08.674Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "e338a26fe57fd8acab976d14a20f76d08d38bbca",
@@ -452,7 +456,8 @@
       "commentPercent": "5.1",
       "textPercent": "4.9"
     },
-    "analyzedAt": "2025-05-29T01:17:32.669Z"
+    "analyzedAt": "2025-05-29T01:17:32.669Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "58c234ad333df917e020e52c4268da6ba4537d6f",
@@ -540,7 +545,8 @@
       "commentPercent": "5.6",
       "textPercent": "4.4"
     },
-    "analyzedAt": "2025-05-30T01:10:36.437Z"
+    "analyzedAt": "2025-05-30T01:10:36.437Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "1cb5945d6bca28ad4c5a753203e12b14d5cb281e",
@@ -628,7 +634,8 @@
       "commentPercent": "5.4",
       "textPercent": "4.3"
     },
-    "analyzedAt": "2025-05-30T01:10:47.273Z"
+    "analyzedAt": "2025-05-30T01:10:47.273Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "670ec7aee050ae1db2b608a84ab25620570c4e92",
@@ -741,7 +748,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T01:35:29.431Z"
+    "analyzedAt": "2025-05-30T01:35:29.431Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "3d406e3251bdbe009861530b9aa560c341c70465",
@@ -840,7 +848,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T01:49:34.472Z"
+    "analyzedAt": "2025-05-30T01:49:34.472Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "94a094163b137e77a659faf998896ce800d18846",
@@ -939,7 +948,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T01:52:16.139Z"
+    "analyzedAt": "2025-05-30T01:52:16.139Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "c01b049282398fcc387e8cd1714ac36e6150cb5d",
@@ -1080,7 +1090,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T01:56:12.001Z"
+    "analyzedAt": "2025-05-30T01:56:12.001Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "41089543b4894cb9cf63ed9cff7711d0b2af1e6a",
@@ -1193,7 +1204,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T02:05:20.594Z"
+    "analyzedAt": "2025-05-30T02:05:20.594Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "6fadaece054f64d48a1529ad95aec72e53446892",
@@ -1327,7 +1339,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T02:15:39.849Z"
+    "analyzedAt": "2025-05-30T02:15:39.849Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "806161572dba4b907a6b1fecb55c09d7e21f4b4b",
@@ -1447,7 +1460,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T02:33:46.327Z"
+    "analyzedAt": "2025-05-30T02:33:46.327Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "bec80275b483e36ff7e4608548febc1c1d857f62",
@@ -1535,7 +1549,8 @@
       "commentPercent": "4.2",
       "textPercent": "2.9"
     },
-    "analyzedAt": "2025-05-30T02:42:19.591Z"
+    "analyzedAt": "2025-05-30T02:42:19.591Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "682eb94fd88e87f0269c5c328de8f4ff40598912",
@@ -1623,7 +1638,8 @@
       "commentPercent": "4.1",
       "textPercent": "2.8"
     },
-    "analyzedAt": "2025-05-30T02:47:28.308Z"
+    "analyzedAt": "2025-05-30T02:47:28.308Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "9689e8803aa98817de3550403d9e91e93e8aa9e0",
@@ -1722,7 +1738,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T21:20:00.683Z"
+    "analyzedAt": "2025-05-30T21:20:00.683Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "d19262a06f4f1d114038520271fe5bdfadd39b9c",
@@ -1821,7 +1838,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-30T21:23:17.407Z"
+    "analyzedAt": "2025-05-30T21:23:17.407Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "92a7a01834065d83b8a458bc26b93254ba4166df",
@@ -1909,7 +1927,8 @@
       "commentPercent": "4.1",
       "textPercent": "2.6"
     },
-    "analyzedAt": "2025-05-30T21:28:01.589Z"
+    "analyzedAt": "2025-05-30T21:28:01.589Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "d8b0b040cffff02b1b0ed53fdf9f87b1a67d0b1c",
@@ -1997,7 +2016,8 @@
       "commentPercent": "4.0",
       "textPercent": "2.6"
     },
-    "analyzedAt": "2025-05-30T21:34:54.333Z"
+    "analyzedAt": "2025-05-30T21:34:54.333Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "928d32273d882066adb286337f5f29736c167e04",
@@ -2085,7 +2105,8 @@
       "commentPercent": "4.0",
       "textPercent": "2.6"
     },
-    "analyzedAt": "2025-05-30T21:38:38.387Z"
+    "analyzedAt": "2025-05-30T21:38:38.387Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "071b9db46940e96deb5bc9b23b8573dfef2ccc4d",
@@ -2173,7 +2194,8 @@
       "commentPercent": "3.9",
       "textPercent": "2.5"
     },
-    "analyzedAt": "2025-05-30T21:43:54.926Z"
+    "analyzedAt": "2025-05-30T21:43:54.926Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "725237bc483afe291f4c6f168b6b505d1853df7e",
@@ -2261,7 +2283,8 @@
       "commentPercent": "3.9",
       "textPercent": "2.5"
     },
-    "analyzedAt": "2025-05-30T21:47:01.075Z"
+    "analyzedAt": "2025-05-30T21:47:01.075Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "a84fd6183688bf00981cdb388ce1d5a4f40f0846",
@@ -2349,7 +2372,8 @@
       "commentPercent": "3.9",
       "textPercent": "2.5"
     },
-    "analyzedAt": "2025-05-30T21:53:36.420Z"
+    "analyzedAt": "2025-05-30T21:53:36.420Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "8ee4336e7c8acf0f4bdb766d4578bd5f315aaf61",
@@ -2437,7 +2461,8 @@
       "commentPercent": "4.0",
       "textPercent": "2.4"
     },
-    "analyzedAt": "2025-05-30T22:38:44.634Z"
+    "analyzedAt": "2025-05-30T22:38:44.634Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "3b1c2283e905adddd38cbed9a0927add8b0e4701",
@@ -2525,7 +2550,8 @@
       "commentPercent": "3.9",
       "textPercent": "2.4"
     },
-    "analyzedAt": "2025-05-31T12:04:20.474Z"
+    "analyzedAt": "2025-05-31T12:04:20.474Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "5ac23561ea162ba4f1bc1dad909aa45273efbce8",
@@ -2613,7 +2639,8 @@
       "commentPercent": "3.9",
       "textPercent": "2.3"
     },
-    "analyzedAt": "2025-05-31T12:18:12.411Z"
+    "analyzedAt": "2025-05-31T12:18:12.411Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "92aba0c2421025d418651078461178a4dc61555e",
@@ -2719,7 +2746,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-05-31T21:51:42.761Z"
+    "analyzedAt": "2025-05-31T21:51:42.761Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "88c694cc5c61545d3a9cd062daa077fac1e2ee42",
@@ -2818,7 +2846,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-06-01T06:20:30.816Z"
+    "analyzedAt": "2025-06-01T06:20:30.816Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "f99efcc0571986e52a475a63337167248459c31a",
@@ -2906,7 +2935,8 @@
       "commentPercent": "4.7",
       "textPercent": "1.9"
     },
-    "analyzedAt": "2025-06-01T06:24:24.470Z"
+    "analyzedAt": "2025-06-01T06:24:24.470Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "d39a26abf6b9ff4659e690757005cc4ea8512f91",
@@ -2994,7 +3024,8 @@
       "commentPercent": "4.7",
       "textPercent": "1.8"
     },
-    "analyzedAt": "2025-06-01T06:49:15.869Z"
+    "analyzedAt": "2025-06-01T06:49:15.869Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "74bd93cfa64cfdfbb7c4c75191bc0b4d3964c952",
@@ -3082,7 +3113,8 @@
       "commentPercent": "4.7",
       "textPercent": "1.8"
     },
-    "analyzedAt": "2025-06-01T06:59:58.513Z"
+    "analyzedAt": "2025-06-01T06:59:58.513Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "5e60634b56e281230f89f1f14675fe59346c08ea",
@@ -3170,7 +3202,8 @@
       "commentPercent": "4.7",
       "textPercent": "1.8"
     },
-    "analyzedAt": "2025-06-01T07:53:27.086Z"
+    "analyzedAt": "2025-06-01T07:53:27.086Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "934c3b583a4db7af09100e3cea1dcd02557d2e93",
@@ -3258,7 +3291,8 @@
       "commentPercent": "4.8",
       "textPercent": "1.7"
     },
-    "analyzedAt": "2025-06-02T01:27:58.125Z"
+    "analyzedAt": "2025-06-02T01:27:58.125Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "2020774c8d1ab8037831b3c7f05547011c61b8a6",
@@ -3346,7 +3380,8 @@
       "commentPercent": "4.7",
       "textPercent": "2.2"
     },
-    "analyzedAt": "2025-06-02T01:36:25.448Z"
+    "analyzedAt": "2025-06-02T01:36:25.448Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "086092211ca09fb25e9477e2ef4b7ba3fdfc378b",
@@ -3434,7 +3469,8 @@
       "commentPercent": "4.7",
       "textPercent": "2.2"
     },
-    "analyzedAt": "2025-06-02T01:36:43.178Z"
+    "analyzedAt": "2025-06-02T01:36:43.178Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "24fb3a8748980150578df52b9fff393a15ffb5af",
@@ -3522,7 +3558,8 @@
       "commentPercent": "4.7",
       "textPercent": "2.2"
     },
-    "analyzedAt": "2025-06-02T01:36:59.239Z"
+    "analyzedAt": "2025-06-02T01:36:59.239Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "a33e17cdfd82598385ce4ce14ed9b12890d2d301",
@@ -3610,7 +3647,8 @@
       "commentPercent": "4.6",
       "textPercent": "2.2"
     },
-    "analyzedAt": "2025-06-02T01:37:12.810Z"
+    "analyzedAt": "2025-06-02T01:37:12.810Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "30f78db6f321e68a309e4b605be52d55cd589d76",
@@ -3698,7 +3736,8 @@
       "commentPercent": "4.6",
       "textPercent": "2.1"
     },
-    "analyzedAt": "2025-06-02T01:37:48.587Z"
+    "analyzedAt": "2025-06-02T01:37:48.587Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "80622eab9ab9230705540d248d2016df73cc21d4",
@@ -3797,7 +3836,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-06-02T01:38:45.498Z"
+    "analyzedAt": "2025-06-02T01:38:45.498Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "b109388a2c281a30bfeca2db1d0c38c6cd13b881",
@@ -3885,7 +3925,8 @@
       "commentPercent": "4.5",
       "textPercent": "2.1"
     },
-    "analyzedAt": "2025-06-02T01:39:04.317Z"
+    "analyzedAt": "2025-06-02T01:39:04.317Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "8fc5145ec4a4bbdf46fc1a3b1cc9cdd5c1272e6b",
@@ -3973,7 +4014,8 @@
       "commentPercent": "4.5",
       "textPercent": "2.1"
     },
-    "analyzedAt": "2025-06-02T01:39:18.881Z"
+    "analyzedAt": "2025-06-02T01:39:18.881Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "019e2421337fbe9ad4fe77255b45135767c75923",
@@ -4061,7 +4103,8 @@
       "commentPercent": "4.4",
       "textPercent": "2.1"
     },
-    "analyzedAt": "2025-06-02T01:39:37.446Z"
+    "analyzedAt": "2025-06-02T01:39:37.446Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "367fe57cd505a84aa4c84401e408ed591d51701c",
@@ -4149,7 +4192,8 @@
       "commentPercent": "4.4",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:39:55.943Z"
+    "analyzedAt": "2025-06-02T01:39:55.943Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "5f636d20186634b02e07ea4943327d813560768b",
@@ -4237,7 +4281,8 @@
       "commentPercent": "4.4",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:40:12.138Z"
+    "analyzedAt": "2025-06-02T01:40:12.138Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "738879a28e0139aa0334dfb1074249af56904133",
@@ -4325,7 +4370,8 @@
       "commentPercent": "4.3",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:40:31.155Z"
+    "analyzedAt": "2025-06-02T01:40:31.155Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "6a60fede7db801ea9e7abc982fe45885c2196505",
@@ -4413,7 +4459,8 @@
       "commentPercent": "4.3",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:40:51.250Z"
+    "analyzedAt": "2025-06-02T01:40:51.250Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "6937b839ee6c7f8bb00f195823815a9540e01db6",
@@ -4501,7 +4548,8 @@
       "commentPercent": "4.3",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:41:07.019Z"
+    "analyzedAt": "2025-06-02T01:41:07.019Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "90455182502bcc566b821ec49f7ce983d50ff699",
@@ -4589,7 +4637,8 @@
       "commentPercent": "4.2",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:41:21.194Z"
+    "analyzedAt": "2025-06-02T01:41:21.194Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "64708bd18695a2833862072991b1c707fa0793df",
@@ -4677,7 +4726,8 @@
       "commentPercent": "4.2",
       "textPercent": "2.0"
     },
-    "analyzedAt": "2025-06-02T01:41:34.468Z"
+    "analyzedAt": "2025-06-02T01:41:34.468Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "82830fb7aaa2e3316a1c153b2d35d124503a50b3",
@@ -4765,7 +4815,8 @@
       "commentPercent": "4.2",
       "textPercent": "1.9"
     },
-    "analyzedAt": "2025-06-02T01:41:51.029Z"
+    "analyzedAt": "2025-06-02T01:41:51.029Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "a23fab4f0c49cf1af2ed4f8be29e97796c7f41f9",
@@ -4864,7 +4915,8 @@
       }
     ],
     "status": "ok",
-    "manuallyReviewed": true
+    "manuallyReviewed": true,
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "21fc68a3491be6cabb19662127fc76eb19ce6579",
@@ -4952,7 +5004,8 @@
       "commentPercent": "4.1",
       "textPercent": "1.9"
     },
-    "analyzedAt": "2025-06-02T01:42:26.389Z"
+    "analyzedAt": "2025-06-02T01:42:26.389Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "f97249bbfe0ddf9f949f5a4be1970402ebda6ddf",
@@ -5040,7 +5093,8 @@
       "commentPercent": "4.1",
       "textPercent": "1.9"
     },
-    "analyzedAt": "2025-06-02T01:42:46.763Z"
+    "analyzedAt": "2025-06-02T01:42:46.763Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "e02dd3335e251e4dd28f18fe01045d83e14f46fb",
@@ -5139,7 +5193,8 @@
       }
     ],
     "status": "ok",
-    "manuallyReviewed": true
+    "manuallyReviewed": true,
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "22f2521f7912063dc356e5605646c36db9bb2bdc",
@@ -5238,7 +5293,8 @@
       }
     ],
     "status": "ok",
-    "manuallyReviewed": true
+    "manuallyReviewed": true,
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "d5e9839aceb91f02f05e0cc16fa54335b8431682",
@@ -5326,7 +5382,8 @@
       "commentPercent": "4.0",
       "textPercent": "1.9"
     },
-    "analyzedAt": "2025-06-02T01:43:33.732Z"
+    "analyzedAt": "2025-06-02T01:43:33.732Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "e70911ad2bab81b5f3a5bce0f9394eec8a50df92",
@@ -5425,7 +5482,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-06-02T01:43:52.922Z"
+    "analyzedAt": "2025-06-02T01:43:52.922Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "374835a72950b6cfb18f04495e8bc0daffce434d",
@@ -5513,7 +5571,8 @@
       "commentPercent": "3.9",
       "textPercent": "1.8"
     },
-    "analyzedAt": "2025-06-02T01:44:07.037Z"
+    "analyzedAt": "2025-06-02T01:44:07.037Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "2c412ae0c0c7416e86a7dc02ef9045578caec5f8",
@@ -5612,7 +5671,8 @@
     ],
     "status": "ok",
     "manuallyReviewed": true,
-    "analyzedAt": "2025-06-02T01:44:29.330Z"
+    "analyzedAt": "2025-06-02T01:44:29.330Z",
+    "organization": "Nuclea-Solutions"
   },
   {
     "commitHash": "229e9b81012ec3d06c748dea0348f56b77e446ee",
@@ -5700,6 +5760,107 @@
       "codePercent": "93.8",
       "commentPercent": "4.3",
       "textPercent": "1.9"
-    }
+    },
+    "organization": "Nuclea-Solutions"
+  },
+  {
+    "commitHash": "4bd66006531f1e3b907815216e3927b798cf536c",
+    "commitMessage": "Update repository configuration for Nuclea-Solutions organization",
+    "timestamp": "2025-06-03T09:21:15.000Z",
+    "analyzedAt": "2025-06-03T09:41:06.323Z",
+    "user": "Marlon Espinosa",
+    "project": "multi-model-commit-analyzer",
+    "organization": "Nuclea-Solutions",
+    "fileChanges": 31,
+    "linesAdded": 2750,
+    "linesDeleted": 809,
+    "modelScores": [
+      {
+        "modelName": "GPT-4",
+        "provider": "OpenAI",
+        "codeQuality": 4.2,
+        "devLevel": 2.1,
+        "complexity": 3,
+        "estimatedHours": 3,
+        "aiPercentage": 10,
+        "estimatedHoursWithAi": 1,
+        "reasoning": "The commit involves updating repository configuration across 31 files with a large number of lines added and a significant cleanup (removal of an outdated commit log file). There are no obvious syntax issues or typos, indicating clean code. The scope indicates a mid-level domain responsibility (handling multi-file configuration updates), which raises the complexity to moderate. The change likely took around 3 hours to complete manually, but with AI assistance, similar tasks might have been reduced to about 1 hour. The work appears primarily human-driven.",
+        "responseTime": 15.542,
+        "tokensUsed": 3136,
+        "cost": 0.45167999999999997
+      },
+      {
+        "modelName": "Claude Sonnet 4",
+        "provider": "Anthropic",
+        "codeQuality": 2.5,
+        "devLevel": 1.2,
+        "complexity": 2.8,
+        "estimatedHours": 4.5,
+        "aiPercentage": 15,
+        "estimatedHoursWithAi": 3.5,
+        "reasoning": "Repository configuration update with deletion of commit hash list file. Large line changes (2750 added, 809 deleted) across 31 files suggest bulk configuration changes rather than code development. The commit appears to be organizational/administrative work involving repository restructuring. Quality scored lower due to incomplete diff visibility and potential for configuration errors in bulk changes.",
+        "responseTime": 4.968,
+        "tokensUsed": 1913,
+        "cost": 0.007647
+      },
+      {
+        "modelName": "Gemini 2.5 Flash Preview",
+        "provider": "Google",
+        "codeQuality": 3.2,
+        "devLevel": 2.3,
+        "complexity": 3.8,
+        "estimatedHours": 6,
+        "aiPercentage": 50,
+        "estimatedHoursWithAi": 3,
+        "reasoning": "Analysis is severely limited as the diff content for the majority of the changes (30 out of 31 files, ~3500 lines) is not provided. Scores for Code Quality, Developer Level, and AI Percentage are estimations based on the metadata and typical characteristics of large configuration updates, but cannot be objectively assessed without the full diff. Complexity is scored higher based on the sheer scope: 31 files changed with significant line additions and deletions suggests a broad impact across the repository. Estimated hours reflect the effort required to manage, review, and test changes across this many files, even if individual changes are simple. AI percentage and estimated hours with AI are speculative, assuming potential AI assistance in generating or managing repetitive configuration blocks, but this cannot be verified without seeing the code patterns.",
+        "responseTime": 9.998,
+        "tokensUsed": 1206,
+        "cost": 0.000149625
+      },
+      {
+        "modelName": "Grok 3",
+        "provider": "xAI",
+        "codeQuality": 3.5,
+        "devLevel": 1.8,
+        "complexity": 2.5,
+        "estimatedHours": 3,
+        "aiPercentage": 30,
+        "estimatedHoursWithAi": 2,
+        "reasoning": "The commit involves updating repository configuration with a significant number of lines added and deleted, but the provided diff only shows the deletion of a simple text file with commit hashes, indicating minimal complexity in the visible changes. Code quality is rated moderately due to lack of visible errors but also lack of context for the added lines. Developer level is mid-range as the changes appear straightforward without advanced patterns. Complexity is moderate due to the number of files changed (31), though the visible diff is simple. Estimated hours reflect time for configuration updates across multiple files. AI percentage is moderate as the deletion pattern is generic and could involve some automation.",
+        "responseTime": 3.225,
+        "tokensUsed": 1835,
+        "cost": 0.011105
+      }
+    ],
+    "averageCodeQuality": 3.35,
+    "averageDevLevel": 1.8499999999999999,
+    "averageComplexity": 3.025,
+    "averageEstimatedHours": 4.125,
+    "averageAiPercentage": 26.25,
+    "averageEstimatedHoursWithAi": 2.375,
+    "totalTokens": 8090,
+    "totalCost": 0.47058162499999995,
+    "avgCostPerModel": 0.11764540624999999,
+    "codeAnalysis": {
+      "totalLines": 16035,
+      "codeLines": 13929,
+      "commentLines": 753,
+      "textLines": 169,
+      "blankLines": 1184,
+      "codePercent": "93.8",
+      "commentPercent": "5.1",
+      "textPercent": "1.1"
+    },
+    "statusLog": [
+      {
+        "previousStatus": "ok",
+        "newStatus": "ok",
+        "changedBy": "User",
+        "timestamp": "2025-06-03T09:41:39.555Z",
+        "reason": "Manual status change"
+      }
+    ],
+    "status": "ok",
+    "manuallyReviewed": true
   }
 ]

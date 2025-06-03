@@ -360,6 +360,7 @@ function displayCommitsTable() {
                     ${commit.project}
                 </a>
             </td>
+            <td>${commit.organization || 'Unknown'}</td>
             <td title="${commit.commitMessage}">${truncate(commit.commitMessage, 40)}</td>
             <td>${commit.fileChanges || 0}</td>
             <td>+${commit.linesAdded || 0}</td>
