@@ -176,6 +176,40 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- User Management Section -->
+                <section class="settings-section">
+                    <h2>User Management</h2>
+                    <div class="user-management-header">
+                        <p>Manage system users and their access levels</p>
+                        <button class="btn primary" id="addUserBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add User
+                        </button>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </main>
         </div>
     </div>

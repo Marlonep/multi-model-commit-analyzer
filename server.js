@@ -501,6 +501,48 @@ app.put('/api/users/:username/details', async (req, res) => {
   }
 });
 
+// API endpoint to get system users
+app.get('/api/system-users', requireAuth, async (req, res) => {
+  try {
+    const usersFile = './users.json';
+    
+    // Check if file exists
+    if (!fsSync.existsSync(usersFile)) {
+      // Return default admin user if file doesn't exist
+      return res.json([
+        {
+          id: 1,
+          username: "admin",
+          password: "$2b$10$TKR0lofZVaffqgKsBoL.KOku95vAcEy78amOS2qK.HjYzOYQIS0qG",
+          role: "admin",
+          name: "Administrator",
+          createdAt: "2025-01-01T00:00:00Z",
+          status: "active"
+        }
+      ]);
+    }
+    
+    // Read users data
+    const data = await fs.readFile(usersFile, 'utf8');
+    const users = JSON.parse(data);
+    
+    // Add status and createdAt if not present, but don't send passwords
+    const sanitizedUsers = users.map(user => ({
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+      createdAt: user.createdAt || "2025-01-01T00:00:00Z",
+      status: user.status || "active"
+    }));
+    
+    res.json(sanitizedUsers);
+  } catch (error) {
+    console.error('Error loading system users:', error);
+    res.status(500).json({ error: 'Failed to load system users' });
+  }
+});
+
 // API endpoint to get daily commits data
 app.get('/api/daily-commits', async (req, res) => {
   try {

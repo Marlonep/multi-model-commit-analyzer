@@ -3420,3 +3420,138 @@ textarea.form-control {
     margin: 0;
     font-style: italic;
 }
+
+/* Prompt Section Styles */
+.prompt-container {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.prompt-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.prompt-header h4 {
+    color: var(--accent-green);
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.prompt-header p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 14px;
+}
+
+.prompt-content {
+    padding: 0;
+    background: var(--bg-primary);
+}
+
+.prompt-content pre {
+    margin: 0;
+    padding: 20px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    border: none;
+}
+
+.prompt-content pre::-webkit-scrollbar {
+    height: 8px;
+}
+
+.prompt-content pre::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.prompt-content pre::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.prompt-content pre::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* User Management Styles */
+.user-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.user-management-header p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.user-management-header .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.role-badge.role-admin {
+    background: rgba(255, 69, 0, 0.2);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 69, 0, 0.4);
+}
+
+.role-badge.role-user {
+    background: rgba(0, 191, 255, 0.2);
+    color: #00bfff;
+    border: 1px solid rgba(0, 191, 255, 0.4);
+}
+
+.status-badge.status-active {
+    background: rgba(57, 255, 20, 0.2);
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+}
+
+.status-badge.status-inactive {
+    background: rgba(255, 69, 0, 0.2);
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+#usersTable code {
+    background: var(--bg-primary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--accent-green);
+}
+
+.btn-small.danger {
+    background: transparent;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+}
+
+.btn-small.danger:hover:not(:disabled) {
+    background: rgba(255, 69, 0, 0.1);
+}
+
+.btn-small.danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
