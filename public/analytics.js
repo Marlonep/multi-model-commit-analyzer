@@ -1,5 +1,18 @@
+// Check if user has permission to view analytics
+function checkAnalyticsAccess() {
+    if (!isAdmin()) {
+        window.location.href = '/index.html';
+        return false;
+    }
+    return true;
+}
+
 // Fetch and display organization analytics
 async function loadAnalytics() {
+    // Check permissions first
+    if (!checkAnalyticsAccess()) {
+        return;
+    }
     try {
         const response = await fetch('/api/commits', {
             headers: getAuthHeaders()
@@ -205,4 +218,10 @@ function getDevLevel(level) {
 }
 
 // Load data when page loads
-document.addEventListener('DOMContentLoaded', loadAnalytics);
+document.addEventListener('DOMContentLoaded', () => {
+    // Auth check is handled by auth-utils.js
+    // Only load analytics if user has permission
+    if (checkAnalyticsAccess()) {
+        loadAnalytics();
+    }
+});

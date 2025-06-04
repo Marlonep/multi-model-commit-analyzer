@@ -82,6 +82,11 @@ function displayProjectInfo() {
         new Date(c.timestamp).toLocaleDateString()
     ));
     document.getElementById('activeDays').textContent = activeDates.size;
+    
+    // Get organization from the first commit (or most recent commit with organization)
+    const organizationCommit = projectCommits.find(c => c.organization) || projectCommits[0];
+    const organization = organizationCommit?.organization || 'Unknown';
+    document.getElementById('projectOrganization').textContent = organization;
 }
 
 // Display project statistics

@@ -4,12 +4,23 @@ let filteredTools = [];
 let users = [];
 let exchangeRate = 17.5;
 
+// Check if user has access to tools page
+function checkToolsAccess() {
+    const userData = getUserData();
+    if (!userData || !isAdmin()) {
+        window.location.href = '/index.html';
+        return false;
+    }
+    return true;
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
-    checkAuth();
-    loadTools();
-    loadUsers();
-    setupEventListeners();
+    if (checkToolsAccess()) {
+        loadTools();
+        loadUsers();
+        setupEventListeners();
+    }
 });
 
 // Setup event listeners
@@ -51,42 +62,25 @@ function setupEventListeners() {
 // Load tools from JSON file and localStorage for user customizations
 async function loadTools() {
     try {
-        // First load tools from JSON file
-        const response = await fetch('/tools-data.json');
-        const data = await response.json();
-        const defaultTools = data.tools;
+        // Load tools from SQLite database via API
+        const response = await fetch('/api/tools', {
+            headers: getAuthHeaders()
+        });
         
-        // Check for user customizations in localStorage
-        const savedTools = localStorage.getItem('developerTools');
-        const toolsVersion = localStorage.getItem('developerToolsVersion');
-        const currentVersion = '3'; // Increment this when updating default tools
-        
-        if (savedTools && toolsVersion === currentVersion) {
-            // Merge default tools with saved customizations
-            const savedToolsArray = JSON.parse(savedTools);
-            const defaultIds = defaultTools.map(t => t.id);
-            
-            // Start with default tools
-            tools = [...defaultTools];
-            
-            // Add any custom tools that don't exist in defaults
-            savedToolsArray.forEach(savedTool => {
-                if (!defaultIds.includes(savedTool.id) && !savedTool.id.startsWith('tool_')) {
-                    tools.push(savedTool);
-                }
-            });
-        } else {
-            // Use default tools from JSON
-            tools = defaultTools;
-            localStorage.setItem('developerToolsVersion', currentVersion);
-            saveTools();
+        if (!response.ok) {
+            throw new Error('Failed to fetch tools');
         }
+        
+        const data = await response.json();
+        tools = data.tools || [];
         
         filteredTools = [...tools];
         renderTools();
+        
+        console.log(`Loaded ${tools.length} tools from database`);
     } catch (error) {
         console.error('Error loading tools:', error);
-        // Fallback to empty array if file loading fails
+        // Fallback to empty array if API loading fails
         tools = [];
         filteredTools = [];
         renderTools();
@@ -96,19 +90,18 @@ async function loadTools() {
 // Also export function to get all available tools for other pages
 window.getAvailableTools = async function() {
     try {
-        const response = await fetch('/tools-data.json');
+        const response = await fetch('/api/tools', {
+            headers: getAuthHeaders()
+        });
         const data = await response.json();
-        return data.tools;
+        return data.tools || [];
     } catch (error) {
         console.error('Error loading tools data:', error);
         return [];
     }
 }
 
-// Save tools to localStorage
-function saveTools() {
-    localStorage.setItem('developerTools', JSON.stringify(tools));
-}
+// No longer needed - tools are stored in SQLite database
 
 // Generate unique ID
 function generateId() {
@@ -208,7 +201,7 @@ function hideModal() {
 }
 
 // Handle tool form submission
-function handleToolSubmit(e) {
+async function handleToolSubmit(e) {
     e.preventDefault();
     
     const toolId = document.getElementById('toolId').value;
@@ -222,28 +215,98 @@ function handleToolSubmit(e) {
         website: document.getElementById('toolWebsite').value.trim()
     };
     
-    if (toolId) {
-        // Update existing tool
-        const index = tools.findIndex(t => t.id === toolId);
-        if (index !== -1) {
-            tools[index] = toolData;
+    // Parse cost per month from price
+    const priceStr = toolData.price.toLowerCase();
+    let costPerMonth = null;
+    if (priceStr.includes('/month')) {
+        const match = priceStr.match(/\$?(\d+(?:\.\d{2})?)/);
+        if (match) {
+            costPerMonth = parseFloat(match[1]);
         }
-    } else {
-        // Add new tool
-        tools.push(toolData);
     }
+    toolData.costPerMonth = costPerMonth;
     
-    saveTools();
-    filterTools(); // This will also re-render
-    hideModal();
+    try {
+        if (toolId) {
+            // Update existing tool
+            const existingTool = tools.find(t => t.id === toolId);
+            if (existingTool) {
+                // Find the database ID for this tool
+                const response = await fetch('/api/tools', {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                const dbTool = data.tools.find(t => t.id === toolId);
+                
+                if (dbTool) {
+                    const updateResponse = await fetch(`/api/tools/${dbTool.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            ...getAuthHeaders(),
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(toolData)
+                    });
+                    
+                    if (!updateResponse.ok) {
+                        throw new Error('Failed to update tool');
+                    }
+                }
+            }
+        } else {
+            // Add new tool
+            const response = await fetch('/api/tools', {
+                method: 'POST',
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(toolData)
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to create tool');
+            }
+        }
+        
+        // Reload tools from database
+        await loadTools();
+        hideModal();
+        
+    } catch (error) {
+        console.error('Error saving tool:', error);
+        alert('Failed to save tool. Please try again.');
+    }
 }
 
 // Delete tool
-function deleteTool(toolId) {
+async function deleteTool(toolId) {
     if (confirm('Are you sure you want to delete this tool?')) {
-        tools = tools.filter(t => t.id !== toolId);
-        saveTools();
-        filterTools(); // This will also re-render
+        try {
+            // Find the database ID for this tool
+            const response = await fetch('/api/tools', {
+                headers: getAuthHeaders()
+            });
+            const data = await response.json();
+            const dbTool = data.tools.find(t => t.id === toolId);
+            
+            if (dbTool) {
+                const deleteResponse = await fetch(`/api/tools/${dbTool.id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                
+                if (!deleteResponse.ok) {
+                    throw new Error('Failed to delete tool');
+                }
+                
+                // Reload tools from database
+                await loadTools();
+            }
+        } catch (error) {
+            console.error('Error deleting tool:', error);
+            alert('Failed to delete tool. Please try again.');
+        }
     }
 }
 
@@ -255,20 +318,24 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Force reset tools to defaults (can be called from console)
-window.resetTools = function() {
-    localStorage.removeItem('developerTools');
-    localStorage.removeItem('developerToolsVersion');
-    location.reload();
+// Reload tools from database (can be called from console)
+window.reloadTools = async function() {
+    await loadTools();
+    console.log('Tools reloaded from database');
 };
 
 // Load users for the cost calculator
 async function loadUsers() {
     try {
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/users/all/details', {
             headers: getAuthHeaders()
         });
-        users = await response.json();
+        const allUserDetails = await response.json();
+        
+        // Extract user names from the user details object
+        users = Object.keys(allUserDetails).map(username => ({
+            name: username
+        }));
         
         // Populate user select dropdown
         const userSelect = document.getElementById('userSelect');
@@ -359,7 +426,9 @@ async function calculateUserToolsCost() {
         let totalUSD = 0;
         
         // Calculate costs for each tool
-        userTools.forEach(toolId => {
+        userTools.forEach(userTool => {
+            // Handle both old format (string) and new format (object)
+            const toolId = typeof userTool === 'string' ? userTool : userTool.toolId;
             const tool = tools.find(t => t.id === toolId);
             if (tool) {
                 const row = document.createElement('tr');

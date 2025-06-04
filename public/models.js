@@ -1,4 +1,14 @@
 // AI Models Configuration and Management
+
+// Check if user has permission to manage models
+function checkModelsAccess() {
+    if (!isAdmin()) {
+        window.location.href = '/index.html';
+        return false;
+    }
+    return true;
+}
+
 let allCommits = [];
 let pagination = {
     cost: {
@@ -10,6 +20,10 @@ let pagination = {
 
 class ModelsManager {
     constructor() {
+        // Check permissions first
+        if (!checkModelsAccess()) {
+            return;
+        }
         this.models = [];
         this.performanceData = {};
         this.loadModelsConfiguration();
@@ -112,6 +126,7 @@ class ModelsManager {
         this.displayCosts();
         this.setupCostPagination();
         this.setupCostSearch();
+        this.displayAnalysisPrompt();
     }
 
     renderModelsTable() {
@@ -606,6 +621,65 @@ class ModelsManager {
         this.displayCosts();
     }
 
+    displayAnalysisPrompt() {
+        const promptElement = document.getElementById('analysisPrompt');
+        if (!promptElement) return;
+
+        // This is the exact prompt used in analyzeCommit.js
+        const prompt = `Analyze this git commit and provide scores based on OBJECTIVE criteria:
+
+Commit: {commitMessage}
+Author: {author}
+Files changed: {filesChanged}
+Lines added: {linesAdded}
+Lines deleted: {linesDeleted}
+
+Diff:
+{diffContent}
+
+SCORING CRITERIA - Be consistent and objective:
+
+1. Code Quality (1.0-5.0): 
+   - Deduct points for: syntax errors, typos, poor structure, missing error handling
+   - 1.0-2.0: Multiple errors/issues  |  2.1-3.0: Some issues  |  3.1-4.0: Minor issues  |  4.1-5.0: Clean code
+
+2. Developer Level (1.0-3.0):
+   - Based on: code patterns, architecture decisions, error handling sophistication
+   - 1.0-1.5: Junior (basic changes, simple patterns)
+   - 1.6-2.5: Mid-level (good practices, some architecture)  
+   - 2.6-3.0: Senior (advanced patterns, excellent design)
+
+3. Code Complexity (1.0-5.0):
+   - Based on: number of files, logic complexity, integration points
+   - 1.0-2.0: Simple changes  |  2.1-3.0: Moderate  |  3.1-4.0: Complex  |  4.1-5.0: Very complex
+
+4. Estimated Development Time (hours): Realistic time for this exact change
+
+5. AI Code Percentage (0-100): 
+   - 0-20%: Clearly human-written, unique patterns
+   - 21-40%: Some AI assistance likely
+   - 41-60%: Moderate AI involvement
+   - 61-80%: Heavy AI assistance
+   - 81-100%: Mostly AI-generated
+
+6. Estimated Hours with AI: Time with AI help (should be less than manual time)
+
+BE OBJECTIVE: If you see typos or errors, score quality lower. If code is simple, don't overestimate complexity.
+
+Respond ONLY in this JSON format:
+{
+  "code_quality": 3.7,
+  "dev_level": 2.3,
+  "complexity": 3.4,
+  "estimated_hours": 2.75,
+  "ai_percentage": 45.5,
+  "estimated_hours_with_ai": 1.25,
+  "reasoning": "Brief explanation focusing on specific issues or strengths observed"
+}`;
+
+        promptElement.textContent = prompt;
+    }
+
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -613,5 +687,9 @@ class ModelsManager {
 
 // Initialize the models manager when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new ModelsManager();
+    // Auth check is handled by auth-utils.js
+    // Only initialize models manager if user has permission
+    if (checkModelsAccess()) {
+        new ModelsManager();
+    }
 });
