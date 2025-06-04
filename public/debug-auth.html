@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Debug</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Authentication Debug Page</h1>
+        
+        <div class="debug-section">
+            <h2>Current Authentication Status</h2>
+            <div id="authStatus"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>LocalStorage Data</h2>
+            <div id="localStorageData"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>API Test Results</h2>
+            <div id="apiTestResults"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Permission Tests</h2>
+            <div id="permissionTests"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Actions</h2>
+            <button onclick="testLogin()" class="btn">Test Login with admin123</button>
+            <button onclick="clearAuth()" class="btn">Clear Auth Data</button>
+            <button onclick="runAllTests()" class="btn">Run All API Tests</button>
+        </div>
+    </div>
+
+    <script>
+        // Debug authentication function
+        function debugAuth() {
+            const authStatus = document.getElementById('authStatus');
+            const localStorageData = document.getElementById('localStorageData');
+            const permissionTests = document.getElementById('permissionTests');
+            
+            // Check authentication status
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('userData');
+            const username = localStorage.getItem('username');
+            
+            authStatus.innerHTML = `
+                <p><strong>Token:</strong> ${token ? 'Present' : 'Missing'}</p>
+                <p><strong>Username:</strong> ${username || 'Not set'}</p>
+                <p><strong>User Data:</strong> ${userData ? 'Present' : 'Missing'}</p>
+            `;
+            
+            // Show localStorage data
+            localStorageData.innerHTML = `
+                <h3>Token:</h3>
+                <textarea readonly style="width: 100%; height: 60px;">${token || 'No token'}</textarea>
+                
+                <h3>User Data:</h3>
+                <textarea readonly style="width: 100%; height: 100px;">${userData || 'No user data'}</textarea>
+                
+                <h3>Username:</h3>
+                <p>${username || 'No username'}</p>
+            `;
+            
+            // Test permissions
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    const isAdminResult = user.role === 'admin';
+                    
+                    permissionTests.innerHTML = `
+                        <p><strong>User Role:</strong> ${user.role}</p>
+                        <p><strong>Is Admin:</strong> ${isAdminResult}</p>
+                        <p><strong>Name:</strong> ${user.name}</p>
+                        <p><strong>Username:</strong> ${user.username}</p>
+                    `;
+                } catch (e) {
+                    permissionTests.innerHTML = `<p style="color: red;">Error parsing user data: ${e.message}</p>`;
+                }
+            } else {
+                permissionTests.innerHTML = '<p>No user data available for permission testing</p>';
+            }
+        }
+        
+        // Test login function
+        async function testLogin() {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    
+                    const userData = {
+                        username: data.username,
+                        name: data.name,
+                        role: data.role
+                    };
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                    
+                    alert('Login successful! Refreshing debug info...');
+                    debugAuth();
+                } else {
+                    alert('Login failed: ' + data.error);
+                }
+            } catch (error) {
+                alert('Login error: ' + error.message);
+            }
+        }
+        
+        // Clear authentication
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userData');
+            alert('Authentication data cleared!');
+            debugAuth();
+        }
+        
+        // Test API endpoints
+        async function runAllTests() {
+            const apiTestResults = document.getElementById('apiTestResults');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                apiTestResults.innerHTML = '<p style="color: red;">No token available. Please login first.</p>';
+                return;
+            }
+            
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            };
+            
+            const endpoints = [
+                { name: 'Verify Token', url: '/api/verify' },
+                { name: 'Get Commits', url: '/api/commits' },
+                { name: 'Get Tools', url: '/api/tools' },
+                { name: 'Get Users', url: '/api/system-users' },
+                { name: 'Get Organizations', url: '/api/organizations' }
+            ];
+            
+            let results = '<h3>API Test Results:</h3>';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url, { headers });
+                    const status = response.ok ? 'SUCCESS' : 'FAILED';
+                    const color = response.ok ? 'green' : 'red';
+                    
+                    results += `<p><strong>${endpoint.name}:</strong> <span style="color: ${color};">${status} (${response.status})</span></p>`;
+                    
+                    if (!response.ok) {
+                        const errorData = await response.text();
+                        results += `<p style="margin-left: 20px; color: orange;">Error: ${errorData}</p>`;
+                    }
+                } catch (error) {
+                    results += `<p><strong>${endpoint.name}:</strong> <span style="color: red;">ERROR - ${error.message}</span></p>`;
+                }
+            }
+            
+            apiTestResults.innerHTML = results;
+        }
+        
+        // Run debug on page load
+        document.addEventListener('DOMContentLoaded', debugAuth);
+    </script>
+    
+    <style>
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--bg-secondary);
+        }
+        
+        .debug-section h2 {
+            margin-top: 0;
+            color: var(--accent-green);
+        }
+        
+        .btn {
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .btn:hover {
+            background: var(--accent-green-dark, #45a049);
+        }
+        
+        textarea {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</body>
+</html>

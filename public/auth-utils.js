@@ -116,15 +116,21 @@ async function logout() {
 function addLogoutButton() {
     const username = localStorage.getItem('username');
     const userData = getUserData();
-    if (username && userData) {
+    
+    console.log('addLogoutButton called:', { username, userData });
+    
+    if (username || userData) {
         // Check if logout button already exists
         const existingLogout = document.querySelector('.logout-nav-item');
         if (existingLogout) {
+            console.log('Logout button already exists, skipping');
             return; // Already added
         }
         
         // Find the nav menu to add logout as a nav item
         const navMenu = document.querySelector('.nav-menu');
+        console.log('Nav menu found:', navMenu);
+        
         if (navMenu) {
             // Create logout nav item that matches the existing nav items
             const logoutLi = document.createElement('li');
@@ -137,16 +143,26 @@ function addLogoutButton() {
                 e.preventDefault();
                 logout();
             };
+            
+            // Build user display name and role
+            const displayName = userData ? userData.name : username;
+            const userRole = userData ? (userData.role === 'admin' ? 'Admin' : 'User') : 'User';
+            
             logoutLink.innerHTML = `
-                <span class="logout-icon">👤</span>
-                <span class="logout-text">Logout</span>
-                <span class="user-info">${userData.name || username} (${userData.role === 'admin' ? 'Admin' : 'User'})</span>
+                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <span style="margin-right: 8px; font-size: 1.1rem;">👤</span>
+                    <span style="font-size: 0.95rem; font-weight: 500;">Logout</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.2;">
+                    ${displayName || username} (${userRole})
+                </span>
             `;
             
             logoutLi.appendChild(logoutLink);
             
             // Add to the end of nav menu
             navMenu.appendChild(logoutLi);
+            console.log('Logout button added to nav menu');
             
             // Add custom styles for the logout nav item
             if (!document.getElementById('logout-nav-styles')) {
@@ -166,6 +182,7 @@ function addLogoutButton() {
                         padding: 12px 20px !important;
                         position: relative;
                         border-radius: 0 !important;
+                        transition: all 0.3s;
                     }
                     
                     .logout-link:hover {
@@ -173,27 +190,8 @@ function addLogoutButton() {
                         color: var(--accent-green) !important;
                     }
                     
-                    .logout-icon {
-                        font-size: 1.1rem;
-                        margin-right: 8px;
-                        margin-bottom: 4px;
-                    }
-                    
-                    .logout-text {
-                        font-size: 0.95rem;
-                        font-weight: 500;
-                        color: inherit;
-                    }
-                    
-                    .user-info {
-                        font-size: 0.8rem;
-                        color: var(--text-secondary);
-                        margin-top: 2px;
-                        line-height: 1.2;
-                    }
-                    
-                    .logout-link:hover .user-info {
-                        color: var(--text-primary);
+                    .logout-link:hover span {
+                        color: var(--accent-green) !important;
                     }
                     
                     /* Ensure sidebar has enough space and proper layout */
@@ -209,8 +207,13 @@ function addLogoutButton() {
                     }
                 `;
                 document.head.appendChild(style);
+                console.log('Logout button styles added');
             }
+        } else {
+            console.error('Nav menu not found! Cannot add logout button');
         }
+    } else {
+        console.log('No user data found, not adding logout button');
     }
 }
 
@@ -301,8 +304,35 @@ function checkPageAccess() {
     return true;
 }
 
-// Make logout function globally available
+// Make functions globally available
 window.logout = logout;
+window.addLogoutButton = addLogoutButton;
+
+// Force add logout button (for debugging)
+window.forceAddLogoutButton = function() {
+    console.log('Force adding logout button...');
+    
+    // Set fake data if none exists
+    if (!localStorage.getItem('username')) {
+        localStorage.setItem('username', 'admin');
+    }
+    if (!localStorage.getItem('userData')) {
+        localStorage.setItem('userData', JSON.stringify({
+            username: 'admin',
+            name: 'Administrator', 
+            role: 'admin'
+        }));
+    }
+    
+    // Remove existing logout button
+    const existing = document.querySelector('.logout-nav-item');
+    if (existing) {
+        existing.remove();
+    }
+    
+    // Call addLogoutButton
+    addLogoutButton();
+};
 
 // Initialize auth on page load
 document.addEventListener('DOMContentLoaded', async () => {

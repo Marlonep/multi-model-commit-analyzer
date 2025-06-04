@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Logout Button - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu" id="nav-menu-debug">
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <!-- Logout button should appear here -->
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Logout Button Debug</h1>
+            </header>
+
+            <main>
+                <div class="debug-section">
+                    <h2>Debug Information</h2>
+                    <div id="debugInfo"></div>
+                </div>
+                
+                <div class="debug-section">
+                    <h2>Actions</h2>
+                    <button onclick="setupFakeLogin()" class="btn">Setup Fake Login</button>
+                    <button onclick="debugAddLogout()" class="btn">Try Add Logout</button>
+                    <button onclick="manualAddLogout()" class="btn">Manual Add Logout</button>
+                    <button onclick="clearAuth()" class="btn">Clear Auth</button>
+                </div>
+                
+                <div class="debug-section">
+                    <h2>Current Nav Menu Content</h2>
+                    <div id="navContent"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="auth-utils.js"></script>
+    <script>
+        function updateDebugInfo() {
+            const debugInfo = document.getElementById('debugInfo');
+            const navContent = document.getElementById('navContent');
+            
+            const navMenu = document.querySelector('.nav-menu');
+            const userData = getUserData();
+            const token = getAuthToken();
+            const username = localStorage.getItem('username');
+            
+            debugInfo.innerHTML = `
+                <p><strong>Nav Menu Found:</strong> ${navMenu ? 'YES' : 'NO'}</p>
+                <p><strong>Nav Menu ID:</strong> ${navMenu ? navMenu.id : 'N/A'}</p>
+                <p><strong>Nav Menu Children:</strong> ${navMenu ? navMenu.children.length : 'N/A'}</p>
+                <p><strong>Token:</strong> ${token ? 'Present' : 'Missing'}</p>
+                <p><strong>Username:</strong> ${username || 'Not set'}</p>
+                <p><strong>User Data:</strong> ${userData ? 'Present' : 'Missing'}</p>
+                <p><strong>User Role:</strong> ${userData ? userData.role : 'N/A'}</p>
+                <p><strong>Logout Button Exists:</strong> ${document.querySelector('.logout-nav-item') ? 'YES' : 'NO'}</p>
+            `;
+            
+            if (navMenu) {
+                navContent.innerHTML = `
+                    <p><strong>Nav menu HTML:</strong></p>
+                    <pre style="background: #333; padding: 10px; overflow: auto;">${navMenu.outerHTML}</pre>
+                `;
+            } else {
+                navContent.innerHTML = '<p style="color: red;">Nav menu not found!</p>';
+            }
+        }
+        
+        function setupFakeLogin() {
+            localStorage.setItem('token', 'fake-token-123');
+            localStorage.setItem('username', 'admin');
+            localStorage.setItem('userData', JSON.stringify({
+                username: 'admin',
+                name: 'Administrator',
+                role: 'admin'
+            }));
+            console.log('Fake login setup complete');
+            updateDebugInfo();
+        }
+        
+        function debugAddLogout() {
+            console.log('Attempting to add logout button...');
+            try {
+                addLogoutButton();
+                console.log('addLogoutButton() called successfully');
+            } catch (error) {
+                console.error('Error calling addLogoutButton():', error);
+            }
+            updateDebugInfo();
+        }
+        
+        function manualAddLogout() {
+            console.log('Manually adding logout button...');
+            
+            const navMenu = document.querySelector('.nav-menu');
+            const userData = getUserData();
+            const username = localStorage.getItem('username');
+            
+            if (!navMenu) {
+                alert('Nav menu not found!');
+                return;
+            }
+            
+            if (!userData && !username) {
+                alert('No user data found!');
+                return;
+            }
+            
+            // Remove existing logout if present
+            const existing = document.querySelector('.logout-nav-item');
+            if (existing) {
+                existing.remove();
+            }
+            
+            // Create logout nav item
+            const logoutLi = document.createElement('li');
+            logoutLi.className = 'logout-nav-item';
+            logoutLi.style.cssText = `
+                margin-top: auto;
+                border-top: 1px solid var(--border-color);
+                padding-top: 10px;
+            `;
+            
+            const logoutLink = document.createElement('a');
+            logoutLink.href = '#';
+            logoutLink.className = 'nav-link logout-link';
+            logoutLink.style.cssText = `
+                display: flex !important;
+                flex-direction: column;
+                align-items: flex-start !important;
+                padding: 12px 20px !important;
+            `;
+            
+            logoutLink.onclick = function(e) {
+                e.preventDefault();
+                alert('Logout clicked! (This is a demo)');
+            };
+            
+            logoutLink.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <span style="margin-right: 8px;">👤</span>
+                    <span style="font-weight: 500;">Logout</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                    ${userData ? userData.name : username} (${userData ? (userData.role === 'admin' ? 'Admin' : 'User') : 'Unknown'})
+                </span>
+            `;
+            
+            logoutLi.appendChild(logoutLink);
+            navMenu.appendChild(logoutLi);
+            
+            console.log('Logout button added manually');
+            updateDebugInfo();
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userData');
+            
+            const existing = document.querySelector('.logout-nav-item');
+            if (existing) {
+                existing.remove();
+            }
+            
+            updateDebugInfo();
+        }
+        
+        // Initial debug info
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Debug page loaded');
+            updateDebugInfo();
+            
+            // Try to add logout after a short delay
+            setTimeout(() => {
+                console.log('Attempting automatic logout button add...');
+                debugAddLogout();
+            }, 1000);
+        });
+    </script>
+    
+    <style>
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--bg-secondary);
+        }
+        
+        .debug-section h2 {
+            margin-top: 0;
+            color: var(--accent-green);
+        }
+        
+        .btn {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            background: #32e610;
+        }
+    </style>
+</body>
+</html>

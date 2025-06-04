@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; margin: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Admin Authentication Test</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Login as Admin</h2>
+        <button onclick="loginAsAdmin()">Login as admin with admin123</button>
+        <div id="loginResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 2: Check Authentication Status</h2>
+        <button onclick="checkAuthStatus()">Check Auth Status</button>
+        <div id="authResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 3: Test isAdmin() Function</h2>
+        <button onclick="testIsAdmin()">Test isAdmin() Function</button>
+        <div id="adminResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 4: Test API Access</h2>
+        <button onclick="testApiAccess()">Test Tools API Access</button>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 5: Manual Fix</h2>
+        <button onclick="manualFix()">Apply Manual Fix</button>
+        <div id="fixResult"></div>
+    </div>
+    
+    <script>
+        // Include auth utility functions directly
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+        
+        function getUserData() {
+            const userData = localStorage.getItem('userData');
+            return userData ? JSON.parse(userData) : null;
+        }
+        
+        function getUserRole() {
+            const userData = getUserData();
+            return userData ? userData.role : null;
+        }
+        
+        function isAdmin() {
+            return getUserRole() === 'admin';
+        }
+        
+        function getAuthHeaders() {
+            const token = getAuthToken();
+            if (token) {
+                return {
+                    'Authorization': `Bearer ${token}`
+                };
+            }
+            return {};
+        }
+        
+        async function loginAsAdmin() {
+            const loginResult = document.getElementById('loginResult');
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    
+                    const userData = {
+                        username: data.username,
+                        name: data.name,
+                        role: data.role
+                    };
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                    
+                    loginResult.innerHTML = '<div class="success">✅ Login successful!</div><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    loginResult.innerHTML = '<div class="error">❌ Login failed: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                loginResult.innerHTML = '<div class="error">❌ Network error: ' + error.message + '</div>';
+            }
+        }
+        
+        function checkAuthStatus() {
+            const authResult = document.getElementById('authResult');
+            const token = getAuthToken();
+            const userData = getUserData();
+            const username = localStorage.getItem('username');
+            
+            authResult.innerHTML = `
+                <h3>Authentication Data:</h3>
+                <p><strong>Token present:</strong> ${token ? 'Yes' : 'No'}</p>
+                <p><strong>Username:</strong> ${username || 'Not set'}</p>
+                <p><strong>User Data:</strong> ${userData ? 'Present' : 'Missing'}</p>
+                ${userData ? '<pre>' + JSON.stringify(userData, null, 2) + '</pre>' : ''}
+            `;
+        }
+        
+        function testIsAdmin() {
+            const adminResult = document.getElementById('adminResult');
+            const userData = getUserData();
+            const role = getUserRole();
+            const adminCheck = isAdmin();
+            
+            adminResult.innerHTML = `
+                <h3>Admin Check Results:</h3>
+                <p><strong>User Data:</strong> ${userData ? 'Present' : 'Missing'}</p>
+                <p><strong>User Role:</strong> ${role || 'No role'}</p>
+                <p><strong>isAdmin() result:</strong> ${adminCheck}</p>
+                <p><strong>Role === 'admin':</strong> ${role === 'admin'}</p>
+                ${userData ? '<pre>' + JSON.stringify(userData, null, 2) + '</pre>' : ''}
+            `;
+        }
+        
+        async function testApiAccess() {
+            const apiResult = document.getElementById('apiResult');
+            const headers = getAuthHeaders();
+            
+            if (!headers.Authorization) {
+                apiResult.innerHTML = '<div class="error">❌ No auth token available</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/tools', { headers });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    apiResult.innerHTML = `
+                        <div class="success">✅ API access successful!</div>
+                        <p><strong>Tools found:</strong> ${data.tools ? data.tools.length : 0}</p>
+                        <p><strong>Response status:</strong> ${response.status}</p>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    apiResult.innerHTML = `
+                        <div class="error">❌ API access failed</div>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${errorText}</p>
+                    `;
+                }
+            } catch (error) {
+                apiResult.innerHTML = '<div class="error">❌ API error: ' + error.message + '</div>';
+            }
+        }
+        
+        function manualFix() {
+            const fixResult = document.getElementById('fixResult');
+            
+            // Force correct admin data
+            const userData = {
+                username: 'admin',
+                name: 'Administrator',
+                role: 'admin'
+            };
+            
+            localStorage.setItem('userData', JSON.stringify(userData));
+            localStorage.setItem('username', 'admin');
+            
+            fixResult.innerHTML = `
+                <div class="success">✅ Manual fix applied!</div>
+                <p>User data has been corrected in localStorage</p>
+                <p>Try testing isAdmin() function again</p>
+            `;
+        }
+        
+        // Auto-run initial checks
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                checkAuthStatus();
+                testIsAdmin();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
