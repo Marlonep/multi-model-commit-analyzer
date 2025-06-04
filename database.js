@@ -175,6 +175,157 @@ const createTables = () => {
 
 // Database helper functions
 export const dbHelpers = {
+    // Organizations
+    getAllOrganizations() {
+        return db.prepare('SELECT * FROM organizations WHERE is_active = 1 ORDER BY name').all();
+    },
+
+    getOrganizationById(id) {
+        return db.prepare('SELECT * FROM organizations WHERE id = ?').get(id);
+    },
+
+    getOrganizationByName(name) {
+        return db.prepare('SELECT * FROM organizations WHERE name = ?').get(name);
+    },
+
+    getOrganizationBySlug(slug) {
+        return db.prepare('SELECT * FROM organizations WHERE slug = ?').get(slug);
+    },
+
+    createOrganization(orgData) {
+        const stmt = db.prepare(`
+            INSERT INTO organizations (
+                name, slug, display_name, description, website, github_url, 
+                logo_url, location, industry, size_category, founded_date, 
+                timezone, primary_language, tech_stack, contact_email, contact_phone
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        return stmt.run(
+            orgData.name,
+            orgData.slug,
+            orgData.display_name,
+            orgData.description,
+            orgData.website,
+            orgData.github_url,
+            orgData.logo_url,
+            orgData.location,
+            orgData.industry,
+            orgData.size_category,
+            orgData.founded_date,
+            orgData.timezone,
+            orgData.primary_language,
+            JSON.stringify(orgData.tech_stack || []),
+            orgData.contact_email,
+            orgData.contact_phone
+        );
+    },
+
+    updateOrganization(id, orgData) {
+        const stmt = db.prepare(`
+            UPDATE organizations SET 
+                name = ?, slug = ?, display_name = ?, description = ?, website = ?, 
+                github_url = ?, logo_url = ?, location = ?, industry = ?, 
+                size_category = ?, founded_date = ?, timezone = ?, primary_language = ?, 
+                tech_stack = ?, contact_email = ?, contact_phone = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `);
+        return stmt.run(
+            orgData.name,
+            orgData.slug,
+            orgData.display_name,
+            orgData.description,
+            orgData.website,
+            orgData.github_url,
+            orgData.logo_url,
+            orgData.location,
+            orgData.industry,
+            orgData.size_category,
+            orgData.founded_date,
+            orgData.timezone,
+            orgData.primary_language,
+            JSON.stringify(orgData.tech_stack || []),
+            orgData.contact_email,
+            orgData.contact_phone,
+            id
+        );
+    },
+
+    deleteOrganization(id) {
+        return db.prepare('UPDATE organizations SET is_active = 0 WHERE id = ?').run(id);
+    },
+
+    // User Organizations
+    getUserOrganizations(userId) {
+        return db.prepare(`
+            SELECT o.*, uo.role, uo.department, uo.join_date, uo.end_date, uo.is_active as membership_active
+            FROM organizations o
+            JOIN user_organizations uo ON o.id = uo.organization_id
+            WHERE uo.user_id = ? AND uo.is_active = 1
+            ORDER BY o.name
+        `).all(userId);
+    },
+
+    addUserToOrganization(userId, organizationId, role, department) {
+        const stmt = db.prepare(`
+            INSERT OR REPLACE INTO user_organizations (user_id, organization_id, role, department, join_date, is_active)
+            VALUES (?, ?, ?, ?, DATE('now'), 1)
+        `);
+        return stmt.run(userId, organizationId, role, department);
+    },
+
+    removeUserFromOrganization(userId, organizationId) {
+        const stmt = db.prepare(`
+            UPDATE user_organizations SET is_active = 0, end_date = DATE('now')
+            WHERE user_id = ? AND organization_id = ?
+        `);
+        return stmt.run(userId, organizationId);
+    },
+
+    getOrganizationMembers(organizationId) {
+        return db.prepare(`
+            SELECT u.*, uo.role, uo.department, uo.join_date
+            FROM users u
+            JOIN user_organizations uo ON u.id = uo.user_id
+            WHERE uo.organization_id = ? AND uo.is_active = 1
+            ORDER BY u.name
+        `).all(organizationId);
+    },
+
+    getCommitsByOrganizationId(organizationId) {
+        return db.prepare(`
+            SELECT * FROM commits 
+            WHERE organization_id = ? 
+            ORDER BY timestamp DESC
+        `).all(organizationId);
+    },
+
+    // Helper to find or create organization by name
+    findOrCreateOrganization(orgName) {
+        if (!orgName || orgName === 'Unknown') {
+            return null;
+        }
+        
+        // Try to find existing organization
+        let org = this.getOrganizationByName(orgName);
+        
+        if (!org) {
+            // Create new organization
+            const slug = orgName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+            const githubUrl = `https://github.com/${orgName}`;
+            
+            const result = this.createOrganization({
+                name: orgName,
+                slug: slug,
+                display_name: orgName,
+                github_url: githubUrl,
+                tech_stack: []
+            });
+            
+            org = this.getOrganizationById(result.lastInsertRowid);
+        }
+        
+        return org;
+    },
     // Users
     getAllUsers() {
         return db.prepare('SELECT id, username, name, role, status, created_at FROM users ORDER BY created_at DESC').all();
