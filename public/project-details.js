@@ -66,6 +66,11 @@ function displayProjectInfo() {
     document.getElementById('projectNameLink').href = 
         `https://github.com/${githubConfig.username}/${githubConfig.repository}`;
     
+    // Get organization from first commit (should be same for all commits in project)
+    const organization = projectCommits.length > 0 ? 
+        (projectCommits[0].organization || 'Unknown') : 'Unknown';
+    document.getElementById('organizationName').textContent = organization;
+    
     document.getElementById('totalCommits').textContent = projectCommits.length;
     
     // Count unique contributors

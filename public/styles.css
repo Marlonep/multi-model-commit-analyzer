@@ -693,8 +693,7 @@ tfoot td {
 }
 
 .commit-link::after,
-.user-link::after,
-.project-link::after {
+.user-link::after {
     content: '↗';
     font-size: 0.8em;
     opacity: 0.6;
