@@ -94,8 +94,8 @@ function displayOrganizations(organizations) {
             <td>${org.avgAiPercentage.toFixed(0)}%</td>
             <td>$${org.totalCost.toFixed(2)}</td>
             <td>
-                <button class="view-details-btn" onclick="event.stopPropagation(); window.location.href='/organization-details.html?org=${encodeURIComponent(org.organization)}'">
-                    View Details
+                <button class="view-details" onclick="event.stopPropagation(); window.location.href='/organization-details.html?org=${encodeURIComponent(org.organization)}'">
+                    Details
                 </button>
             </td>
         `;
