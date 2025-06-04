@@ -243,29 +243,30 @@ function updateNavigationVisibility() {
             profileLink.href = `/user-details.html?user=${encodeURIComponent(userData.username)}`;
             profileLink.className = 'nav-link';
             profileLink.textContent = 'Profile';
-                
-                // Check if current page is user-details for this user
-                if (window.location.pathname === '/user-details.html' || 
-                    window.location.pathname === '/user-details') {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const pageUser = urlParams.get('user');
-                    if (pageUser === userData.username) {
-                        profileLink.classList.add('active');
-                    }
+            
+            // Check if current page is user-details for this user
+            if (window.location.pathname === '/user-details.html' || 
+                window.location.pathname === '/user-details') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const pageUser = urlParams.get('user');
+                if (pageUser === userData.username) {
+                    profileLink.classList.add('active');
                 }
-                
-                profileLi.appendChild(profileLink);
-                
-                // Insert Profile link after Commits (at position 2)
-                const commitLink = navMenu.querySelector('a[href="/index.html"]');
-                if (commitLink && commitLink.parentElement) {
-                    commitLink.parentElement.insertAdjacentElement('afterend', profileLi);
-                }
+            }
+            
+            profileLi.appendChild(profileLink);
+            
+            // Insert Profile link after Commits (at position 2)
+            const commitLink = navMenu.querySelector('a[href="/index.html"]');
+            if (commitLink && commitLink.parentElement) {
+                commitLink.parentElement.insertAdjacentElement('afterend', profileLi);
             }
         }
     }
     
-    if (role !== 'user') return; // Only hide items for non-admin users
+    if (role !== 'user') {
+        return; // Only hide items for non-admin users
+    }
     
     // Define restricted pages for user role (now includes 'users')
     const restrictedPages = ['alerts', 'models', 'tools', 'settings', 'analytics', 'users'];
