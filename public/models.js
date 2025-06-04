@@ -1,4 +1,14 @@
 // AI Models Configuration and Management
+
+// Check if user has permission to manage models
+function checkModelsAccess() {
+    if (!isAdmin()) {
+        window.location.href = '/index.html';
+        return false;
+    }
+    return true;
+}
+
 let allCommits = [];
 let pagination = {
     cost: {
@@ -10,6 +20,10 @@ let pagination = {
 
 class ModelsManager {
     constructor() {
+        // Check permissions first
+        if (!checkModelsAccess()) {
+            return;
+        }
         this.models = [];
         this.performanceData = {};
         this.loadModelsConfiguration();
@@ -673,5 +687,9 @@ Respond ONLY in this JSON format:
 
 // Initialize the models manager when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new ModelsManager();
+    // Auth check is handled by auth-utils.js
+    // Only initialize models manager if user has permission
+    if (checkModelsAccess()) {
+        new ModelsManager();
+    }
 });

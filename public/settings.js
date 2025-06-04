@@ -2,9 +2,23 @@
 let githubConfig = null;
 let commitStats = null;
 let systemUsers = [];
+let currentUserId = null;
+
+// Check if user has permission to access settings
+function checkSettingsAccess() {
+    if (!isAdmin()) {
+        window.location.href = '/index.html';
+        return false;
+    }
+    return true;
+}
 
 // Load GitHub configuration
 async function loadGithubConfig() {
+    // Check permissions first
+    if (!checkSettingsAccess()) {
+        return;
+    }
     try {
         const response = await fetch('/api/github-config', {
             headers: getAuthHeaders()
@@ -162,12 +176,102 @@ function displaySystemUsers() {
     });
 }
 
+// Show notification
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type} show`;
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+// Open user modal
+function openUserModal(userId = null) {
+    const modal = document.getElementById('userModal');
+    const form = document.getElementById('userForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const passwordField = document.getElementById('password');
+    
+    currentUserId = userId;
+    form.reset();
+    
+    if (userId) {
+        // Edit mode
+        modalTitle.textContent = 'Edit User';
+        passwordField.removeAttribute('required');
+        passwordField.parentElement.querySelector('small').textContent = 'Leave empty to keep current password';
+        
+        const user = systemUsers.find(u => u.id === userId);
+        if (user) {
+            document.getElementById('userId').value = user.id;
+            document.getElementById('username').value = user.username;
+            document.getElementById('name').value = user.name;
+            document.getElementById('role').value = user.role;
+        }
+    } else {
+        // Add mode
+        modalTitle.textContent = 'Add New User';
+        passwordField.setAttribute('required', '');
+        passwordField.parentElement.querySelector('small').textContent = 'At least 6 characters (required for new users)';
+    }
+    
+    modal.style.display = 'flex';
+}
+
+// Close user modal
+function closeUserModal() {
+    const modal = document.getElementById('userModal');
+    modal.style.display = 'none';
+    currentUserId = null;
+}
+
+// Save user (create or update)
+async function saveUser(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const userId = formData.get('userId');
+    
+    const userData = {
+        username: formData.get('username'),
+        password: formData.get('password'),
+        name: formData.get('name'),
+        role: formData.get('role')
+    };
+    
+    try {
+        const url = userId ? `/api/system-users/${userId}` : '/api/system-users';
+        const method = userId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                ...getAuthHeaders(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to save user');
+        }
+        
+        showNotification(userId ? 'User updated successfully' : 'User created successfully', 'success');
+        closeUserModal();
+        await loadSystemUsers();
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
 // Edit user
 function editUser(userId) {
-    const user = systemUsers.find(u => u.id === userId);
-    if (!user) return;
-    
-    alert(`Edit functionality for ${user.username} will be available in the next update.`);
+    openUserModal(userId);
 }
 
 // Delete user
@@ -175,13 +279,42 @@ function deleteUser(userId) {
     const user = systemUsers.find(u => u.id === userId);
     if (!user) return;
     
-    if (user.username === 'admin') {
-        alert('Cannot delete the admin user.');
-        return;
-    }
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteUsername = document.getElementById('deleteUsername');
     
-    if (confirm(`Are you sure you want to delete user "${user.username}"?`)) {
-        alert('Delete functionality will be available in the next update.');
+    deleteUsername.textContent = user.username;
+    deleteModal.style.display = 'flex';
+    currentUserId = userId;
+}
+
+// Close delete modal
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'none';
+    currentUserId = null;
+}
+
+// Confirm delete
+async function confirmDelete() {
+    if (!currentUserId) return;
+    
+    try {
+        const response = await fetch(`/api/system-users/${currentUserId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to delete user');
+        }
+        
+        showNotification('User deleted successfully', 'success');
+        closeDeleteModal();
+        await loadSystemUsers();
+    } catch (error) {
+        showNotification(error.message, 'error');
     }
 }
 
@@ -190,20 +323,40 @@ function setupUserManagementListeners() {
     const addUserBtn = document.getElementById('addUserBtn');
     if (addUserBtn) {
         addUserBtn.addEventListener('click', () => {
-            alert('Add user functionality will be available in the next update.');
+            openUserModal();
         });
     }
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal')) {
+            if (event.target.id === 'userModal') {
+                closeUserModal();
+            } else if (event.target.id === 'deleteModal') {
+                closeDeleteModal();
+            }
+        }
+    });
 }
 
 // Make functions available globally
 window.editUser = editUser;
 window.deleteUser = deleteUser;
+window.openUserModal = openUserModal;
+window.closeUserModal = closeUserModal;
+window.saveUser = saveUser;
+window.closeDeleteModal = closeDeleteModal;
+window.confirmDelete = confirmDelete;
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadGithubConfig();
-    await loadCommitStats();
-    await loadSystemUsers();
-    setupEventListeners();
-    setupUserManagementListeners();
+    // Auth check is handled by auth-utils.js
+    // Only load settings if user has permission
+    if (checkSettingsAccess()) {
+        await loadGithubConfig();
+        await loadCommitStats();
+        await loadSystemUsers();
+        setupEventListeners();
+        setupUserManagementListeners();
+    }
 });

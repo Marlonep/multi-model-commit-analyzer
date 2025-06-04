@@ -5,5 +5,23 @@
     "password": "$2b$10$TKR0lofZVaffqgKsBoL.KOku95vAcEy78amOS2qK.HjYzOYQIS0qG",
     "role": "admin",
     "name": "Administrator"
+  },
+  {
+    "id": 2,
+    "username": "mariogc00",
+    "password": "$2b$10$LgZ1wL.Jgu2czQ7n5QidEOqrDeZlQMrn4PNnPDAJsxdhoGHeyv4H.",
+    "name": "Mario Gutierrez",
+    "role": "user",
+    "createdAt": "2025-06-03T19:56:27.237Z",
+    "status": "active"
+  },
+  {
+    "id": 3,
+    "username": "bruno",
+    "password": "$2b$10$Bt0/Y0rqgM3I5J1Gi/I6W.5H7y1jEelxZbL7uEPdIvFcWdoNqqxMq",
+    "name": "Bruno De Alba Pelayo",
+    "role": "admin",
+    "createdAt": "2025-06-03T20:01:37.349Z",
+    "status": "active"
   }
 ]

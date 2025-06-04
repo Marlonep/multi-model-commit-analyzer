@@ -50,9 +50,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
                 
-                // Redirect to analytics page
-                console.log('Redirecting to analytics...');
-                window.location.href = '/analytics.html';
+                // Store user data including role
+                const userData = {
+                    username: data.username,
+                    name: data.name,
+                    role: data.role
+                };
+                localStorage.setItem('userData', JSON.stringify(userData));
+                
+                // Redirect based on user role
+                console.log('User role:', data.role);
+                if (data.role === 'user') {
+                    // Redirect regular users to commits page
+                    window.location.href = '/index.html';
+                } else {
+                    // Redirect admins to analytics page
+                    window.location.href = '/analytics.html';
+                }
             } else {
                 // Show error message
                 errorMessage.textContent = data.error || 'Login failed';

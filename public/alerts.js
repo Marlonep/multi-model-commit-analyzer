@@ -3,6 +3,15 @@ let filteredCommits = [];
 let commitToDelete = null;
 let githubConfig = null;
 
+// Check if user has permission to view alerts
+function checkAlertsAccess() {
+    if (!isAdmin()) {
+        window.location.href = '/index.html';
+        return false;
+    }
+    return true;
+}
+
 // Fetch GitHub configuration
 async function loadGithubConfig() {
     try {
@@ -20,6 +29,10 @@ async function loadGithubConfig() {
 
 // Load and analyze commits
 async function loadAlerts() {
+    // Check permissions first
+    if (!checkAlertsAccess()) {
+        return;
+    }
     try {
         // Load GitHub config first
         await loadGithubConfig();
@@ -503,6 +516,10 @@ function setupEventListeners() {
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    loadAlerts();
-    setupEventListeners();
+    // Auth check is handled by auth-utils.js
+    // Only load alerts if user has permission
+    if (checkAlertsAccess()) {
+        loadAlerts();
+        setupEventListeners();
+    }
 });

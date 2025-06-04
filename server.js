@@ -7,10 +7,24 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { AIModels } from './analyzeCommit.js';
 import { authenticateUser, verifyToken, requireAuth } from './auth.js';
+import { dbHelpers } from './database.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 
 const execAsync = promisify(exec);
+
+// Middleware to require admin role
+function requireAdmin(req, res, next) {
+    if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Forbidden: Admin access required' });
+    }
+    
+    next();
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,7 +76,11 @@ app.use((req, res, next) => {
     
     // Check session first
     if (req.session && req.session.userId) {
-        req.user = { id: req.session.userId, username: req.session.username };
+        req.user = { 
+            id: req.session.userId, 
+            username: req.session.username,
+            role: req.session.role 
+        };
         return next();
     }
     
@@ -111,6 +129,7 @@ app.post('/api/login', async (req, res) => {
         // Set session
         req.session.userId = result.user.id;
         req.session.username = result.user.username;
+        req.session.role = result.user.role;
         req.session.save();
         
         res.json({
@@ -156,14 +175,37 @@ app.post('/api/logout', (req, res) => {
 // API endpoint to get commit history
 app.get('/api/commits', async (req, res) => {
   try {
-    const data = await fs.readFile('commit_analysis_history.json', 'utf8');
-    const history = JSON.parse(data);
+    const history = dbHelpers.getAllCommits(req.user.role, req.user.id, req.user.username);
     
-    // Sort by timestamp descending (latest first)
-    history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Transform database format to match frontend expectations
+    const transformedHistory = history.map(commit => ({
+      commitHash: commit.commit_hash,
+      user: commit.user_name,
+      author: commit.user_name,
+      project: commit.project,
+      organization: commit.organization,
+      commitMessage: commit.commit_message,
+      timestamp: commit.timestamp,
+      fileChanges: commit.file_changes,
+      linesAdded: commit.lines_added,
+      linesDeleted: commit.lines_deleted,
+      averageCodeQuality: commit.average_code_quality,
+      averageDevLevel: commit.average_dev_level,
+      averageComplexity: commit.average_complexity,
+      averageEstimatedHours: commit.average_estimated_hours,
+      averageEstimatedHoursWithAi: commit.average_estimated_hours_with_ai,
+      averageAiPercentage: commit.average_ai_percentage,
+      totalCost: commit.total_cost,
+      tokensUsed: commit.tokens_used,
+      status: commit.status,
+      manuallyReviewed: commit.manually_reviewed,
+      statusLog: JSON.parse(commit.status_log || '[]'),
+      fileAnalyses: JSON.parse(commit.analysis_details || '{}').fileAnalyses || []
+    }));
     
-    res.json(history);
+    res.json(transformedHistory);
   } catch (error) {
+    console.error('Error fetching commits:', error);
     res.json([]);
   }
 });
@@ -176,20 +218,42 @@ app.get('/api/commits', async (req, res) => {
  */
 app.get('/api/commits/:index', async (req, res) => {
   try {
-    const data = await fs.readFile('commit_analysis_history.json', 'utf8');
-    const history = JSON.parse(data);
-    
-    // Sort by timestamp descending to match frontend
-    history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
     const index = parseInt(req.params.index);
+    const commit = dbHelpers.getCommitByIndex(index, req.user.role, req.user.id, req.user.username);
     
-    if (index >= 0 && index < history.length) {
-      res.json(history[index]);
+    if (commit) {
+      // Transform database format to match frontend expectations
+      const transformedCommit = {
+        commitHash: commit.commit_hash,
+        user: commit.user_name,
+        author: commit.user_name,
+        project: commit.project,
+        organization: commit.organization,
+        commitMessage: commit.commit_message,
+        timestamp: commit.timestamp,
+        fileChanges: commit.file_changes,
+        linesAdded: commit.lines_added,
+        linesDeleted: commit.lines_deleted,
+        averageCodeQuality: commit.average_code_quality,
+        averageDevLevel: commit.average_dev_level,
+        averageComplexity: commit.average_complexity,
+        averageEstimatedHours: commit.average_estimated_hours,
+        averageEstimatedHoursWithAi: commit.average_estimated_hours_with_ai,
+        averageAiPercentage: commit.average_ai_percentage,
+        totalCost: commit.total_cost,
+        tokensUsed: commit.tokens_used,
+        status: commit.status,
+        manuallyReviewed: commit.manually_reviewed,
+        statusLog: JSON.parse(commit.status_log || '[]'),
+        fileAnalyses: JSON.parse(commit.analysis_details || '{}').fileAnalyses || []
+      };
+      
+      res.json(transformedCommit);
     } else {
       res.status(404).json({ error: 'Analysis not found' });
     }
   } catch (error) {
+    console.error('Error fetching commit by index:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -229,7 +293,7 @@ app.get('/api/github-config', async (req, res) => {
 });
 
 // API endpoint to test AI models
-app.post('/api/test-models', async (req, res) => {
+app.post('/api/test-models', requireAdmin, async (req, res) => {
   try {
     const { modelIds } = req.body;
     const aiModels = new AIModels();
@@ -277,98 +341,48 @@ app.post('/api/test-models', async (req, res) => {
 });
 
 // API endpoint to update commit status
-app.put('/api/commits/:hash/status', async (req, res) => {
+app.put('/api/commits/:hash/status', requireAdmin, async (req, res) => {
   try {
     const { hash } = req.params;
     const { status, changedBy } = req.body;
-    const dataFile = './commit_analysis_history.json';
     
     // Validate status
     if (!['ok', 'abnormal', 'error'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status. Must be ok, abnormal, or error' });
     }
     
-    // Check if file exists
-    if (!fsSync.existsSync(dataFile)) {
-      return res.status(404).json({ error: 'No commits found' });
-    }
+    // Update commit status using database helper
+    const result = dbHelpers.updateCommitStatus(hash, status, changedBy);
     
-    // Read existing data
-    const data = await fs.readFile(dataFile, 'utf8');
-    let commits = JSON.parse(data);
-    
-    // Find all commits with this hash (handle duplicates)
-    const matchingCommits = commits.filter(c => c.commitHash === hash);
-    
-    if (matchingCommits.length === 0) {
+    if (!result || result.changes === 0) {
       return res.status(404).json({ error: 'Commit not found' });
     }
     
-    // Update all matching commits
-    let updatedCount = 0;
-    matchingCommits.forEach(commit => {
-      // Initialize statusLog if it doesn't exist
-      if (!commit.statusLog) {
-        commit.statusLog = [];
-      }
-      
-      // Add status change to log
-      commit.statusLog.push({
-        previousStatus: commit.status || 'ok',
-        newStatus: status,
-        changedBy: changedBy || 'System',
-        timestamp: new Date().toISOString(),
-        reason: 'Manual status change'
-      });
-      
-      // Update status
-      commit.status = status;
-      commit.manuallyReviewed = true;
-      updatedCount++;
-    });
-    
-    // Save updated data
-    await fs.writeFile(dataFile, JSON.stringify(commits, null, 2));
-    
     res.json({ 
       success: true, 
-      message: `Status updated successfully for ${updatedCount} commit(s)` 
+      message: `Status updated successfully for commit ${hash}` 
     });
   } catch (error) {
+    console.error('Error updating commit status:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // API endpoint to delete a commit
-app.delete('/api/commits/:hash', async (req, res) => {
+app.delete('/api/commits/:hash', requireAdmin, async (req, res) => {
   try {
     const { hash } = req.params;
-    const dataFile = './commit_analysis_history.json';
     
-    // Check if file exists
-    if (!fsSync.existsSync(dataFile)) {
-      return res.status(404).json({ error: 'No commits found' });
-    }
+    // Delete commit using database helper
+    const result = dbHelpers.deleteCommit(hash);
     
-    // Read existing data
-    const data = await fs.readFile(dataFile, 'utf8');
-    let commits = JSON.parse(data);
-    
-    // Find commit index
-    const commitIndex = commits.findIndex(c => c.commitHash === hash);
-    
-    if (commitIndex === -1) {
+    if (!result || result.changes === 0) {
       return res.status(404).json({ error: 'Commit not found' });
     }
     
-    // Remove commit
-    commits.splice(commitIndex, 1);
-    
-    // Save updated data
-    await fs.writeFile(dataFile, JSON.stringify(commits, null, 2));
-    
     res.json({ success: true, message: 'Commit deleted successfully' });
   } catch (error) {
+    console.error('Error deleting commit:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -376,19 +390,26 @@ app.delete('/api/commits/:hash', async (req, res) => {
 // API endpoint to get all user details (for dropdowns, etc.)
 app.get('/api/users/all/details', async (req, res) => {
   try {
-    const dataFile = './user-details.json';
+    // Get all users from database
+    const users = dbHelpers.getAllUsers();
+    const allUserDetails = {};
     
-    // Check if file exists
-    if (!fsSync.existsSync(dataFile)) {
-      await fs.writeFile(dataFile, JSON.stringify({}, null, 2));
-      return res.json({});
+    // Get details for each user
+    for (const user of users) {
+      const details = dbHelpers.getUserDetails(user.id);
+      
+      // Use username as key for compatibility with frontend
+      allUserDetails[user.username] = {
+        email: details?.email || '',
+        phone: details?.phone || '',
+        whatsappAvailable: details?.whatsapp_available || false,
+        minHoursPerDay: details?.min_hours_per_day || 8,
+        organizations: details?.organizations || [],
+        tools: details?.tools || []
+      };
     }
     
-    // Read the file
-    const data = await fs.readFile(dataFile, 'utf8');
-    const userDetails = JSON.parse(data);
-    
-    res.json(userDetails);
+    res.json(allUserDetails);
   } catch (error) {
     console.error('Error reading user details:', error);
     res.status(500).json({ error: 'Failed to load user details' });
@@ -399,34 +420,35 @@ app.get('/api/users/all/details', async (req, res) => {
 app.get('/api/users/:username/details', async (req, res) => {
   try {
     const { username } = req.params;
-    const dataFile = './user-details.json';
     
-    // Check if file exists
-    if (!fsSync.existsSync(dataFile)) {
-      await fs.writeFile(dataFile, JSON.stringify({}, null, 2));
+    // Check if user is accessing their own details or if they are admin
+    if (req.user.role === 'user' && req.user.username.toLowerCase() !== username.toLowerCase()) {
+      return res.status(403).json({ error: 'Access denied' });
     }
     
-    // Read user details
-    const data = await fs.readFile(dataFile, 'utf8');
-    const allUserDetails = JSON.parse(data);
+    // Get user details from database
+    let userDetails = dbHelpers.getUserDetailsByUsername(username);
     
-    // Return user details or empty object if not found
-    let userDetails = allUserDetails[username] || {
-      email: '',
-      phone: '',
-      whatsappAvailable: false,
-      minHoursPerDay: 8,
-      organizations: [],
-      tools: []
-    };
-    
-    // Migrate tools if they're in old format (array of strings)
-    if (userDetails.tools && userDetails.tools.length > 0 && typeof userDetails.tools[0] === 'string') {
-      userDetails.tools = userDetails.tools.map(toolId => ({
-        toolId,
-        status: 'active',
-        subscribedDate: new Date().toISOString()
-      }));
+    // Return default empty object if not found
+    if (!userDetails) {
+      userDetails = {
+        email: '',
+        phone: '',
+        whatsappAvailable: false,
+        minHoursPerDay: 8,
+        organizations: [],
+        tools: []
+      };
+    } else {
+      // Transform database format to match frontend expectations
+      userDetails = {
+        email: userDetails.email || '',
+        phone: userDetails.phone || '',
+        whatsappAvailable: userDetails.whatsapp_available || false,
+        minHoursPerDay: userDetails.min_hours_per_day || 8,
+        organizations: userDetails.organizations || [],
+        tools: userDetails.tools || []
+      };
     }
     
     res.json(userDetails);
@@ -441,7 +463,11 @@ app.put('/api/users/:username/details', async (req, res) => {
   try {
     const { username } = req.params;
     const userDetails = req.body;
-    const dataFile = './user-details.json';
+    
+    // Check if user is updating their own details or if they are admin
+    if (req.user.role === 'user' && req.user.username.toLowerCase() !== username.toLowerCase()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
     
     // Validate input
     if (!userDetails || typeof userDetails !== 'object') {
@@ -456,44 +482,33 @@ app.put('/api/users/:username/details', async (req, res) => {
       });
     }
     
-    // Check if file exists
-    if (!fsSync.existsSync(dataFile)) {
-      await fs.writeFile(dataFile, JSON.stringify({}, null, 2));
+    // Get user to find user ID
+    const user = dbHelpers.getUserByUsername(username);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
     
-    // Read existing data
-    const data = await fs.readFile(dataFile, 'utf8');
-    const allUserDetails = JSON.parse(data);
-    
-    // Handle tools migration from array to objects
-    let tools = userDetails.tools || [];
-    if (tools.length > 0 && typeof tools[0] === 'string') {
-      // Migrate old format (array of IDs) to new format (array of objects)
-      tools = tools.map(toolId => ({
-        toolId,
-        status: 'active',
-        subscribedDate: allUserDetails[username]?.tools?.find(t => t.toolId === toolId)?.subscribedDate || new Date().toISOString()
-      }));
-    }
-    
-    // Update user details
-    allUserDetails[username] = {
+    // Update user details in database
+    const result = dbHelpers.createOrUpdateUserDetails(user.id, {
       email: userDetails.email || '',
       phone: userDetails.phone || '',
-      whatsappAvailable: Boolean(userDetails.whatsappAvailable),
-      minHoursPerDay: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
+      whatsapp_available: Boolean(userDetails.whatsappAvailable),
+      min_hours_per_day: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
       organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
-      tools: tools,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Save updated data
-    await fs.writeFile(dataFile, JSON.stringify(allUserDetails, null, 2));
+      tools: userDetails.tools || []
+    });
     
     res.json({ 
       success: true, 
       message: 'User details updated successfully',
-      details: allUserDetails[username]
+      details: {
+        email: userDetails.email || '',
+        phone: userDetails.phone || '',
+        whatsappAvailable: Boolean(userDetails.whatsappAvailable),
+        minHoursPerDay: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
+        organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
+        tools: userDetails.tools || []
+      }
     });
   } catch (error) {
     console.error('Error updating user details:', error);
@@ -502,38 +517,18 @@ app.put('/api/users/:username/details', async (req, res) => {
 });
 
 // API endpoint to get system users
-app.get('/api/system-users', requireAuth, async (req, res) => {
+app.get('/api/system-users', requireAdmin, async (req, res) => {
   try {
-    const usersFile = './users.json';
+    const users = dbHelpers.getAllUsers();
     
-    // Check if file exists
-    if (!fsSync.existsSync(usersFile)) {
-      // Return default admin user if file doesn't exist
-      return res.json([
-        {
-          id: 1,
-          username: "admin",
-          password: "$2b$10$TKR0lofZVaffqgKsBoL.KOku95vAcEy78amOS2qK.HjYzOYQIS0qG",
-          role: "admin",
-          name: "Administrator",
-          createdAt: "2025-01-01T00:00:00Z",
-          status: "active"
-        }
-      ]);
-    }
-    
-    // Read users data
-    const data = await fs.readFile(usersFile, 'utf8');
-    const users = JSON.parse(data);
-    
-    // Add status and createdAt if not present, but don't send passwords
+    // Sanitize users (don't send passwords)
     const sanitizedUsers = users.map(user => ({
       id: user.id,
       username: user.username,
       name: user.name,
       role: user.role,
-      createdAt: user.createdAt || "2025-01-01T00:00:00Z",
-      status: user.status || "active"
+      createdAt: user.created_at,
+      status: user.status
     }));
     
     res.json(sanitizedUsers);
@@ -543,22 +538,172 @@ app.get('/api/system-users', requireAuth, async (req, res) => {
   }
 });
 
+// API endpoint to create a new user
+app.post('/api/system-users', requireAdmin, async (req, res) => {
+  try {
+    const bcrypt = await import('bcryptjs');
+    const { username, password, name, role } = req.body;
+    
+    // Validate required fields
+    if (!username || !password || !name || !role) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    // Validate role
+    if (!['admin', 'user'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role. Must be admin or user' });
+    }
+    
+    // Check if user already exists
+    const existingUser = dbHelpers.getUserByUsername(username);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+    
+    // Hash password
+    const saltRounds = 10;
+    const password_hash = await bcrypt.hash(password, saltRounds);
+    
+    // Create the user
+    const result = dbHelpers.createUser({
+      username,
+      password_hash,
+      name,
+      role,
+      status: 'active'
+    });
+    
+    const newUser = {
+      id: result.lastInsertRowid,
+      username,
+      name,
+      role,
+      status: 'active',
+      createdAt: new Date().toISOString()
+    };
+    
+    res.json({ success: true, user: newUser });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      res.status(400).json({ error: 'Username already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  }
+});
+
+// API endpoint to update a user
+app.put('/api/system-users/:userId', requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const { username, password, name, role } = req.body;
+    
+    // Validate required fields (password is optional for updates)
+    if (!username || !name || !role) {
+      return res.status(400).json({ error: 'Username, name, and role are required' });
+    }
+    
+    // Validate role
+    if (!['admin', 'user'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role. Must be admin or user' });
+    }
+    
+    // Check if user exists
+    const existingUser = dbHelpers.getUserById(userId);
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Prepare update data
+    const updateData = { username, name, role, status: 'active' };
+    
+    // Hash password if provided
+    if (password) {
+      const bcrypt = await import('bcryptjs');
+      const saltRounds = 10;
+      updateData.password_hash = await bcrypt.hash(password, saltRounds);
+    }
+    
+    // Update the user
+    const result = dbHelpers.updateUser(userId, updateData);
+    
+    if (!result || result.changes === 0) {
+      return res.status(400).json({ error: 'Failed to update user' });
+    }
+    
+    const updatedUser = {
+      id: userId,
+      username,
+      name,
+      role,
+      status: 'active'
+    };
+    
+    res.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      res.status(400).json({ error: 'Username already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to update user' });
+    }
+  }
+});
+
+// API endpoint to delete a user
+app.delete('/api/system-users/:userId', requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    // Check if user exists
+    const existingUser = dbHelpers.getUserById(userId);
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Don't allow deleting the only admin user
+    if (existingUser.role === 'admin') {
+      const allUsers = dbHelpers.getAllUsers();
+      const adminCount = allUsers.filter(u => u.role === 'admin').length;
+      if (adminCount <= 1) {
+        return res.status(400).json({ error: 'Cannot delete the only admin user' });
+      }
+    }
+    
+    // Delete the user
+    const result = dbHelpers.deleteUser(userId);
+    
+    if (!result || result.changes === 0) {
+      return res.status(400).json({ error: 'Failed to delete user' });
+    }
+    
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 // API endpoint to get daily commits data
 app.get('/api/daily-commits', async (req, res) => {
   try {
-    const dataFile = './daily-commits.json';
+    const dailyCommits = dbHelpers.getAllDailyCommits();
     
-    // Check if file exists
-    if (!fsSync.existsSync(dataFile)) {
-      // Return empty data if file doesn't exist
-      return res.json({ dailyCommits: [] });
-    }
+    // Transform database format to match frontend expectations
+    const transformedDailyCommits = dailyCommits.map(daily => ({
+      date: daily.date,
+      user: daily.user_name,
+      totalCommits: daily.total_commits,
+      totalLinesAdded: daily.total_lines_added,
+      totalLinesDeleted: daily.total_lines_deleted,
+      totalHours: daily.total_hours,
+      averageQuality: daily.average_quality,
+      averageComplexity: daily.average_complexity,
+      summary: daily.summary
+    }));
     
-    // Read daily commits data
-    const data = await fs.readFile(dataFile, 'utf8');
-    const dailyCommits = JSON.parse(data);
-    
-    res.json(dailyCommits);
+    res.json({ dailyCommits: transformedDailyCommits });
   } catch (error) {
     console.error('Error fetching daily commits:', error);
     res.status(500).json({ error: 'Failed to fetch daily commits' });
@@ -566,7 +711,7 @@ app.get('/api/daily-commits', async (req, res) => {
 });
 
 // API endpoint to generate daily report
-app.post('/api/generate-daily-report', async (req, res) => {
+app.post('/api/generate-daily-report', requireAdmin, async (req, res) => {
   try {
     // Import the generateDailyReport function
     const { generateDailyReport } = await import('./generateDailyReport.js');
@@ -596,6 +741,122 @@ app.post('/api/generate-daily-report', async (req, res) => {
       success: false,
       error: error.message || 'Failed to generate daily report' 
     });
+  }
+});
+
+// Tools API endpoints
+
+// Get all tools
+app.get('/api/tools', async (req, res) => {
+  try {
+    const tools = dbHelpers.getAllTools();
+    
+    // Transform database format to match frontend expectations
+    const transformedTools = tools.map(tool => ({
+      id: tool.tool_id,
+      image: tool.image,
+      name: tool.name,
+      category: tool.category,
+      description: tool.description,
+      price: tool.price,
+      costPerMonth: tool.cost_per_month,
+      website: tool.website
+    }));
+    
+    res.json({ tools: transformedTools });
+  } catch (error) {
+    console.error('Error fetching tools:', error);
+    res.status(500).json({ error: 'Failed to fetch tools' });
+  }
+});
+
+// Create a new tool (admin only)
+app.post('/api/tools', requireAdmin, async (req, res) => {
+  try {
+    const toolData = req.body;
+    
+    // Validate required fields
+    if (!toolData.name || !toolData.category) {
+      return res.status(400).json({ error: 'Name and category are required' });
+    }
+    
+    // Generate unique tool_id if not provided
+    if (!toolData.tool_id && !toolData.id) {
+      toolData.tool_id = 'tool_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    const result = dbHelpers.createTool(toolData, req.user.id);
+    
+    const newTool = {
+      id: toolData.tool_id || toolData.id,
+      image: toolData.image,
+      name: toolData.name,
+      category: toolData.category,
+      description: toolData.description,
+      price: toolData.price,
+      costPerMonth: toolData.costPerMonth || toolData.cost_per_month,
+      website: toolData.website
+    };
+    
+    res.json({ success: true, tool: newTool });
+  } catch (error) {
+    console.error('Error creating tool:', error);
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      res.status(400).json({ error: 'Tool ID already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to create tool' });
+    }
+  }
+});
+
+// Update a tool (admin only)
+app.put('/api/tools/:id', requireAdmin, async (req, res) => {
+  try {
+    const toolId = parseInt(req.params.id);
+    const toolData = req.body;
+    
+    // Check if tool exists
+    const existingTool = dbHelpers.getToolById(toolId);
+    if (!existingTool) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+    
+    // Update the tool
+    const result = dbHelpers.updateTool(toolId, toolData);
+    
+    if (!result || result.changes === 0) {
+      return res.status(400).json({ error: 'Failed to update tool' });
+    }
+    
+    res.json({ success: true, message: 'Tool updated successfully' });
+  } catch (error) {
+    console.error('Error updating tool:', error);
+    res.status(500).json({ error: 'Failed to update tool' });
+  }
+});
+
+// Delete a tool (admin only)
+app.delete('/api/tools/:id', requireAdmin, async (req, res) => {
+  try {
+    const toolId = parseInt(req.params.id);
+    
+    // Check if tool exists
+    const existingTool = dbHelpers.getToolById(toolId);
+    if (!existingTool) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+    
+    // Delete the tool
+    const result = dbHelpers.deleteTool(toolId);
+    
+    if (!result || result.changes === 0) {
+      return res.status(400).json({ error: 'Failed to delete tool' });
+    }
+    
+    res.json({ success: true, message: 'Tool deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting tool:', error);
+    res.status(500).json({ error: 'Failed to delete tool' });
   }
 });
 

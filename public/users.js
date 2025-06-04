@@ -147,6 +147,18 @@ function getGitHubProfileButton(userName) {
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if user has permission to view this page
+    if (!isAdmin()) {
+        // Redirect non-admin users to their own profile
+        const userData = getUserData();
+        if (userData && userData.username) {
+            window.location.href = `/user-details.html?user=${encodeURIComponent(userData.username)}`;
+        } else {
+            window.location.href = '/index.html';
+        }
+        return;
+    }
+    
     loadUserStats();
     setupSearchFunctionality();
 });

@@ -4,6 +4,25 @@ const userName = urlParams.get('user');
 let userCommits = [];
 let githubConfig = null;
 
+// Check if user has permission to view this user's details
+function checkUserDetailsAccess() {
+    const currentUser = getUserData();
+    if (!currentUser) return false;
+    
+    // Users can view their own details, admins can view all
+    if (currentUser.role === 'user') {
+        // Check if the requested user matches current user (by username or name)
+        const isOwnProfile = currentUser.username.toLowerCase() === userName.toLowerCase() || 
+                           currentUser.name.toLowerCase() === userName.toLowerCase();
+        
+        if (!isOwnProfile) {
+            window.location.href = '/index.html';
+            return false;
+        }
+    }
+    return true;
+}
+
 // User data will be fetched from API
 let userData = {
     email: '',
@@ -40,6 +59,11 @@ async function loadGithubConfig() {
 async function loadUserDetails() {
     if (!userName) {
         window.location.href = '/users.html';
+        return;
+    }
+    
+    // Check permissions first
+    if (!checkUserDetailsAccess()) {
         return;
     }
 

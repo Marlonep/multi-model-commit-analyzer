@@ -1,0 +1,7 @@
+version: "2"
+authtoken: 2tZ3yFm84EaFhbtbJ00nacLqGrg_7fF7Y5Wh8WAUd7MobKkaF
+tunnels:
+  commit-analyzer:
+    proto: http
+    addr: 3000
+    inspect: true
