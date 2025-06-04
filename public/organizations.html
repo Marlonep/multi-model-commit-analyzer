@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Statistics - Commit Analyzer</title>
+    <title>Organizations - Commit Analyzer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,8 +17,8 @@
                 <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
                 <li><a href="/index.html" class="nav-link">Commits</a></li>
                 <li><a href="/users.html" class="nav-link">Users</a></li>
-                <li><a href="/projects.html" class="nav-link active">Projects</a></li>
-                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/organizations.html" class="nav-link active">Organizations</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
@@ -30,37 +30,36 @@
         <!-- Main Content -->
         <div class="main-content">
             <header>
-                <h1>Project Statistics</h1>
-                <p>Analysis metrics grouped by project</p>
+                <h1>Organizations</h1>
+                <p>Analysis metrics grouped by organization</p>
             </header>
 
             <main>
-                <!-- Projects Table -->
+                <!-- Organizations Table -->
                 <section class="table-section">
-                    <h3>Project Analysis Summary</h3>
+                    <h3>Organization Analysis Summary</h3>
                     <div class="search-container">
-                        <input type="text" class="search-bar" id="projectsSearch" placeholder="Search projects...">
+                        <input type="text" class="search-bar" id="organizationsSearch" placeholder="Search organizations...">
                     </div>
                     <div class="table-wrapper">
-                        <table id="projectsTable">
+                        <table id="organizationsTable">
                             <thead>
                                 <tr>
-                                    <th>Project</th>
                                     <th>Organization</th>
-                                    <th>Commits</th>
+                                    <th>Projects</th>
+                                    <th>Contributors</th>
+                                    <th>Total Commits</th>
                                     <th>+Lines</th>
                                     <th>-Lines</th>
-                                    <th>Last Commit</th>
+                                    <th>Last Activity</th>
                                     <th>Avg Quality</th>
-                                    <th>Avg Dev Level</th>
-                                    <th>Avg Complex</th>
                                     <th>Total Hours</th>
                                     <th>Avg AI %</th>
-                                    <th>Repository</th>
+                                    <th>Total Cost</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="projectsBody">
+                            <tbody id="organizationsBody">
                                 <!-- Data will be populated here -->
                             </tbody>
                         </table>
@@ -71,6 +70,6 @@
     </div>
 
     <script src="auth-utils.js"></script>
-    <script src="projects.js"></script>
+    <script src="organizations.js"></script>
 </body>
 </html>
