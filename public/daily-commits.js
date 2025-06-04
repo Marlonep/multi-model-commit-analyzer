@@ -120,6 +120,7 @@ function setupEventListeners() {
     document.getElementById('applyFilters').addEventListener('click', applyFilters);
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
     document.getElementById('generateReport').addEventListener('click', generateDailyReport);
+    document.getElementById('regenerateSpecificDate').addEventListener('click', regenerateSpecificDate);
     
     // Apply filters on enter key
     ['startDate', 'endDate'].forEach(id => {
@@ -315,6 +316,54 @@ async function generateDailyReport() {
     } catch (error) {
         console.error('Error generating report:', error);
         showError('Failed to generate daily report: ' + error.message);
+    } finally {
+        button.textContent = originalText;
+        button.disabled = false;
+    }
+}
+
+// Regenerate specific date
+async function regenerateSpecificDate() {
+    const dateInput = document.getElementById('regenerateDate');
+    const targetDate = dateInput.value;
+    
+    if (!targetDate) {
+        showError('Please select a date to regenerate');
+        return;
+    }
+    
+    const button = document.getElementById('regenerateSpecificDate');
+    const originalText = button.textContent;
+    
+    try {
+        button.textContent = 'Regenerating...';
+        button.disabled = true;
+        
+        const response = await fetch('/api/generate-daily-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify({ date: targetDate })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to regenerate report for specific date');
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess(`Daily report regenerated successfully for ${targetDate}. ${result.summariesGenerated} records updated.`);
+            // Reload the data to show updated entries
+            await loadDailyCommits();
+        } else {
+            throw new Error(result.error || 'Failed to regenerate report');
+        }
+    } catch (error) {
+        console.error('Error regenerating specific date:', error);
+        showError('Failed to regenerate daily report for ' + targetDate + ': ' + error.message);
     } finally {
         button.textContent = originalText;
         button.disabled = false;

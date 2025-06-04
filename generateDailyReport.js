@@ -1,9 +1,4 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { dbHelpers } from './database.js';
 
 // Mexico City timezone offset (UTC-6 or UTC-5 during DST)
 const MEXICO_CITY_OFFSET = -6; // Adjust based on DST if needed
@@ -36,6 +31,11 @@ function calculateAverage(arr) {
     return arr.reduce((sum, val) => sum + val, 0) / arr.length;
 }
 
+// Extract date from timestamp
+function extractDate(timestamp) {
+    return formatDate(new Date(timestamp));
+}
+
 // Generate daily report for a specific date or yesterday
 async function generateDailyReport(targetDate = null) {
     try {
@@ -43,37 +43,26 @@ async function generateDailyReport(targetDate = null) {
         const dateToProcess = targetDate || getYesterdayMexicoCity();
         console.log(`Generating daily report for: ${dateToProcess}`);
         
-        // Read commit analysis history
-        const historyPath = path.join(__dirname, 'commit_analysis_history.json');
-        const historyData = await fs.readFile(historyPath, 'utf8');
-        const commitHistory = JSON.parse(historyData);
+        // Get all commits from the database
+        const allCommits = dbHelpers.getAllCommits('admin', null, null);
+        console.log(`Found ${allCommits.length} total commits in database`);
         
-        // Sort commit history by timestamp descending (latest first) to match frontend
-        const sortedCommitHistory = [...commitHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        // Read existing daily commits if any
-        const dailyCommitsPath = path.join(__dirname, 'daily-commits.json');
-        let existingDailyCommits = { dailyCommits: [] };
-        
-        try {
-            const existingData = await fs.readFile(dailyCommitsPath, 'utf8');
-            existingDailyCommits = JSON.parse(existingData);
-        } catch (error) {
-            // File doesn't exist yet, that's okay
-            console.log('No existing daily-commits.json found, creating new one');
+        // Filter commits for the target date if specified, otherwise process all dates
+        let commitsToProcess = allCommits;
+        if (targetDate) {
+            commitsToProcess = allCommits.filter(commit => {
+                const commitDate = extractDate(commit.timestamp);
+                return commitDate === targetDate;
+            });
+            console.log(`Found ${commitsToProcess.length} commits for date ${targetDate}`);
         }
         
         // Group commits by date and user
         const commitsByDateAndUser = {};
         
-        for (const commit of commitHistory) {
-            // Extract date from commit timestamp
-            const commitDate = formatDate(new Date(commit.timestamp));
-            
-            // Skip if not the target date (when processing specific date)
-            if (targetDate && commitDate !== targetDate) continue;
-            
-            const user = commit.user;
+        commitsToProcess.forEach(commit => {
+            const commitDate = extractDate(commit.timestamp);
+            const user = commit.user_name;
             const key = `${commitDate}|${user}`;
             
             if (!commitsByDateAndUser[key]) {
@@ -86,154 +75,170 @@ async function generateDailyReport(targetDate = null) {
             }
             
             commitsByDateAndUser[key].commits.push(commit);
-            commitsByDateAndUser[key].projects.add(commit.project);
-        }
+            if (commit.project) {
+                commitsByDateAndUser[key].projects.add(commit.project);
+            }
+        });
         
-        // Generate daily summaries
-        const newDailySummaries = [];
+        console.log(`Processing ${Object.keys(commitsByDateAndUser).length} date-user combinations`);
+        
+        // Generate daily summaries and save to database
+        let savedCount = 0;
+        let processedDates = new Set();
         
         for (const key in commitsByDateAndUser) {
             const data = commitsByDateAndUser[key];
             const commits = data.commits;
             
-            // Calculate averages from modelScores
+            // Parse model scores and calculate aggregated values
             let totalCodeQuality = 0;
             let totalComplexity = 0;
             let totalDevLevel = 0;
             let totalHours = 0;
-            let totalScoreCount = 0;
+            let totalCommitsWithScores = 0;
             
-            for (const commit of commits) {
-                if (commit.modelScores && commit.modelScores.length > 0) {
-                    // Calculate average across all models for this commit
-                    const commitCodeQuality = calculateAverage(commit.modelScores.map(m => m.codeQuality || 0));
-                    const commitComplexity = calculateAverage(commit.modelScores.map(m => m.complexity || 0));
-                    const commitDevLevel = calculateAverage(commit.modelScores.map(m => m.devLevel || 0));
-                    const commitHours = calculateAverage(commit.modelScores.map(m => m.estimatedHours || 0));
+            commits.forEach(commit => {
+                // Use database averages first, then try to parse model scores
+                if (commit.average_code_quality && commit.average_complexity && commit.average_dev_level && commit.average_estimated_hours) {
+                    totalCodeQuality += commit.average_code_quality;
+                    totalComplexity += commit.average_complexity;
+                    totalDevLevel += commit.average_dev_level;
+                    totalHours += commit.average_estimated_hours;
+                    totalCommitsWithScores++;
+                } else {
+                    // Fallback: try to parse model scores from stored data
+                    let modelScores = [];
+                    try {
+                        if (commit.model_scores) {
+                            modelScores = JSON.parse(commit.model_scores);
+                        } else if (commit.analysis_details) {
+                            const analysisDetails = JSON.parse(commit.analysis_details);
+                            if (analysisDetails.originalData?.modelScores) {
+                                modelScores = analysisDetails.originalData.modelScores;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to parse model scores for commit ${commit.commit_hash}:`, error.message);
+                    }
                     
-                    totalCodeQuality += commitCodeQuality;
-                    totalComplexity += commitComplexity;
-                    totalDevLevel += commitDevLevel;
-                    totalHours += commitHours;
-                    totalScoreCount++;
-                }
-            }
-            
-            // Calculate final averages
-            const avgCodeQuality = totalScoreCount > 0 ? totalCodeQuality / totalScoreCount : 0;
-            const avgComplexity = totalScoreCount > 0 ? totalComplexity / totalScoreCount : 0;
-            const avgDevLevel = totalScoreCount > 0 ? totalDevLevel / totalScoreCount : 0;
-            
-            const summary = {
-                date: data.date,
-                user: data.user,
-                avgCodeQuality: avgCodeQuality,
-                avgComplexity: avgComplexity,
-                avgDevLevel: avgDevLevel,
-                totalHours: totalHours,
-                commitCount: commits.length,
-                projects: Array.from(data.projects).sort(),
-                commitHashes: commits.map(c => c.commitHash),
-                commitIndices: commits.map(c => {
-                    // Find the index of this commit in the sorted complete history
-                    return sortedCommitHistory.findIndex(historyCommit => historyCommit.commitHash === c.commitHash);
-                }).filter(index => index !== -1)
-            };
-            
-            newDailySummaries.push(summary);
-        }
-        
-        // If processing all dates, merge with existing data
-        if (!targetDate) {
-            // Create a map of existing summaries for easy lookup
-            const existingMap = new Map();
-            existingDailyCommits.dailyCommits.forEach(dc => {
-                existingMap.set(`${dc.date}|${dc.user}`, dc);
-            });
-            
-            // Add or update summaries
-            newDailySummaries.forEach(summary => {
-                const key = `${summary.date}|${summary.user}`;
-                existingMap.set(key, summary);
-            });
-            
-            // Convert back to array and sort
-            existingDailyCommits.dailyCommits = Array.from(existingMap.values())
-                .sort((a, b) => {
-                    const dateCompare = b.date.localeCompare(a.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return a.user.localeCompare(b.user);
-                });
-        } else {
-            // If processing specific date, just update that date's entries
-            const filteredExisting = existingDailyCommits.dailyCommits.filter(
-                dc => dc.date !== targetDate
-            );
-            
-            existingDailyCommits.dailyCommits = [...filteredExisting, ...newDailySummaries]
-                .sort((a, b) => {
-                    const dateCompare = b.date.localeCompare(a.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return a.user.localeCompare(b.user);
-                });
-        }
-        
-        // Add users with no commits for the date
-        if (targetDate) {
-            // Get all unique users from commit history
-            try {
-                const allCommitUsers = [...new Set(commitHistory.map(c => c.user))];
-                console.log('Found users in commit history:', allCommitUsers);
-                
-                // Check which users don't have commits for this date
-                const usersWithCommits = new Set(
-                    existingDailyCommits.dailyCommits
-                        .filter(dc => dc.date === targetDate)
-                        .map(dc => dc.user)
-                );
-                
-                // Add entries for users with no activity
-                for (const user of allCommitUsers) {
-                    if (!usersWithCommits.has(user)) {
-                        existingDailyCommits.dailyCommits.push({
-                            date: targetDate,
-                            user: user,
-                            avgCodeQuality: 0,
-                            avgComplexity: 0,
-                            avgDevLevel: 0,
-                            totalHours: 0,
-                            commitCount: 0,
-                            projects: [],
-                            commitHashes: [],
-                            commitIndices: []
-                        });
+                    if (modelScores && modelScores.length > 0) {
+                        const avgCodeQuality = calculateAverage(modelScores.map(m => m.codeQuality || 0));
+                        const avgComplexity = calculateAverage(modelScores.map(m => m.complexity || 0));
+                        const avgDevLevel = calculateAverage(modelScores.map(m => m.devLevel || 0));
+                        const avgHours = calculateAverage(modelScores.map(m => m.estimatedHours || 0));
+                        
+                        totalCodeQuality += avgCodeQuality;
+                        totalComplexity += avgComplexity;
+                        totalDevLevel += avgDevLevel;
+                        totalHours += avgHours;
+                        totalCommitsWithScores++;
                     }
                 }
+            });
+            
+            // Calculate final averages
+            const avgCodeQuality = totalCommitsWithScores > 0 ? totalCodeQuality / totalCommitsWithScores : 0;
+            const avgComplexity = totalCommitsWithScores > 0 ? totalComplexity / totalCommitsWithScores : 0;
+            const avgDevLevel = totalCommitsWithScores > 0 ? totalDevLevel / totalCommitsWithScores : 0;
+            
+            // Calculate total lines added and deleted
+            const totalLinesAdded = commits.reduce((sum, c) => sum + (c.lines_added || 0), 0);
+            const totalLinesDeleted = commits.reduce((sum, c) => sum + (c.lines_deleted || 0), 0);
+            
+            // Create arrays for commit hashes and calculate indices
+            const commitHashes = commits.map(c => c.commit_hash);
+            const commitIndices = commits.map(c => {
+                // Find the index of this commit in the complete sorted history
+                return allCommits.findIndex(historyCommit => historyCommit.commit_hash === c.commit_hash);
+            }).filter(index => index !== -1);
+            
+            // Create summary description
+            const projects = Array.from(data.projects).sort();
+            const summaryText = `${commits.length} commits, ${totalLinesAdded} lines added, ${totalLinesDeleted} lines deleted. Projects: ${projects.join(', ')}`;
+            
+            try {
+                // Save to database (with fallback for missing columns)
+                const dailyCommitData = {
+                    date: data.date,
+                    user_name: data.user,
+                    total_commits: commits.length,
+                    total_lines_added: totalLinesAdded,
+                    total_lines_deleted: totalLinesDeleted,
+                    total_hours: totalHours,
+                    average_quality: avgCodeQuality,
+                    average_complexity: avgComplexity,
+                    summary: summaryText
+                };
                 
-                // Re-sort after adding no-activity entries
-                existingDailyCommits.dailyCommits.sort((a, b) => {
-                    const dateCompare = b.date.localeCompare(a.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return a.user.localeCompare(b.user);
-                });
+                // Only add these fields if the columns exist
+                try {
+                    dailyCommitData.average_dev_level = avgDevLevel;
+                    dailyCommitData.projects = projects;
+                    dailyCommitData.commit_hashes = commitHashes;
+                    dailyCommitData.commit_indices = commitIndices;
+                } catch (error) {
+                    console.warn('Some daily_commits columns may be missing, using basic data only');
+                }
+                
+                dbHelpers.createOrUpdateDailyCommit(dailyCommitData);
+                
+                savedCount++;
+                processedDates.add(data.date);
+                console.log(`✓ Saved daily summary for ${data.user} on ${data.date}: ${commits.length} commits, ${totalHours.toFixed(2)} hours`);
+                
             } catch (error) {
-                console.log('Could not extract users from commit history, skipping no-activity entries');
+                console.error(`Error saving daily commit for ${data.user} on ${data.date}:`, error.message);
             }
         }
         
-        // Save the updated daily commits
-        await fs.writeFile(
-            dailyCommitsPath,
-            JSON.stringify(existingDailyCommits, null, 2)
-        );
+        // Add users with no commits for the specific target date
+        if (targetDate) {
+            try {
+                const allUsers = [...new Set(allCommits.map(c => c.user_name))];
+                const usersWithCommits = new Set(Object.values(commitsByDateAndUser).map(d => d.user));
+                
+                for (const user of allUsers) {
+                    if (!usersWithCommits.has(user)) {
+                        try {
+                            dbHelpers.createOrUpdateDailyCommit({
+                                date: targetDate,
+                                user_name: user,
+                                total_commits: 0,
+                                total_lines_added: 0,
+                                total_lines_deleted: 0,
+                                total_hours: 0,
+                                average_quality: 0,
+                                average_complexity: 0,
+                                average_dev_level: 0,
+                                projects: [],
+                                commit_hashes: [],
+                                commit_indices: [],
+                                summary: 'No commits on this date'
+                            });
+                            savedCount++;
+                            console.log(`✓ Added no-activity entry for ${user} on ${targetDate}`);
+                        } catch (error) {
+                            console.error(`Error saving no-activity entry for ${user}:`, error.message);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error adding no-activity entries:', error.message);
+            }
+        }
         
-        const daysProcessed = new Set(newDailySummaries.map(s => s.date)).size;
-        console.log(`Daily report generated successfully. Processed ${daysProcessed} days.`);
+        const daysProcessed = processedDates.size;
+        console.log(`\n✅ Daily report generation completed:`);
+        console.log(`   - Days processed: ${daysProcessed}`);
+        console.log(`   - Records saved: ${savedCount}`);
+        console.log(`   - Total commits analyzed: ${commitsToProcess.length}`);
         
         return {
             success: true,
             daysProcessed: daysProcessed,
-            summariesGenerated: newDailySummaries.length
+            summariesGenerated: savedCount,
+            recordsSaved: savedCount,
+            commitsAnalyzed: commitsToProcess.length
         };
         
     } catch (error) {
@@ -258,10 +263,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     
     generateDailyReport(targetDate).then(result => {
         if (result.success) {
-            console.log('Report generation completed successfully');
+            console.log('\n🎉 Report generation completed successfully');
             process.exit(0);
         } else {
-            console.error('Report generation failed:', result.error);
+            console.error('\n❌ Report generation failed:', result.error);
             process.exit(1);
         }
     });

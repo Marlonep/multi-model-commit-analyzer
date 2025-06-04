@@ -80,6 +80,9 @@ const createTables = () => {
             -- Analysis details (stored as JSON)
             analysis_details TEXT, -- JSON as TEXT
             
+            -- Model scores (stored as JSON array)
+            model_scores TEXT, -- JSON as TEXT
+            
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -99,6 +102,10 @@ const createTables = () => {
             total_hours REAL DEFAULT 0,
             average_quality REAL DEFAULT 0,
             average_complexity REAL DEFAULT 0,
+            average_dev_level REAL DEFAULT 0,
+            projects TEXT DEFAULT '[]', -- JSON as TEXT
+            commit_hashes TEXT DEFAULT '[]', -- JSON as TEXT
+            commit_indices TEXT DEFAULT '[]', -- JSON as TEXT
             summary TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -170,11 +177,203 @@ const createTables = () => {
         END;
     `);
 
+    // Add model_scores column if it doesn't exist (for existing databases)
+    try {
+        const columnExists = db.prepare(`
+            SELECT COUNT(*) as count 
+            FROM pragma_table_info('commits') 
+            WHERE name = 'model_scores'
+        `).get();
+        
+        if (columnExists.count === 0) {
+            db.exec('ALTER TABLE commits ADD COLUMN model_scores TEXT');
+            console.log('✅ Added model_scores column to existing commits table');
+        }
+    } catch (error) {
+        console.log('ℹ️  model_scores column already exists or error adding:', error.message);
+    }
+
+    // Add missing columns to daily_commits table for existing databases
+    const dailyCommitsColumns = [
+        { name: 'average_dev_level', type: 'REAL DEFAULT 0' },
+        { name: 'projects', type: 'TEXT DEFAULT \'[]\'' },
+        { name: 'commit_hashes', type: 'TEXT DEFAULT \'[]\'' },
+        { name: 'commit_indices', type: 'TEXT DEFAULT \'[]\'' }
+    ];
+
+    for (const column of dailyCommitsColumns) {
+        try {
+            const columnExists = db.prepare(`
+                SELECT COUNT(*) as count 
+                FROM pragma_table_info('daily_commits') 
+                WHERE name = '${column.name}'
+            `).get();
+            
+            if (columnExists.count === 0) {
+                db.exec(`ALTER TABLE daily_commits ADD COLUMN ${column.name} ${column.type}`);
+                console.log(`✅ Added ${column.name} column to existing daily_commits table`);
+            }
+        } catch (error) {
+            console.log(`ℹ️  ${column.name} column already exists or error adding:`, error.message);
+        }
+    }
+
     console.log('✅ Database tables created successfully');
 };
 
 // Database helper functions
 export const dbHelpers = {
+    // Organizations
+    getAllOrganizations() {
+        return db.prepare('SELECT * FROM organizations WHERE is_active = 1 ORDER BY name').all();
+    },
+
+    getOrganizationById(id) {
+        return db.prepare('SELECT * FROM organizations WHERE id = ?').get(id);
+    },
+
+    getOrganizationByName(name) {
+        return db.prepare('SELECT * FROM organizations WHERE name = ?').get(name);
+    },
+
+    getOrganizationBySlug(slug) {
+        return db.prepare('SELECT * FROM organizations WHERE slug = ?').get(slug);
+    },
+
+    createOrganization(orgData) {
+        const stmt = db.prepare(`
+            INSERT INTO organizations (
+                name, slug, display_name, description, website, github_url, 
+                logo_url, location, industry, size_category, founded_date, 
+                timezone, primary_language, tech_stack, contact_email, contact_phone
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        return stmt.run(
+            orgData.name,
+            orgData.slug,
+            orgData.display_name,
+            orgData.description,
+            orgData.website,
+            orgData.github_url,
+            orgData.logo_url,
+            orgData.location,
+            orgData.industry,
+            orgData.size_category,
+            orgData.founded_date,
+            orgData.timezone,
+            orgData.primary_language,
+            JSON.stringify(orgData.tech_stack || []),
+            orgData.contact_email,
+            orgData.contact_phone
+        );
+    },
+
+    updateOrganization(id, orgData) {
+        const stmt = db.prepare(`
+            UPDATE organizations SET 
+                name = ?, slug = ?, display_name = ?, description = ?, website = ?, 
+                github_url = ?, logo_url = ?, location = ?, industry = ?, 
+                size_category = ?, founded_date = ?, timezone = ?, primary_language = ?, 
+                tech_stack = ?, contact_email = ?, contact_phone = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `);
+        return stmt.run(
+            orgData.name,
+            orgData.slug,
+            orgData.display_name,
+            orgData.description,
+            orgData.website,
+            orgData.github_url,
+            orgData.logo_url,
+            orgData.location,
+            orgData.industry,
+            orgData.size_category,
+            orgData.founded_date,
+            orgData.timezone,
+            orgData.primary_language,
+            JSON.stringify(orgData.tech_stack || []),
+            orgData.contact_email,
+            orgData.contact_phone,
+            id
+        );
+    },
+
+    deleteOrganization(id) {
+        return db.prepare('UPDATE organizations SET is_active = 0 WHERE id = ?').run(id);
+    },
+
+    // User Organizations
+    getUserOrganizations(userId) {
+        return db.prepare(`
+            SELECT o.*, uo.role, uo.department, uo.join_date, uo.end_date, uo.is_active as membership_active
+            FROM organizations o
+            JOIN user_organizations uo ON o.id = uo.organization_id
+            WHERE uo.user_id = ? AND uo.is_active = 1
+            ORDER BY o.name
+        `).all(userId);
+    },
+
+    addUserToOrganization(userId, organizationId, role, department) {
+        const stmt = db.prepare(`
+            INSERT OR REPLACE INTO user_organizations (user_id, organization_id, role, department, join_date, is_active)
+            VALUES (?, ?, ?, ?, DATE('now'), 1)
+        `);
+        return stmt.run(userId, organizationId, role, department);
+    },
+
+    removeUserFromOrganization(userId, organizationId) {
+        const stmt = db.prepare(`
+            UPDATE user_organizations SET is_active = 0, end_date = DATE('now')
+            WHERE user_id = ? AND organization_id = ?
+        `);
+        return stmt.run(userId, organizationId);
+    },
+
+    getOrganizationMembers(organizationId) {
+        return db.prepare(`
+            SELECT u.*, uo.role, uo.department, uo.join_date
+            FROM users u
+            JOIN user_organizations uo ON u.id = uo.user_id
+            WHERE uo.organization_id = ? AND uo.is_active = 1
+            ORDER BY u.name
+        `).all(organizationId);
+    },
+
+    getCommitsByOrganizationId(organizationId) {
+        return db.prepare(`
+            SELECT * FROM commits 
+            WHERE organization_id = ? 
+            ORDER BY timestamp DESC
+        `).all(organizationId);
+    },
+
+    // Helper to find or create organization by name
+    findOrCreateOrganization(orgName) {
+        if (!orgName || orgName === 'Unknown') {
+            return null;
+        }
+        
+        // Try to find existing organization
+        let org = this.getOrganizationByName(orgName);
+        
+        if (!org) {
+            // Create new organization
+            const slug = orgName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+            const githubUrl = `https://github.com/${orgName}`;
+            
+            const result = this.createOrganization({
+                name: orgName,
+                slug: slug,
+                display_name: orgName,
+                github_url: githubUrl,
+                tech_stack: []
+            });
+            
+            org = this.getOrganizationById(result.lastInsertRowid);
+        }
+        
+        return org;
+    },
     // Users
     getAllUsers() {
         return db.prepare('SELECT id, username, name, role, status, created_at FROM users ORDER BY created_at DESC').all();
@@ -286,8 +485,8 @@ export const dbHelpers = {
                 timestamp, file_changes, lines_added, lines_deleted, average_code_quality,
                 average_dev_level, average_complexity, average_estimated_hours,
                 average_estimated_hours_with_ai, average_ai_percentage, total_cost,
-                tokens_used, status, manually_reviewed, status_log, analysis_details
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tokens_used, status, manually_reviewed, status_log, analysis_details, model_scores
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         
         // Try to find user_id from user_name
@@ -316,7 +515,8 @@ export const dbHelpers = {
             commitData.status || 'ok',
             commitData.manually_reviewed ? 1 : 0,
             JSON.stringify(commitData.status_log || []),
-            JSON.stringify(commitData.analysis_details || {})
+            JSON.stringify(commitData.analysis_details || {}),
+            JSON.stringify(commitData.model_scores || [])
         );
     },
 
@@ -352,29 +552,51 @@ export const dbHelpers = {
     },
 
     createOrUpdateDailyCommit(dailyData) {
+        // Check which columns exist in the table
+        const tableInfo = db.prepare('PRAGMA table_info(daily_commits)').all();
+        const existingColumns = new Set(tableInfo.map(col => col.name));
+        
+        // Build dynamic query based on existing columns
+        const baseColumns = ['date', 'user_name', 'user_id', 'total_commits', 'total_lines_added', 'total_lines_deleted', 'total_hours', 'average_quality', 'average_complexity', 'summary'];
+        const optionalColumns = ['average_dev_level', 'projects', 'commit_hashes', 'commit_indices'];
+        
+        const columnsToInsert = baseColumns.filter(col => existingColumns.has(col));
+        const optionalColumnsToInsert = optionalColumns.filter(col => existingColumns.has(col));
+        
+        const allColumns = [...columnsToInsert, ...optionalColumnsToInsert];
+        const placeholders = allColumns.map(() => '?').join(', ');
+        
         const stmt = db.prepare(`
-            INSERT OR REPLACE INTO daily_commits 
-            (date, user_name, user_id, total_commits, total_lines_added, total_lines_deleted,
-             total_hours, average_quality, average_complexity, summary)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO daily_commits (${allColumns.join(', ')})
+            VALUES (${placeholders})
         `);
         
         // Try to find user_id from user_name
         const user = this.getUserByUsername(dailyData.user_name);
         const userId = user ? user.id : null;
         
-        return stmt.run(
-            dailyData.date,
-            dailyData.user_name,
-            userId,
-            dailyData.total_commits || 0,
-            dailyData.total_lines_added || 0,
-            dailyData.total_lines_deleted || 0,
-            dailyData.total_hours || 0,
-            dailyData.average_quality || 0,
-            dailyData.average_complexity || 0,
-            dailyData.summary || ''
-        );
+        // Build values array
+        const values = [];
+        
+        // Add base values
+        if (existingColumns.has('date')) values.push(dailyData.date);
+        if (existingColumns.has('user_name')) values.push(dailyData.user_name);
+        if (existingColumns.has('user_id')) values.push(userId);
+        if (existingColumns.has('total_commits')) values.push(dailyData.total_commits || 0);
+        if (existingColumns.has('total_lines_added')) values.push(dailyData.total_lines_added || 0);
+        if (existingColumns.has('total_lines_deleted')) values.push(dailyData.total_lines_deleted || 0);
+        if (existingColumns.has('total_hours')) values.push(dailyData.total_hours || 0);
+        if (existingColumns.has('average_quality')) values.push(dailyData.average_quality || 0);
+        if (existingColumns.has('average_complexity')) values.push(dailyData.average_complexity || 0);
+        if (existingColumns.has('summary')) values.push(dailyData.summary || '');
+        
+        // Add optional values
+        if (existingColumns.has('average_dev_level')) values.push(dailyData.average_dev_level || 0);
+        if (existingColumns.has('projects')) values.push(JSON.stringify(dailyData.projects || []));
+        if (existingColumns.has('commit_hashes')) values.push(JSON.stringify(dailyData.commit_hashes || []));
+        if (existingColumns.has('commit_indices')) values.push(JSON.stringify(dailyData.commit_indices || []));
+        
+        return stmt.run(...values);
     },
 
     // Tools

@@ -116,60 +116,103 @@ async function logout() {
 function addLogoutButton() {
     const username = localStorage.getItem('username');
     const userData = getUserData();
-    if (username && userData) {
-        // Find sidebar header or create logout container
-        const sidebarHeader = document.querySelector('.sidebar-header');
-        if (sidebarHeader) {
-            // Check if logout container already exists
-            const existingContainer = document.querySelector('.logout-container');
-            if (existingContainer) {
-                return; // Already added
-            }
-            
-            const logoutContainer = document.createElement('div');
-            logoutContainer.className = 'logout-container';
-            logoutContainer.style.cssText = `
-                padding: 10px 20px;
-                border-top: 1px solid var(--border-color);
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: var(--bg-secondary);
-            `;
-            logoutContainer.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="color: var(--text-primary); font-size: 0.9rem; font-weight: 500;">
-                            ${userData.name || username}
-                        </span>
-                        <span style="color: var(--text-secondary); font-size: 0.8rem; display: block;">
-                            ${userData.role === 'admin' ? 'Administrator' : 'User'}
-                        </span>
-                    </div>
-                    <button onclick="logout()" style="
-                        background: transparent;
-                        border: 1px solid var(--border-color);
-                        color: var(--text-primary);
-                        padding: 4px 12px;
-                        cursor: pointer;
-                        font-size: 0.85rem;
-                        transition: all 0.3s;
-                    " onmouseover="this.style.borderColor='var(--accent-green)'; this.style.color='var(--accent-green)';" 
-                       onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
-                        Logout
-                    </button>
-                </div>
-            `;
-            
-            // Add to sidebar
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                sidebar.style.position = 'relative';
-                sidebar.style.paddingBottom = '80px'; // Make room for logout container
-                sidebar.appendChild(logoutContainer);
-            }
+    
+    console.log('addLogoutButton called:', { username, userData });
+    
+    if (username || userData) {
+        // Check if logout button already exists
+        const existingLogout = document.querySelector('.logout-nav-item');
+        if (existingLogout) {
+            console.log('Logout button already exists, skipping');
+            return; // Already added
         }
+        
+        // Find the nav menu to add logout as a nav item
+        const navMenu = document.querySelector('.nav-menu');
+        console.log('Nav menu found:', navMenu);
+        
+        if (navMenu) {
+            // Create logout nav item that matches the existing nav items
+            const logoutLi = document.createElement('li');
+            logoutLi.className = 'logout-nav-item';
+            
+            const logoutLink = document.createElement('a');
+            logoutLink.href = '#';
+            logoutLink.className = 'nav-link logout-link';
+            logoutLink.onclick = function(e) {
+                e.preventDefault();
+                logout();
+            };
+            
+            // Build user display name and role
+            const displayName = userData ? userData.name : username;
+            const userRole = userData ? (userData.role === 'admin' ? 'Admin' : 'User') : 'User';
+            
+            logoutLink.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 0.95rem; font-weight: 500;">Logout</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.2;">
+                    ${displayName || username} (${userRole})
+                </span>
+            `;
+            
+            logoutLi.appendChild(logoutLink);
+            
+            // Add to the end of nav menu
+            navMenu.appendChild(logoutLi);
+            console.log('Logout button added to nav menu');
+            
+            // Add custom styles for the logout nav item
+            if (!document.getElementById('logout-nav-styles')) {
+                const style = document.createElement('style');
+                style.id = 'logout-nav-styles';
+                style.textContent = `
+                    .logout-nav-item {
+                        margin-top: auto;
+                        border-top: 1px solid var(--border-color);
+                        padding-top: 10px;
+                    }
+                    
+                    .logout-link {
+                        display: flex !important;
+                        flex-direction: column;
+                        align-items: flex-start !important;
+                        padding: 12px 20px !important;
+                        position: relative;
+                        border-radius: 0 !important;
+                        transition: all 0.3s;
+                    }
+                    
+                    .logout-link:hover {
+                        background: var(--hover-bg, rgba(255, 255, 255, 0.1)) !important;
+                        color: var(--accent-green) !important;
+                    }
+                    
+                    .logout-link:hover span {
+                        color: var(--accent-green) !important;
+                    }
+                    
+                    /* Ensure sidebar has enough space and proper layout */
+                    .sidebar {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    
+                    .nav-menu {
+                        display: flex;
+                        flex-direction: column;
+                        flex: 1;
+                    }
+                `;
+                document.head.appendChild(style);
+                console.log('Logout button styles added');
+            }
+        } else {
+            console.error('Nav menu not found! Cannot add logout button');
+        }
+    } else {
+        console.log('No user data found, not adding logout button');
     }
 }
 
@@ -199,29 +242,35 @@ function updateNavigationVisibility() {
             profileLink.href = `/user-details.html?user=${encodeURIComponent(userData.username)}`;
             profileLink.className = 'nav-link';
             profileLink.textContent = 'Profile';
-                
-                // Check if current page is user-details for this user
-                if (window.location.pathname === '/user-details.html' || 
-                    window.location.pathname === '/user-details') {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const pageUser = urlParams.get('user');
-                    if (pageUser === userData.username) {
-                        profileLink.classList.add('active');
-                    }
+            
+            // Check if current page is user-details for this user
+            if (window.location.pathname === '/user-details.html' || 
+                window.location.pathname === '/user-details') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const pageUser = urlParams.get('user');
+                if (pageUser === userData.username) {
+                    // Remove active class from all other nav links first
+                    const allNavLinks = document.querySelectorAll('.nav-link');
+                    allNavLinks.forEach(link => link.classList.remove('active'));
+                    
+                    // Then add active class to profile link
+                    profileLink.classList.add('active');
                 }
-                
-                profileLi.appendChild(profileLink);
-                
-                // Insert Profile link after Commits (at position 2)
-                const commitLink = navMenu.querySelector('a[href="/index.html"]');
-                if (commitLink && commitLink.parentElement) {
-                    commitLink.parentElement.insertAdjacentElement('afterend', profileLi);
-                }
+            }
+            
+            profileLi.appendChild(profileLink);
+            
+            // Insert Profile link after Commits (at position 2)
+            const commitLink = navMenu.querySelector('a[href="/index.html"]');
+            if (commitLink && commitLink.parentElement) {
+                commitLink.parentElement.insertAdjacentElement('afterend', profileLi);
             }
         }
     }
     
-    if (role !== 'user') return; // Only hide items for non-admin users
+    if (role !== 'user') {
+        return; // Only hide items for non-admin users
+    }
     
     // Define restricted pages for user role (now includes 'users')
     const restrictedPages = ['alerts', 'models', 'tools', 'settings', 'analytics', 'users'];
@@ -259,6 +308,36 @@ function checkPageAccess() {
     
     return true;
 }
+
+// Make functions globally available
+window.logout = logout;
+window.addLogoutButton = addLogoutButton;
+
+// Force add logout button (for debugging)
+window.forceAddLogoutButton = function() {
+    console.log('Force adding logout button...');
+    
+    // Set fake data if none exists
+    if (!localStorage.getItem('username')) {
+        localStorage.setItem('username', 'admin');
+    }
+    if (!localStorage.getItem('userData')) {
+        localStorage.setItem('userData', JSON.stringify({
+            username: 'admin',
+            name: 'Administrator', 
+            role: 'admin'
+        }));
+    }
+    
+    // Remove existing logout button
+    const existing = document.querySelector('.logout-nav-item');
+    if (existing) {
+        existing.remove();
+    }
+    
+    // Call addLogoutButton
+    addLogoutButton();
+};
 
 // Initialize auth on page load
 document.addEventListener('DOMContentLoaded', async () => {

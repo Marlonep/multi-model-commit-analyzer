@@ -2840,6 +2840,39 @@ tfoot td {
     border-color: var(--accent-green);
 }
 
+/* Actions section styles */
+.actions-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.specific-date-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.specific-date-group input[type="date"] {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.specific-date-group input[type="date"]:focus {
+    outline: none;
+    border-color: var(--accent-green);
+}
+
 .btn-primary {
     background: var(--accent-green);
     color: var(--bg-primary);
