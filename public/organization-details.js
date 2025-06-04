@@ -156,8 +156,8 @@ function displayMembersTable() {
             <td>${member.hoursSum.toFixed(1)}h</td>
             <td>${member.lastActivity ? member.lastActivity.toLocaleDateString() : 'N/A'}</td>
             <td>
-                <button class="view-details-btn" onclick="event.stopPropagation(); window.location.href='/user-details.html?user=${encodeURIComponent(member.user)}'">
-                    View Details
+                <button class="view-details" onclick="event.stopPropagation(); window.location.href='/user-details.html?user=${encodeURIComponent(member.user)}'">
+                    Details
                 </button>
             </td>
         `;
@@ -219,8 +219,8 @@ function displayProjectsTable() {
             <td>${project.hoursSum.toFixed(1)}h</td>
             <td>${project.lastActivity ? project.lastActivity.toLocaleDateString() : 'N/A'}</td>
             <td>
-                <button class="view-details-btn" onclick="event.stopPropagation(); window.location.href='/project-details.html?project=${encodeURIComponent(project.project)}'">
-                    View Details
+                <button class="view-details" onclick="event.stopPropagation(); window.location.href='/project-details.html?project=${encodeURIComponent(project.project)}'">
+                    Details
                 </button>
             </td>
         `;
@@ -256,8 +256,8 @@ function displayCommitsTable() {
             <td>${commit.averageCodeQuality.toFixed(1)}</td>
             <td>${(commit.averageAiPercentage || 0).toFixed(0)}%</td>
             <td>
-                <button class="view-details-btn" onclick="event.stopPropagation(); window.location.href='/details.html?hash=${commit.commitHash}'">
-                    View
+                <button class="view-details" onclick="event.stopPropagation(); window.location.href='/details.html?hash=${commit.commitHash}'">
+                    Details
                 </button>
             </td>
         `;
