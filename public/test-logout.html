@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout Button Test - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
+                <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
+                <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
+                <li><a href="/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/tools.html" class="nav-link">Tools</a></li>
+                <li><a href="/settings.html" class="nav-link">Settings</a></li>
+                <!-- Logout button will be added here by JavaScript -->
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Logout Button Test</h1>
+                <p>Testing the new integrated logout button in the sidebar</p>
+            </header>
+
+            <main>
+                <section class="info-section">
+                    <h2>Logout Button Features</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h3>✅ Integrated Design</h3>
+                            <p>Logout button is now part of the navigation menu, maintaining consistency with other nav items.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>👤 User Information</h3>
+                            <p>Displays current user name and role (Admin/User) for easy identification.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>🎨 Consistent Styling</h3>
+                            <p>Matches the existing navigation style with hover effects and proper spacing.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>📍 Bottom Positioning</h3>
+                            <p>Located at the bottom of the sidebar with a separator border for clear distinction.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="test-instructions">
+                        <h3>Test Instructions:</h3>
+                        <ol>
+                            <li>Login with admin credentials (username: admin, password: admin)</li>
+                            <li>Navigate to any page in the system</li>
+                            <li>Check the bottom of the sidebar for the logout button</li>
+                            <li>Hover over the logout button to see the hover effect</li>
+                            <li>Click to logout and verify you're redirected to login page</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="login-info">
+                        <h3>Admin Credentials:</h3>
+                        <p><strong>Username:</strong> admin</p>
+                        <p><strong>Password:</strong> admin</p>
+                        <a href="/login" class="btn-primary">Go to Login</a>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="auth-utils.js"></script>
+    <script>
+        // Simulate being logged in as admin for this test
+        localStorage.setItem('token', 'test-token');
+        localStorage.setItem('username', 'admin');
+        localStorage.setItem('userData', JSON.stringify({
+            username: 'admin',
+            name: 'Administrator',
+            role: 'admin'
+        }));
+        
+        // Force add logout button for demo
+        setTimeout(() => {
+            addLogoutButton();
+        }, 100);
+    </script>
+    
+    <style>
+        .info-section {
+            max-width: 1000px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .feature-card h3 {
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+        
+        .test-instructions {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin: 20px 0;
+        }
+        
+        .test-instructions h3 {
+            color: var(--accent-green);
+            margin-bottom: 15px;
+        }
+        
+        .test-instructions ol {
+            padding-left: 20px;
+        }
+        
+        .test-instructions li {
+            margin: 8px 0;
+        }
+        
+        .login-info {
+            background: var(--hover-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-green);
+            margin: 20px 0;
+        }
+        
+        .login-info h3 {
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            display: inline-block;
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: #32e610;
+        }
+    </style>
+</body>
+</html>
