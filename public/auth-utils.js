@@ -117,57 +117,98 @@ function addLogoutButton() {
     const username = localStorage.getItem('username');
     const userData = getUserData();
     if (username && userData) {
-        // Find sidebar header or create logout container
-        const sidebarHeader = document.querySelector('.sidebar-header');
-        if (sidebarHeader) {
-            // Check if logout container already exists
-            const existingContainer = document.querySelector('.logout-container');
-            if (existingContainer) {
-                return; // Already added
-            }
+        // Check if logout button already exists
+        const existingLogout = document.querySelector('.logout-nav-item');
+        if (existingLogout) {
+            return; // Already added
+        }
+        
+        // Find the nav menu to add logout as a nav item
+        const navMenu = document.querySelector('.nav-menu');
+        if (navMenu) {
+            // Create logout nav item that matches the existing nav items
+            const logoutLi = document.createElement('li');
+            logoutLi.className = 'logout-nav-item';
             
-            const logoutContainer = document.createElement('div');
-            logoutContainer.className = 'logout-container';
-            logoutContainer.style.cssText = `
-                padding: 10px 20px;
-                border-top: 1px solid var(--border-color);
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: var(--bg-secondary);
+            const logoutLink = document.createElement('a');
+            logoutLink.href = '#';
+            logoutLink.className = 'nav-link logout-link';
+            logoutLink.onclick = function(e) {
+                e.preventDefault();
+                logout();
+            };
+            logoutLink.innerHTML = `
+                <span class="logout-icon">👤</span>
+                <span class="logout-text">Logout</span>
+                <span class="user-info">${userData.name || username} (${userData.role === 'admin' ? 'Admin' : 'User'})</span>
             `;
-            logoutContainer.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="color: var(--text-primary); font-size: 0.9rem; font-weight: 500;">
-                            ${userData.name || username}
-                        </span>
-                        <span style="color: var(--text-secondary); font-size: 0.8rem; display: block;">
-                            ${userData.role === 'admin' ? 'Administrator' : 'User'}
-                        </span>
-                    </div>
-                    <button onclick="logout()" style="
-                        background: transparent;
-                        border: 1px solid var(--border-color);
+            
+            logoutLi.appendChild(logoutLink);
+            
+            // Add to the end of nav menu
+            navMenu.appendChild(logoutLi);
+            
+            // Add custom styles for the logout nav item
+            if (!document.getElementById('logout-nav-styles')) {
+                const style = document.createElement('style');
+                style.id = 'logout-nav-styles';
+                style.textContent = `
+                    .logout-nav-item {
+                        margin-top: auto;
+                        border-top: 1px solid var(--border-color);
+                        padding-top: 10px;
+                    }
+                    
+                    .logout-link {
+                        display: flex !important;
+                        flex-direction: column;
+                        align-items: flex-start !important;
+                        padding: 12px 20px !important;
+                        position: relative;
+                        border-radius: 0 !important;
+                    }
+                    
+                    .logout-link:hover {
+                        background: var(--hover-bg, rgba(255, 255, 255, 0.1)) !important;
+                        color: var(--accent-green) !important;
+                    }
+                    
+                    .logout-icon {
+                        font-size: 1.1rem;
+                        margin-right: 8px;
+                        margin-bottom: 4px;
+                    }
+                    
+                    .logout-text {
+                        font-size: 0.95rem;
+                        font-weight: 500;
+                        color: inherit;
+                    }
+                    
+                    .user-info {
+                        font-size: 0.8rem;
+                        color: var(--text-secondary);
+                        margin-top: 2px;
+                        line-height: 1.2;
+                    }
+                    
+                    .logout-link:hover .user-info {
                         color: var(--text-primary);
-                        padding: 4px 12px;
-                        cursor: pointer;
-                        font-size: 0.85rem;
-                        transition: all 0.3s;
-                    " onmouseover="this.style.borderColor='var(--accent-green)'; this.style.color='var(--accent-green)';" 
-                       onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-primary)';">
-                        Logout
-                    </button>
-                </div>
-            `;
-            
-            // Add to sidebar
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                sidebar.style.position = 'relative';
-                sidebar.style.paddingBottom = '80px'; // Make room for logout container
-                sidebar.appendChild(logoutContainer);
+                    }
+                    
+                    /* Ensure sidebar has enough space and proper layout */
+                    .sidebar {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    
+                    .nav-menu {
+                        display: flex;
+                        flex-direction: column;
+                        flex: 1;
+                    }
+                `;
+                document.head.appendChild(style);
             }
         }
     }
@@ -259,6 +300,9 @@ function checkPageAccess() {
     
     return true;
 }
+
+// Make logout function globally available
+window.logout = logout;
 
 // Initialize auth on page load
 document.addEventListener('DOMContentLoaded', async () => {
