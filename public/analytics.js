@@ -31,7 +31,6 @@ async function loadAnalytics() {
         calculateOrganizationStats(commits);
         calculateCodeStats(commits);
         calculateProductivityMetrics(commits);
-        calculateCostSummary(commits);
     } catch (error) {
         console.error('Error loading analytics:', error);
     }
@@ -161,54 +160,6 @@ function calculateProductivityMetrics(commits) {
         `Low: ${lowComplex}, Med: ${medComplex}, High: ${highComplex}`;
 }
 
-// Calculate cost summary by provider
-function calculateCostSummary(commits) {
-    const providerStats = {};
-    
-    commits.forEach(commit => {
-        if (commit.modelScores) {
-            commit.modelScores.forEach(score => {
-                const provider = score.provider || 'Unknown';
-                if (!providerStats[provider]) {
-                    providerStats[provider] = {
-                        tokens: 0,
-                        cost: 0,
-                        count: 0
-                    };
-                }
-                providerStats[provider].tokens += score.tokensUsed || 0;
-                providerStats[provider].cost += score.cost || 0;
-                providerStats[provider].count++;
-            });
-        }
-    });
-    
-    const tbody = document.getElementById('costSummaryBody');
-    tbody.innerHTML = '';
-    
-    let grandTotalTokens = 0;
-    let grandTotalCost = 0;
-    let totalAnalyses = 0;
-    
-    Object.entries(providerStats).forEach(([provider, stats]) => {
-        grandTotalTokens += stats.tokens;
-        grandTotalCost += stats.cost;
-        totalAnalyses += stats.count;
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${provider}</td>
-            <td>${stats.tokens.toLocaleString()}</td>
-            <td>$${stats.cost.toFixed(4)}</td>
-            <td>$${(stats.cost / stats.count).toFixed(4)}</td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    document.getElementById('grandTotalTokens').textContent = grandTotalTokens.toLocaleString();
-    document.getElementById('grandTotalCost').textContent = `$${grandTotalCost.toFixed(4)}`;
-    document.getElementById('grandAvgCost').textContent = `$${(grandTotalCost / totalAnalyses).toFixed(4)}`;
-}
 
 // Helper function
 function getDevLevel(level) {

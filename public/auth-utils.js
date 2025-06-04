@@ -150,7 +150,6 @@ function addLogoutButton() {
             
             logoutLink.innerHTML = `
                 <div style="display: flex; align-items: center; margin-bottom: 4px;">
-                    <span style="margin-right: 8px; font-size: 1.1rem;">👤</span>
                     <span style="font-size: 0.95rem; font-weight: 500;">Logout</span>
                 </div>
                 <span style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.2;">
@@ -250,6 +249,11 @@ function updateNavigationVisibility() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const pageUser = urlParams.get('user');
                 if (pageUser === userData.username) {
+                    // Remove active class from all other nav links first
+                    const allNavLinks = document.querySelectorAll('.nav-link');
+                    allNavLinks.forEach(link => link.classList.remove('active'));
+                    
+                    // Then add active class to profile link
                     profileLink.classList.add('active');
                 }
             }
