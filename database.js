@@ -80,6 +80,9 @@ const createTables = () => {
             -- Analysis details (stored as JSON)
             analysis_details TEXT, -- JSON as TEXT
             
+            -- Model scores (stored as JSON array)
+            model_scores TEXT, -- JSON as TEXT
+            
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -99,6 +102,10 @@ const createTables = () => {
             total_hours REAL DEFAULT 0,
             average_quality REAL DEFAULT 0,
             average_complexity REAL DEFAULT 0,
+            average_dev_level REAL DEFAULT 0,
+            projects TEXT DEFAULT '[]', -- JSON as TEXT
+            commit_hashes TEXT DEFAULT '[]', -- JSON as TEXT
+            commit_indices TEXT DEFAULT '[]', -- JSON as TEXT
             summary TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -169,6 +176,47 @@ const createTables = () => {
             UPDATE daily_commits SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END;
     `);
+
+    // Add model_scores column if it doesn't exist (for existing databases)
+    try {
+        const columnExists = db.prepare(`
+            SELECT COUNT(*) as count 
+            FROM pragma_table_info('commits') 
+            WHERE name = 'model_scores'
+        `).get();
+        
+        if (columnExists.count === 0) {
+            db.exec('ALTER TABLE commits ADD COLUMN model_scores TEXT');
+            console.log('✅ Added model_scores column to existing commits table');
+        }
+    } catch (error) {
+        console.log('ℹ️  model_scores column already exists or error adding:', error.message);
+    }
+
+    // Add missing columns to daily_commits table for existing databases
+    const dailyCommitsColumns = [
+        { name: 'average_dev_level', type: 'REAL DEFAULT 0' },
+        { name: 'projects', type: 'TEXT DEFAULT \'[]\'' },
+        { name: 'commit_hashes', type: 'TEXT DEFAULT \'[]\'' },
+        { name: 'commit_indices', type: 'TEXT DEFAULT \'[]\'' }
+    ];
+
+    for (const column of dailyCommitsColumns) {
+        try {
+            const columnExists = db.prepare(`
+                SELECT COUNT(*) as count 
+                FROM pragma_table_info('daily_commits') 
+                WHERE name = '${column.name}'
+            `).get();
+            
+            if (columnExists.count === 0) {
+                db.exec(`ALTER TABLE daily_commits ADD COLUMN ${column.name} ${column.type}`);
+                console.log(`✅ Added ${column.name} column to existing daily_commits table`);
+            }
+        } catch (error) {
+            console.log(`ℹ️  ${column.name} column already exists or error adding:`, error.message);
+        }
+    }
 
     console.log('✅ Database tables created successfully');
 };
@@ -437,8 +485,8 @@ export const dbHelpers = {
                 timestamp, file_changes, lines_added, lines_deleted, average_code_quality,
                 average_dev_level, average_complexity, average_estimated_hours,
                 average_estimated_hours_with_ai, average_ai_percentage, total_cost,
-                tokens_used, status, manually_reviewed, status_log, analysis_details
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tokens_used, status, manually_reviewed, status_log, analysis_details, model_scores
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         
         // Try to find user_id from user_name
@@ -467,7 +515,8 @@ export const dbHelpers = {
             commitData.status || 'ok',
             commitData.manually_reviewed ? 1 : 0,
             JSON.stringify(commitData.status_log || []),
-            JSON.stringify(commitData.analysis_details || {})
+            JSON.stringify(commitData.analysis_details || {}),
+            JSON.stringify(commitData.model_scores || [])
         );
     },
 
@@ -503,29 +552,51 @@ export const dbHelpers = {
     },
 
     createOrUpdateDailyCommit(dailyData) {
+        // Check which columns exist in the table
+        const tableInfo = db.prepare('PRAGMA table_info(daily_commits)').all();
+        const existingColumns = new Set(tableInfo.map(col => col.name));
+        
+        // Build dynamic query based on existing columns
+        const baseColumns = ['date', 'user_name', 'user_id', 'total_commits', 'total_lines_added', 'total_lines_deleted', 'total_hours', 'average_quality', 'average_complexity', 'summary'];
+        const optionalColumns = ['average_dev_level', 'projects', 'commit_hashes', 'commit_indices'];
+        
+        const columnsToInsert = baseColumns.filter(col => existingColumns.has(col));
+        const optionalColumnsToInsert = optionalColumns.filter(col => existingColumns.has(col));
+        
+        const allColumns = [...columnsToInsert, ...optionalColumnsToInsert];
+        const placeholders = allColumns.map(() => '?').join(', ');
+        
         const stmt = db.prepare(`
-            INSERT OR REPLACE INTO daily_commits 
-            (date, user_name, user_id, total_commits, total_lines_added, total_lines_deleted,
-             total_hours, average_quality, average_complexity, summary)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO daily_commits (${allColumns.join(', ')})
+            VALUES (${placeholders})
         `);
         
         // Try to find user_id from user_name
         const user = this.getUserByUsername(dailyData.user_name);
         const userId = user ? user.id : null;
         
-        return stmt.run(
-            dailyData.date,
-            dailyData.user_name,
-            userId,
-            dailyData.total_commits || 0,
-            dailyData.total_lines_added || 0,
-            dailyData.total_lines_deleted || 0,
-            dailyData.total_hours || 0,
-            dailyData.average_quality || 0,
-            dailyData.average_complexity || 0,
-            dailyData.summary || ''
-        );
+        // Build values array
+        const values = [];
+        
+        // Add base values
+        if (existingColumns.has('date')) values.push(dailyData.date);
+        if (existingColumns.has('user_name')) values.push(dailyData.user_name);
+        if (existingColumns.has('user_id')) values.push(userId);
+        if (existingColumns.has('total_commits')) values.push(dailyData.total_commits || 0);
+        if (existingColumns.has('total_lines_added')) values.push(dailyData.total_lines_added || 0);
+        if (existingColumns.has('total_lines_deleted')) values.push(dailyData.total_lines_deleted || 0);
+        if (existingColumns.has('total_hours')) values.push(dailyData.total_hours || 0);
+        if (existingColumns.has('average_quality')) values.push(dailyData.average_quality || 0);
+        if (existingColumns.has('average_complexity')) values.push(dailyData.average_complexity || 0);
+        if (existingColumns.has('summary')) values.push(dailyData.summary || '');
+        
+        // Add optional values
+        if (existingColumns.has('average_dev_level')) values.push(dailyData.average_dev_level || 0);
+        if (existingColumns.has('projects')) values.push(JSON.stringify(dailyData.projects || []));
+        if (existingColumns.has('commit_hashes')) values.push(JSON.stringify(dailyData.commit_hashes || []));
+        if (existingColumns.has('commit_indices')) values.push(JSON.stringify(dailyData.commit_indices || []));
+        
+        return stmt.run(...values);
     },
 
     // Tools

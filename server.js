@@ -223,6 +223,19 @@ app.get('/api/commits/:index', async (req, res) => {
     
     if (commit) {
       // Transform database format to match frontend expectations
+      const analysisDetails = JSON.parse(commit.analysis_details || '{}');
+      
+      // Get model scores from dedicated column or fallback to originalData (backward compatibility)
+      let modelScores = [];
+      if (commit.model_scores) {
+        modelScores = JSON.parse(commit.model_scores);
+      } else if (analysisDetails.originalData?.modelScores) {
+        modelScores = analysisDetails.originalData.modelScores;
+      }
+      
+      // Get code analysis from originalData if available
+      const codeAnalysis = analysisDetails.originalData?.codeAnalysis || null;
+      
       const transformedCommit = {
         commitHash: commit.commit_hash,
         user: commit.user_name,
@@ -245,7 +258,9 @@ app.get('/api/commits/:index', async (req, res) => {
         status: commit.status,
         manuallyReviewed: commit.manually_reviewed,
         statusLog: JSON.parse(commit.status_log || '[]'),
-        fileAnalyses: JSON.parse(commit.analysis_details || '{}').fileAnalyses || []
+        fileAnalyses: analysisDetails.fileAnalyses || [],
+        modelScores: modelScores,
+        codeAnalysis: codeAnalysis
       };
       
       res.json(transformedCommit);
@@ -694,12 +709,16 @@ app.get('/api/daily-commits', async (req, res) => {
     const transformedDailyCommits = dailyCommits.map(daily => ({
       date: daily.date,
       user: daily.user_name,
-      totalCommits: daily.total_commits,
+      commitCount: daily.total_commits,
       totalLinesAdded: daily.total_lines_added,
       totalLinesDeleted: daily.total_lines_deleted,
       totalHours: daily.total_hours,
-      averageQuality: daily.average_quality,
-      averageComplexity: daily.average_complexity,
+      avgCodeQuality: daily.average_quality,
+      avgComplexity: daily.average_complexity,
+      avgDevLevel: daily.average_dev_level || 0,
+      projects: JSON.parse(daily.projects || '[]'),
+      commitHashes: JSON.parse(daily.commit_hashes || '[]'),
+      commitIndices: JSON.parse(daily.commit_indices || '[]'),
       summary: daily.summary
     }));
     

@@ -98,8 +98,29 @@ function displayCommitDetails(commit) {
     document.getElementById('avgModelCost').textContent = 
         `$${((commit.totalCost || 0) / Math.max(1, commit.fileChanges)).toFixed(4)}`;
     
-    // Code analysis - Calculate from file analyses if available
-    if (commit.fileAnalyses && commit.fileAnalyses.length > 0) {
+    // Code analysis - Use codeAnalysis from originalData if available
+    if (commit.codeAnalysis) {
+        const codeAnalysis = commit.codeAnalysis;
+        const totalLines = codeAnalysis.totalLines || 0;
+        const codeLines = codeAnalysis.codeLines || 0;
+        const commentLines = codeAnalysis.commentLines || 0;
+        const textLines = codeAnalysis.textLines || 0;
+        
+        document.getElementById('totalLines').textContent = totalLines.toLocaleString();
+        
+        // Update legend values
+        document.getElementById('codePercent').textContent = `${codeAnalysis.codePercent || 0}%`;
+        document.getElementById('codeLines').textContent = `${codeLines.toLocaleString()} lines`;
+        document.getElementById('commentPercent').textContent = `${codeAnalysis.commentPercent || 0}%`;
+        document.getElementById('commentLines').textContent = `${commentLines.toLocaleString()} lines`;
+        document.getElementById('textPercent').textContent = `${codeAnalysis.textPercent || 0}%`;
+        document.getElementById('textLines').textContent = `${textLines.toLocaleString()} lines`;
+        
+        // Update stacked progress bar segments
+        document.getElementById('codeBar').style.width = `${codeAnalysis.codePercent || 0}%`;
+        document.getElementById('commentBar').style.width = `${codeAnalysis.commentPercent || 0}%`;
+        document.getElementById('textBar').style.width = `${codeAnalysis.textPercent || 0}%`;
+    } else if (commit.fileAnalyses && commit.fileAnalyses.length > 0) {
         // Calculate totals from file analyses
         let totalLines = 0;
         let codeLines = 0;
@@ -156,24 +177,13 @@ function displayCommitDetails(commit) {
         document.getElementById('textBar').style.width = `${textPercent}%`;
     }
     
-    // Model cards - extract from fileAnalyses if available
-    const modelScores = extractModelScores(commit.fileAnalyses);
-    displayModelCards(modelScores);
+    // Model cards - use modelScores directly from the response
+    displayModelCards(commit.modelScores || []);
     
     // Status history
     displayStatusHistory(commit);
 }
 
-// Extract model scores from file analyses
-function extractModelScores(fileAnalyses) {
-    if (!fileAnalyses || fileAnalyses.length === 0) {
-        return [];
-    }
-    
-    // For now, return empty array as fileAnalyses is empty in the response
-    // In the future, this would extract model-specific scores from the analyses
-    return [];
-}
 
 // Display individual model analysis cards
 function displayModelCards(modelScores) {

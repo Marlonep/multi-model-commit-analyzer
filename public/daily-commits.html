@@ -58,7 +58,13 @@
                 
                 <!-- Actions Section -->
                 <section class="actions-section">
-                    <button id="generateReport" class="btn-primary">Generate Daily Report</button>
+                    <div class="actions-container">
+                        <button id="generateReport" class="btn-primary">Generate All Daily Reports</button>
+                        <div class="specific-date-group">
+                            <input type="date" id="regenerateDate" class="filter-input" placeholder="Select date">
+                            <button id="regenerateSpecificDate" class="btn-secondary">Regenerate Specific Date</button>
+                        </div>
+                    </div>
                 </section>
                 
                 <!-- Summary Stats -->

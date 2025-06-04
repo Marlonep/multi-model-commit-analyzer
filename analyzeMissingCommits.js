@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs/promises';
+import { dbHelpers } from './database.js';
 
 const execAsync = promisify(exec);
 
@@ -11,10 +11,11 @@ async function getGitCommitHashes() {
 
 async function getAnalyzedCommitHashes() {
     try {
-        const data = await fs.readFile('commit_analysis_history.json', 'utf8');
-        const commits = JSON.parse(data);
-        return new Set(commits.map(c => c.commitHash));
+        // Get commit hashes from SQLite database
+        const commits = dbHelpers.getAllCommits('admin', null, null);
+        return new Set(commits.map(c => c.commit_hash));
     } catch (error) {
+        console.error('Error reading from database:', error);
         return new Set();
     }
 }
