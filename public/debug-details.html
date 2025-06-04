@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Details - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Debug Commit Details</h1>
+        
+        <div class="debug-section">
+            <h2>Test Parameters</h2>
+            <div>
+                <label>Commit Index: <input type="number" id="testIndex" value="0" /></label>
+                <button onclick="testDetailsFetch()" class="btn">Test Fetch</button>
+            </div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Auth Status</h2>
+            <div id="authStatus"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>API Test Results</h2>
+            <div id="apiResults"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Console Output</h2>
+            <pre id="consoleOutput" style="background: #000; color: #0f0; padding: 10px; overflow: auto; max-height: 300px;"></pre>
+        </div>
+    </div>
+
+    <script src="auth-utils.js"></script>
+    <script>
+        // Override console.log to display in page
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleOutput = document.getElementById('consoleOutput');
+        
+        function addToConsole(message, type = 'log') {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : '#0f0';
+            consoleOutput.innerHTML += `<span style="color: ${color}">[${time}] ${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' '), 'error');
+        };
+        
+        // Check auth status
+        function checkAuthStatus() {
+            const authStatus = document.getElementById('authStatus');
+            const token = getAuthToken();
+            const userData = getUserData();
+            const headers = getAuthHeaders();
+            
+            authStatus.innerHTML = `
+                <p><strong>Token Present:</strong> ${token ? '✅ Yes' : '❌ No'}</p>
+                <p><strong>User Data Present:</strong> ${userData ? '✅ Yes' : '❌ No'}</p>
+                <p><strong>Auth Headers:</strong> <code>${JSON.stringify(headers)}</code></p>
+                ${userData ? `<p><strong>User:</strong> ${userData.username} (${userData.role})</p>` : ''}
+            `;
+        }
+        
+        // Test details fetch
+        async function testDetailsFetch() {
+            const index = document.getElementById('testIndex').value;
+            const apiResults = document.getElementById('apiResults');
+            
+            console.log(`Testing fetch for commit index: ${index}`);
+            
+            try {
+                // Test 1: Basic fetch without auth
+                console.log('Test 1: Fetch without auth headers...');
+                try {
+                    const response1 = await fetch(`/api/commits/${index}`);
+                    console.log(`Response status (no auth): ${response1.status}`);
+                    if (!response1.ok) {
+                        const text = await response1.text();
+                        console.log(`Response text (no auth): ${text}`);
+                    }
+                } catch (e) {
+                    console.error(`Error (no auth): ${e.message}`);
+                }
+                
+                // Test 2: Fetch with auth headers
+                console.log('\nTest 2: Fetch with auth headers...');
+                const headers = getAuthHeaders();
+                console.log(`Auth headers: ${JSON.stringify(headers)}`);
+                
+                const response2 = await fetch(`/api/commits/${index}`, {
+                    headers: headers
+                });
+                
+                console.log(`Response status (with auth): ${response2.status}`);
+                console.log(`Response ok: ${response2.ok}`);
+                
+                if (!response2.ok) {
+                    const errorText = await response2.text();
+                    console.error(`Error response: ${errorText}`);
+                    throw new Error(`HTTP ${response2.status}: ${errorText}`);
+                }
+                
+                const data = await response2.json();
+                console.log('Success! Commit data received:');
+                console.log(JSON.stringify(data, null, 2));
+                
+                apiResults.innerHTML = `
+                    <div style="color: #0f0;">
+                        <h3>✅ Success!</h3>
+                        <p><strong>Commit Hash:</strong> ${data.commitHash}</p>
+                        <p><strong>Author:</strong> ${data.author}</p>
+                        <p><strong>Message:</strong> ${data.commitMessage}</p>
+                        <p><strong>Files Changed:</strong> ${data.fileChanges}</p>
+                        <details>
+                            <summary>Full Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error(`Test failed: ${error.message}`);
+                apiResults.innerHTML = `
+                    <div style="color: #f00;">
+                        <h3>❌ Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Test auth functions availability
+        function testAuthFunctions() {
+            console.log('Testing auth functions availability...');
+            console.log(`typeof getAuthToken: ${typeof getAuthToken}`);
+            console.log(`typeof getUserData: ${typeof getUserData}`);
+            console.log(`typeof getAuthHeaders: ${typeof getAuthHeaders}`);
+            
+            if (typeof getAuthToken === 'function') {
+                console.log(`getAuthToken() returns: ${getAuthToken()}`);
+            }
+            if (typeof getUserData === 'function') {
+                console.log(`getUserData() returns: ${JSON.stringify(getUserData())}`);
+            }
+            if (typeof getAuthHeaders === 'function') {
+                console.log(`getAuthHeaders() returns: ${JSON.stringify(getAuthHeaders())}`);
+            }
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Debug page loaded');
+            checkAuthStatus();
+            testAuthFunctions();
+            
+            // Get index from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const index = urlParams.get('index');
+            if (index !== null) {
+                document.getElementById('testIndex').value = index;
+                console.log(`URL index parameter: ${index}`);
+            }
+        });
+    </script>
+    
+    <style>
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--bg-secondary);
+        }
+        
+        .debug-section h2 {
+            margin-top: 0;
+            color: var(--accent-green);
+        }
+        
+        .btn {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            background: #32e610;
+        }
+        
+        label {
+            margin-right: 10px;
+        }
+        
+        input[type="number"] {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 5px;
+            margin-right: 10px;
+        }
+        
+        code {
+            background: #333;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        details {
+            margin-top: 10px;
+        }
+        
+        summary {
+            cursor: pointer;
+            color: var(--accent-green);
+        }
+        
+        pre {
+            background: #000;
+            padding: 10px;
+            overflow: auto;
+            max-height: 200px;
+            font-size: 12px;
+        }
+    </style>
+</body>
+</html>
