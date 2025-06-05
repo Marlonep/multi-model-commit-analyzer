@@ -1,5 +1,6 @@
 import fs from 'node:fs';
-import { spawn as spwn } from 'node:child_process';
+import { promisify } from 'node:util';
+import { spawn as spwn, exec } from 'node:child_process';
 import { logger } from './logger.js';
 
 /**
@@ -30,4 +31,20 @@ export async function spawn(command, args, options = {}) {
 			resolve(code);
 		});
 	});
+}
+
+export const execAsync = promisify(exec);
+
+/*
+ * Converts a timezone offset in minutes to a string format like "+02:00"
+ *
+ * @param {number} offset
+ * @returns {string} The formatted timezone offset
+ */
+export function convertCommitTimezoneOffset(offset) {
+	const sign = offset >= 0 ? '+' : '-';
+	const absOffset = Math.abs(offset);
+	const hours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+	const minutes = String(absOffset % 60).padStart(2, '0');
+	return `${sign}${hours}:${minutes}`;
 }
