@@ -1,7 +1,7 @@
 import { Octokit } from 'octokit';
 import { logger } from './logger.js';
 import { GitHubApi } from './github-api.js';
-import { WebhookManager } from './webhook-maanger.js';
+import { wm } from './loaders.js';
 
 export class UploadKeyService {
 	/**
@@ -15,7 +15,6 @@ export class UploadKeyService {
 		const orgs = await api.fetchOrgs();
 		for (const org of orgs) {
 			// setup webhook
-			const wm = new WebhookManager();
 			wm.setApi(api);
 
 			await wm.getOrCreate(org.login, opts.url);

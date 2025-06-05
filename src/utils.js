@@ -48,3 +48,18 @@ export function convertCommitTimezoneOffset(offset) {
 	const minutes = String(absOffset % 60).padStart(2, '0');
 	return `${sign}${hours}:${minutes}`;
 }
+
+/**
+ * Ensures the server has the variables needed to run before execution
+ *
+ * @param {string} key
+ *
+ * @returns key
+ **/
+export function envPresentOrThrow(key) {
+	if (!(key in process.env)) {
+		throw Error(`environment variable missing: ${key}`);
+	}
+
+	return process.env[key];
+}

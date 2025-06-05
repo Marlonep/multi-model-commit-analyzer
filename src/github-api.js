@@ -275,6 +275,7 @@ export class GitHubApi {
 	* @param {string} opts.name
 	* @param {string} opts.organization
 	* @param {string} opts.url
+	* @param {string} opts.secret
 	* @param {Array<string>} opts.events
 	*
 	* @returns Promise<{ id: string; type: string; name: string; events: string[]; active: boolean; }>
@@ -288,6 +289,7 @@ export class GitHubApi {
 			config: {
 				url: opts.url,
 				content_type: 'json',
+				secret: opts.secret,
 			},
 			headers: {
 				'X-GitHub-Api-Version': '2022-11-28'

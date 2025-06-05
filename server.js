@@ -10,6 +10,7 @@ import { logger } from './src/logger.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import { UploadKeyService } from './src/upload-key-service.js';
+import { wm } from './src/loaders.js';
 
 const execAsync = promisify(exec);
 
@@ -47,10 +48,7 @@ app.use(session({
   }
 }));
 
-
-app.post('/api/gh-webhook', async (req, res) => {
-  res.json({});
-})
+app.use(wm.getMiddleware());
 
 app.post('/api/upload-key', async (req, res) => {
   const uploadKeyService = new UploadKeyService();
