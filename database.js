@@ -193,6 +193,81 @@ const createTables = () => {
         console.log('ℹ️  model_scores column already exists or error adding:', error.message);
     }
 
+    // Add github_username column if it doesn't exist (for existing databases)
+    try {
+        const columnExists = db.prepare(`
+            SELECT COUNT(*) as count 
+            FROM pragma_table_info('users') 
+            WHERE name = 'github_username'
+        `).get();
+        
+        if (columnExists.count === 0) {
+            db.exec('ALTER TABLE users ADD COLUMN github_username TEXT');
+            console.log('✅ Added github_username column to existing users table');
+        }
+    } catch (error) {
+        console.log('ℹ️  github_username column already exists or error adding:', error.message);
+    }
+
+    // Add github_username column to commits table if it doesn't exist
+    try {
+        const columnExists = db.prepare(`
+            SELECT COUNT(*) as count 
+            FROM pragma_table_info('commits') 
+            WHERE name = 'github_username'
+        `).get();
+        
+        if (columnExists.count === 0) {
+            db.exec('ALTER TABLE commits ADD COLUMN github_username TEXT');
+            console.log('✅ Added github_username column to existing commits table');
+            
+            // Migrate existing data
+            console.log('🔄 Migrating existing commit data...');
+            
+            // Set default GitHub usernames for known users
+            const userMappings = [
+                { username: 'admin', github_username: 'admin' },
+                { username: 'Marlonep', github_username: 'Marlonep' },
+                { username: 'mariogc00', github_username: 'mariogc00' },
+                { username: 'bruno', github_username: 'bruno' },
+                { username: 'user', github_username: 'user' }
+            ];
+
+            userMappings.forEach(mapping => {
+                try {
+                    const result = db.prepare(`
+                        UPDATE users 
+                        SET github_username = ? 
+                        WHERE username = ? AND github_username IS NULL
+                    `).run(mapping.github_username, mapping.username);
+                    
+                    if (result.changes > 0) {
+                        console.log(`✅ Set GitHub username for user: ${mapping.username} -> ${mapping.github_username}`);
+                    }
+                } catch (err) {
+                    console.log(`ℹ️  Could not update user ${mapping.username}:`, err.message);
+                }
+            });
+
+            // Link commits to GitHub usernames based on Git author names
+            try {
+                const marlonResult = db.prepare(`
+                    UPDATE commits 
+                    SET github_username = 'Marlonep' 
+                    WHERE user_name = 'Marlon Espinosa' AND github_username IS NULL
+                `).run();
+                
+                if (marlonResult.changes > 0) {
+                    console.log(`✅ Linked ${marlonResult.changes} commits from "Marlon Espinosa" to GitHub user "Marlonep"`);
+                }
+            } catch (err) {
+                console.log('ℹ️  Could not link Marlon commits:', err.message);
+            }
+        }
+    } catch (error) {
+        console.log('ℹ️  github_username column already exists in commits or error adding:', error.message);
+    }
+
     // Add missing columns to daily_commits table for existing databases
     const dailyCommitsColumns = [
         { name: 'average_dev_level', type: 'REAL DEFAULT 0' },
@@ -376,7 +451,7 @@ export const dbHelpers = {
     },
     // Users
     getAllUsers() {
-        return db.prepare('SELECT id, username, name, role, status, created_at FROM users ORDER BY created_at DESC').all();
+        return db.prepare('SELECT id, username, name, role, status, github_username, created_at FROM users ORDER BY created_at DESC').all();
     },
 
     getUserByUsername(username) {
@@ -387,22 +462,26 @@ export const dbHelpers = {
         return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     },
 
+    getUserByGithubUsername(githubUsername) {
+        return db.prepare('SELECT * FROM users WHERE github_username = ?').get(githubUsername);
+    },
+
     createUser(userData) {
         const stmt = db.prepare(`
-            INSERT INTO users (username, password_hash, name, role, status)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (username, password_hash, name, role, status, github_username)
+            VALUES (?, ?, ?, ?, ?, ?)
         `);
-        return stmt.run(userData.username, userData.password_hash, userData.name, userData.role, userData.status || 'active');
+        return stmt.run(userData.username, userData.password_hash, userData.name, userData.role, userData.status || 'active', userData.github_username || null);
     },
 
     updateUser(id, userData) {
         const stmt = db.prepare(`
             UPDATE users 
-            SET username = ?, name = ?, role = ?, status = ?
+            SET username = ?, name = ?, role = ?, status = ?, github_username = ?
             ${userData.password_hash ? ', password_hash = ?' : ''}
             WHERE id = ?
         `);
-        const params = [userData.username, userData.name, userData.role, userData.status];
+        const params = [userData.username, userData.name, userData.role, userData.status, userData.github_username || null];
         if (userData.password_hash) {
             params.push(userData.password_hash);
         }

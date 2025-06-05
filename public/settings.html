@@ -187,6 +187,7 @@
                                     <th>ID</th>
                                     <th>Username</th>
                                     <th>Name</th>
+                                    <th>GitHub Username</th>
                                     <th>Role</th>
                                     <th>Status</th>
                                     <th>Created</th>
@@ -343,6 +344,14 @@
                     <div class="form-group">
                         <label for="name">Full Name <span class="required">*</span></label>
                         <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="github_username">GitHub Username</label>
+                        <input type="text" id="github_username" name="github_username" 
+                               pattern="^[a-zA-Z0-9]([a-zA-Z0-9-]){0,38}[a-zA-Z0-9]$" 
+                               title="GitHub username must start/end with alphanumeric, can contain hyphens">
+                        <small class="form-help">GitHub username for matching commits (optional)</small>
                     </div>
                     
                     <div class="form-group">

@@ -182,6 +182,7 @@ app.get('/api/commits', async (req, res) => {
       commitHash: commit.commit_hash,
       user: commit.user_name,
       author: commit.user_name,
+      githubUsername: commit.github_username,
       project: commit.project,
       organization: commit.organization,
       commitMessage: commit.commit_message,
@@ -240,6 +241,7 @@ app.get('/api/commits/:index', async (req, res) => {
         commitHash: commit.commit_hash,
         user: commit.user_name,
         author: commit.user_name,
+        githubUsername: commit.github_username,
         project: commit.project,
         organization: commit.organization,
         commitMessage: commit.commit_message,
@@ -542,6 +544,7 @@ app.get('/api/system-users', requireAdmin, async (req, res) => {
       username: user.username,
       name: user.name,
       role: user.role,
+      github_username: user.github_username,
       createdAt: user.created_at,
       status: user.status
     }));
@@ -557,7 +560,7 @@ app.get('/api/system-users', requireAdmin, async (req, res) => {
 app.post('/api/system-users', requireAdmin, async (req, res) => {
   try {
     const bcrypt = await import('bcryptjs');
-    const { username, password, name, role } = req.body;
+    const { username, password, name, role, github_username } = req.body;
     
     // Validate required fields
     if (!username || !password || !name || !role) {
@@ -575,6 +578,14 @@ app.post('/api/system-users', requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Username already exists' });
     }
     
+    // Check if GitHub username is already taken (if provided)
+    if (github_username) {
+      const existingGithubUser = dbHelpers.getUserByGithubUsername(github_username);
+      if (existingGithubUser) {
+        return res.status(400).json({ error: 'GitHub username already associated with another user' });
+      }
+    }
+    
     // Hash password
     const saltRounds = 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
@@ -585,7 +596,8 @@ app.post('/api/system-users', requireAdmin, async (req, res) => {
       password_hash,
       name,
       role,
-      status: 'active'
+      status: 'active',
+      github_username
     });
     
     const newUser = {
@@ -594,6 +606,7 @@ app.post('/api/system-users', requireAdmin, async (req, res) => {
       name,
       role,
       status: 'active',
+      github_username,
       createdAt: new Date().toISOString()
     };
     
@@ -612,7 +625,7 @@ app.post('/api/system-users', requireAdmin, async (req, res) => {
 app.put('/api/system-users/:userId', requireAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
-    const { username, password, name, role } = req.body;
+    const { username, password, name, role, github_username } = req.body;
     
     // Validate required fields (password is optional for updates)
     if (!username || !name || !role) {
@@ -630,8 +643,16 @@ app.put('/api/system-users/:userId', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
+    // Check if GitHub username is already taken by another user (if provided)
+    if (github_username) {
+      const existingGithubUser = dbHelpers.getUserByGithubUsername(github_username);
+      if (existingGithubUser && existingGithubUser.id !== userId) {
+        return res.status(400).json({ error: 'GitHub username already associated with another user' });
+      }
+    }
+    
     // Prepare update data
-    const updateData = { username, name, role, status: 'active' };
+    const updateData = { username, name, role, status: 'active', github_username };
     
     // Hash password if provided
     if (password) {
@@ -652,7 +673,8 @@ app.put('/api/system-users/:userId', requireAdmin, async (req, res) => {
       username,
       name,
       role,
-      status: 'active'
+      status: 'active',
+      github_username
     };
     
     res.json({ success: true, user: updatedUser });

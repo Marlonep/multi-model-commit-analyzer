@@ -7,7 +7,13 @@ let githubConfig = null;
 // Check if user has permission to view this user's details
 function checkUserDetailsAccess() {
     const currentUser = getUserData();
-    if (!currentUser) return false;
+    console.log('Current user:', currentUser);
+    console.log('Requested user:', userName);
+    
+    if (!currentUser) {
+        console.log('No current user data found');
+        return false;
+    }
     
     // Users can view their own details, admins can view all
     if (currentUser.role === 'user') {
@@ -16,10 +22,13 @@ function checkUserDetailsAccess() {
                            currentUser.name.toLowerCase() === userName.toLowerCase();
         
         if (!isOwnProfile) {
+            console.log('User trying to access another user profile, redirecting...');
             window.location.href = '/index.html';
             return false;
         }
     }
+    
+    console.log('Access granted for user details');
     return true;
 }
 
@@ -57,6 +66,8 @@ async function loadGithubConfig() {
 
 // Load user details
 async function loadUserDetails() {
+    console.log('Loading user details for:', userName);
+    
     if (!userName) {
         window.location.href = '/users.html';
         return;
@@ -64,6 +75,7 @@ async function loadUserDetails() {
     
     // Check permissions first
     if (!checkUserDetailsAccess()) {
+        console.log('Access denied for user details');
         return;
     }
 
@@ -72,11 +84,15 @@ async function loadUserDetails() {
         await loadGithubConfig();
         
         // Fetch user details from API
+        console.log('Fetching user details with headers:', getAuthHeaders());
         const userDetailsResponse = await fetch(`/api/users/${userName}/details`, {
             headers: getAuthHeaders()
         });
+        console.log('User details response status:', userDetailsResponse.status);
+        
         if (userDetailsResponse.ok) {
             const fetchedData = await userDetailsResponse.json();
+            console.log('User details fetched:', fetchedData);
             // Ensure all required fields exist
             userData = {
                 email: fetchedData.email || '',
@@ -89,13 +105,46 @@ async function loadUserDetails() {
         }
         
         // Fetch all commits
+        console.log('Fetching commits...');
         const response = await fetch('/api/commits', {
             headers: getAuthHeaders()
         });
-        const allCommits = await response.json();
         
-        // Filter commits for this user
-        userCommits = allCommits.filter(commit => commit.user === userName);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const allCommits = await response.json();
+        console.log('Total commits fetched:', allCommits.length);
+        
+        // Try to find system user by username to get their GitHub username
+        let githubUsername = userName;
+        try {
+            const systemUsersResponse = await fetch('/api/system-users', {
+                headers: getAuthHeaders()
+            });
+            if (systemUsersResponse.ok) {
+                const systemUsers = await systemUsersResponse.json();
+                const systemUser = systemUsers.find(u => u.username === userName);
+                if (systemUser && systemUser.github_username) {
+                    githubUsername = systemUser.github_username;
+                    console.log('Using GitHub username:', githubUsername);
+                }
+            }
+        } catch (error) {
+            console.log('Could not fetch system users, using default username');
+        }
+        
+        // Filter commits for this user (match by GitHub username in commits)
+        userCommits = allCommits.filter(commit => commit.githubUsername === githubUsername);
+        console.log('User commits found:', userCommits.length);
+        
+        // Fallback: if no commits found with GitHub username, try matching by user name
+        if (userCommits.length === 0) {
+            console.log('No commits found with GitHub username, trying to match by user name...');
+            userCommits = allCommits.filter(commit => commit.user === githubUsername);
+            console.log('Fallback user commits found:', userCommits.length);
+        }
         
         // Sort by date descending
         userCommits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -111,7 +160,7 @@ async function loadUserDetails() {
         createCharts();
     } catch (error) {
         console.error('Error loading user details:', error);
-        alert('Error loading user details');
+        alert('Error loading user details: ' + error.message);
         window.location.href = '/users.html';
     }
 }

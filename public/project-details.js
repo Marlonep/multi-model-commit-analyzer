@@ -15,7 +15,9 @@ let dailyLinesChart = null;
 // Fetch GitHub configuration
 async function loadGithubConfig() {
     try {
-        const response = await fetch('/api/github-config');
+        const response = await fetch('/api/github-config', {
+            headers: getAuthHeaders()
+        });
         githubConfig = await response.json();
     } catch (error) {
         console.error('Error loading GitHub config:', error);
@@ -29,6 +31,8 @@ async function loadGithubConfig() {
 
 // Load project details
 async function loadProjectDetails() {
+    console.log('Loading project details for:', projectName);
+    
     if (!projectName) {
         window.location.href = '/projects.html';
         return;
@@ -38,12 +42,22 @@ async function loadProjectDetails() {
         // Load GitHub config first
         await loadGithubConfig();
         
-        // Fetch all commits
-        const response = await fetch('/api/commits');
+        // Fetch all commits with authentication
+        console.log('Fetching commits with headers:', getAuthHeaders());
+        const response = await fetch('/api/commits', {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const allCommits = await response.json();
+        console.log('Total commits fetched:', allCommits.length);
         
         // Filter commits for this project
         projectCommits = allCommits.filter(commit => commit.project === projectName);
+        console.log('Project commits found:', projectCommits.length);
         
         // Sort by date descending
         projectCommits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -55,7 +69,7 @@ async function loadProjectDetails() {
         createCharts();
     } catch (error) {
         console.error('Error loading project details:', error);
-        alert('Error loading project details');
+        alert('Error loading project details: ' + error.message);
         window.location.href = '/projects.html';
     }
 }
@@ -83,9 +97,7 @@ function displayProjectInfo() {
     ));
     document.getElementById('activeDays').textContent = activeDates.size;
     
-    // Get organization from the first commit (or most recent commit with organization)
-    const organizationCommit = projectCommits.find(c => c.organization) || projectCommits[0];
-    const organization = organizationCommit?.organization || 'Unknown';
+    // Set project organization (same as organizationName)
     document.getElementById('projectOrganization').textContent = organization;
 }
 
@@ -700,7 +712,9 @@ function viewUserDetails(userName) {
 
 function viewCommitDetails(index) {
     // Get the global index in all commits
-    fetch('/api/commits')
+    fetch('/api/commits', {
+        headers: getAuthHeaders()
+    })
         .then(response => response.json())
         .then(allCommits => {
             const commit = projectCommits[index];
