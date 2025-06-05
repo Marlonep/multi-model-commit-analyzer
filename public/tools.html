@@ -5,6 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tools - Commit Analyzer</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Tools page specific alignment fixes */
+        .filters-section .filters-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filters-section .search-container {
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+            margin-bottom: 0;
+        }
+        
+        .filters-section .search-bar {
+            width: 100%;
+            padding: 10px 15px;
+            height: 42px;
+            box-sizing: border-box;
+        }
+        
+        .filters-section .filter-group {
+            margin-bottom: 0;
+        }
+        
+        .filters-section .filter-select {
+            padding: 10px 15px;
+            height: 42px;
+            box-sizing: border-box;
+            min-width: 180px;
+        }
+        
+        .filters-section .btn-primary {
+            height: 42px;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -18,7 +60,6 @@
                 <li><a href="/index.html" class="nav-link">Commits</a></li>
                 <li><a href="/users.html" class="nav-link">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
-                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
@@ -59,52 +100,6 @@
                             </select>
                         </div>
                         <button class="btn-primary" id="addToolBtn">Add New Tool</button>
-                    </div>
-                </section>
-
-                <!-- Tools Cost Calculator -->
-                <section class="cost-calculator-section">
-                    <h2>Tools Cost Calculator</h2>
-                    <div class="calculator-controls">
-                        <div class="control-group">
-                            <label for="userSelect">Select User:</label>
-                            <select id="userSelect" class="filter-select">
-                                <option value="">Select a user...</option>
-                            </select>
-                        </div>
-                        <div class="control-group exchange-rate-group">
-                            <label for="exchangeRate">Exchange Rate (MXN per USD):</label>
-                            <div>
-                                <input type="number" id="exchangeRate" class="exchange-rate-input" value="17.5" step="0.01" min="1">
-                                <button class="btn-small" id="updateRateBtn">Update</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="cost-table-wrapper" id="costTableWrapper" style="display: none;">
-                        <table id="costTable" class="cost-table">
-                            <thead>
-                                <tr>
-                                    <th>Tool Name</th>
-                                    <th>Monthly Cost (USD)</th>
-                                    <th>Monthly Cost (MXN)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="costTableBody">
-                                <!-- Cost data will be populated here -->
-                            </tbody>
-                            <tfoot>
-                                <tr class="total-row">
-                                    <td><strong>Total</strong></td>
-                                    <td id="totalUSD"><strong>$0.00</strong></td>
-                                    <td id="totalMXN"><strong>$0.00 MX</strong></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                    
-                    <div class="no-user-selected" id="noUserSelected">
-                        <p>Please select a user to view their tools costs.</p>
                     </div>
                 </section>
 

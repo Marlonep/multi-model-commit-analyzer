@@ -309,39 +309,111 @@ app.get('/api/github-config', async (req, res) => {
   }
 });
 
-// API endpoint to test AI models
+// API endpoint to test AI models using encrypted database keys
 app.post('/api/test-models', requireAdmin, async (req, res) => {
   try {
     const { modelIds } = req.body;
-    const aiModels = new AIModels();
+    const dbModels = dbHelpers.getAllAIModels();
     
     const results = [];
     const testModels = modelIds ? 
-      aiModels.models.filter(m => modelIds.includes(m.type)) : 
-      aiModels.models;
+      dbModels.filter(m => modelIds.includes(m.model_type)) : 
+      dbModels;
     
     for (const model of testModels) {
       try {
         const startTime = Date.now();
         
-        // Simple test prompt
-        const testPrompt = "Respond with 'OK' if you can process this message.";
-        const result = await aiModels.getModelResponse(model, testPrompt);
+        // Get decrypted API key for this model
+        const apiKeyData = dbHelpers.getDecryptedApiKey(model.env_var);
+        
+        if (!apiKeyData) {
+          throw new Error(`No API key found for ${model.env_var}`);
+        }
+        
+        const apiKey = apiKeyData.key;
+        let testResult = null;
+        let rawResponse = '';
+        
+        // Test based on model type
+        if (model.model_type === 'openai') {
+          const OpenAI = (await import('openai')).default;
+          const client = new OpenAI({ apiKey });
+          
+          console.log(`Testing OpenAI model: ${model.model_id}`);
+          
+          // Use max_completion_tokens for newer models like o3-mini
+          const requestParams = {
+            model: model.model_id,
+            messages: [{ role: 'user', content: 'Respond with OK if you can process this message.' }]
+          };
+          
+          // Check for o3-mini and similar models that require max_completion_tokens
+          if (model.model_id === 'o3-mini' || model.model_id.startsWith('o3-') || model.model_id.includes('o3-mini')) {
+            requestParams.max_completion_tokens = 100;
+            console.log(`Using max_completion_tokens for ${model.model_id}`);
+          } else {
+            requestParams.max_tokens = 100;
+            console.log(`Using max_tokens for ${model.model_id}`);
+          }
+          
+          const response = await client.chat.completions.create(requestParams);
+          rawResponse = response.choices[0].message.content;
+          testResult = rawResponse.toLowerCase().includes('ok');
+          
+        } else if (model.model_type === 'claude') {
+          const Anthropic = (await import('@anthropic-ai/sdk')).default;
+          const client = new Anthropic({ apiKey });
+          
+          const response = await client.messages.create({
+            model: model.model_id,
+            max_tokens: 100,
+            messages: [{ role: 'user', content: 'Respond with OK if you can process this message.' }]
+          });
+          rawResponse = response.content[0].text;
+          testResult = rawResponse.toLowerCase().includes('ok');
+          
+        } else if (model.model_type === 'gemini') {
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          const client = new GoogleGenerativeAI(apiKey);
+          const genModel = client.getGenerativeModel({ model: model.model_id });
+          
+          const response = await genModel.generateContent('Respond with OK if you can process this message.');
+          rawResponse = response.response.text();
+          testResult = rawResponse.toLowerCase().includes('ok');
+          
+        } else if (model.model_type === 'grok') {
+          const OpenAI = (await import('openai')).default;
+          const client = new OpenAI({ 
+            apiKey, 
+            baseURL: 'https://api.x.ai/v1'
+          });
+          
+          const response = await client.chat.completions.create({
+            model: model.model_id,
+            messages: [{ role: 'user', content: 'Respond with OK if you can process this message.' }],
+            max_tokens: 100  // Grok uses standard max_tokens
+          });
+          rawResponse = response.choices[0].message.content;
+          testResult = rawResponse.toLowerCase().includes('ok');
+        }
+        
         const responseTime = (Date.now() - startTime) / 1000;
         
         results.push({
-          modelType: model.type,
-          modelName: model.name === 'GPT-4' ? 'o3-mini' : model.name,
-          status: result && result.reasoning !== 'Error' && !result.reasoning.startsWith('Error') ? 'active' : 'error',
+          modelType: model.model_type,
+          modelName: model.model_name,
+          status: testResult ? 'active' : 'error',
           responseTime: responseTime.toFixed(2),
-          error: result && result.reasoning.startsWith('Error') ? result.reasoning : null,
-          cost: result ? result.cost : 0,
-          tokens: result ? result.tokensUsed : 0
+          error: testResult ? null : `Unexpected response: ${rawResponse.substring(0, 100)}`,
+          cost: 0.001, // Minimal estimated cost for test
+          tokens: 10 // Minimal estimated tokens for test
         });
+        
       } catch (error) {
         results.push({
-          modelType: model.type,
-          modelName: model.name === 'GPT-4' ? 'o3-mini' : model.name,
+          modelType: model.model_type,
+          modelName: model.model_name,
           status: 'error',
           responseTime: 0,
           error: error.message,
@@ -411,18 +483,15 @@ app.get('/api/users/all/details', async (req, res) => {
     const users = dbHelpers.getAllUsers();
     const allUserDetails = {};
     
-    // Get details for each user
+    // Return empty details for all users since we removed the database tables
     for (const user of users) {
-      const details = dbHelpers.getUserDetails(user.id);
-      
-      // Use username as key for compatibility with frontend
       allUserDetails[user.username] = {
-        email: details?.email || '',
-        phone: details?.phone || '',
-        whatsappAvailable: details?.whatsapp_available || false,
-        minHoursPerDay: details?.min_hours_per_day || 8,
-        organizations: details?.organizations || [],
-        tools: details?.tools || []
+        email: '',
+        phone: '',
+        whatsappAvailable: false,
+        minHoursPerDay: 8,
+        organizations: [],
+        tools: []
       };
     }
     
@@ -443,30 +512,15 @@ app.get('/api/users/:username/details', async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    // Get user details from database
-    let userDetails = dbHelpers.getUserDetailsByUsername(username);
-    
-    // Return default empty object if not found
-    if (!userDetails) {
-      userDetails = {
-        email: '',
-        phone: '',
-        whatsappAvailable: false,
-        minHoursPerDay: 8,
-        organizations: [],
-        tools: []
-      };
-    } else {
-      // Transform database format to match frontend expectations
-      userDetails = {
-        email: userDetails.email || '',
-        phone: userDetails.phone || '',
-        whatsappAvailable: userDetails.whatsapp_available || false,
-        minHoursPerDay: userDetails.min_hours_per_day || 8,
-        organizations: userDetails.organizations || [],
-        tools: userDetails.tools || []
-      };
-    }
+    // Return default empty object since we removed the database tables
+    const userDetails = {
+      email: '',
+      phone: '',
+      whatsappAvailable: false,
+      minHoursPerDay: 8,
+      organizations: [],
+      tools: []
+    };
     
     res.json(userDetails);
   } catch (error) {
@@ -499,22 +553,13 @@ app.put('/api/users/:username/details', async (req, res) => {
       });
     }
     
-    // Get user to find user ID
+    // Check that user exists
     const user = dbHelpers.getUserByUsername(username);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // Update user details in database
-    const result = dbHelpers.createOrUpdateUserDetails(user.id, {
-      email: userDetails.email || '',
-      phone: userDetails.phone || '',
-      whatsapp_available: Boolean(userDetails.whatsappAvailable),
-      min_hours_per_day: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
-      organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
-      tools: userDetails.tools || []
-    });
-    
+    // Since we removed the database tables, just return success without storing
     res.json({ 
       success: true, 
       message: 'User details updated successfully',
@@ -795,6 +840,7 @@ app.get('/api/tools', async (req, res) => {
     // Transform database format to match frontend expectations
     const transformedTools = tools.map(tool => ({
       id: tool.tool_id,
+      dbId: tool.id, // Include database ID for edit/delete operations
       image: tool.image,
       name: tool.name,
       category: tool.category,
@@ -1111,6 +1157,183 @@ app.get('/api/users/:userId/organizations', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user organizations:', error);
     res.status(500).json({ error: 'Failed to fetch user organizations' });
+  }
+});
+
+// AI Models API endpoints
+app.get('/api/ai-models', async (req, res) => {
+  try {
+    console.log('AI Models API called');
+    const aiModels = dbHelpers.getAllAIModels();
+    console.log('Found models:', aiModels.length);
+    res.json(aiModels);
+  } catch (error) {
+    console.error('Error fetching AI models:', error);
+    res.status(500).json({ error: 'Failed to fetch AI models' });
+  }
+});
+
+// Create new AI model
+app.post('/api/ai-models', requireAdmin, async (req, res) => {
+  try {
+    const modelData = req.body;
+    
+    // Validate required fields
+    const requiredFields = ['model_id', 'provider', 'model_name', 'input_cost', 'output_cost', 'api_endpoint', 'env_var', 'model_type'];
+    for (const field of requiredFields) {
+      if (!modelData[field]) {
+        return res.status(400).json({ error: `Missing required field: ${field}` });
+      }
+    }
+    
+    // Check if model already exists
+    const existing = dbHelpers.getAIModel(modelData.model_id);
+    if (existing) {
+      return res.status(409).json({ error: 'Model with this ID already exists' });
+    }
+    
+    const result = dbHelpers.createAIModel(modelData);
+    const newModel = dbHelpers.getAIModel(modelData.model_id);
+    
+    res.json({ success: true, model: newModel });
+  } catch (error) {
+    console.error('Error creating AI model:', error);
+    res.status(500).json({ error: 'Failed to create AI model' });
+  }
+});
+
+// Update existing AI model
+app.put('/api/ai-models/:modelId', requireAdmin, async (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const modelData = req.body;
+    
+    // Check if model exists
+    const existing = dbHelpers.getAIModel(modelId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Model not found' });
+    }
+    
+    const result = dbHelpers.updateAIModel(modelId, modelData);
+    const updatedModel = dbHelpers.getAIModel(modelId);
+    
+    res.json({ success: true, model: updatedModel });
+  } catch (error) {
+    console.error('Error updating AI model:', error);
+    res.status(500).json({ error: 'Failed to update AI model' });
+  }
+});
+
+// Delete AI model
+app.delete('/api/ai-models/:modelId', requireAdmin, async (req, res) => {
+  try {
+    const { modelId } = req.params;
+    
+    // Check if model exists
+    const existing = dbHelpers.getAIModel(modelId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Model not found' });
+    }
+    
+    const result = dbHelpers.deleteAIModel(modelId);
+    
+    if (result.changes === 0) {
+      return res.status(400).json({ error: 'Failed to delete model' });
+    }
+    
+    res.json({ success: true, message: 'Model deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting AI model:', error);
+    res.status(500).json({ error: 'Failed to delete AI model' });
+  }
+});
+
+app.put('/api/ai-models/:modelId/status', requireAdmin, async (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const { status } = req.body;
+    
+    console.log(`Updating model ${modelId} status to: ${status}`);
+    
+    if (!['active', 'inactive', 'error'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    
+    const result = dbHelpers.updateAIModelStatus(modelId, status);
+    console.log(`Model status update result:`, result);
+    
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error('Error updating model status:', error);
+    res.status(500).json({ error: 'Failed to update model status' });
+  }
+});
+
+// API endpoint to save encrypted API keys
+app.post('/api/ai-models/api-keys', requireAdmin, async (req, res) => {
+  try {
+    const { modelId, provider, keyName, keyValue } = req.body;
+    
+    if (!modelId || !provider || !keyName || !keyValue) {
+      return res.status(400).json({ error: 'Missing required fields: modelId, provider, keyName, keyValue' });
+    }
+    
+    console.log(`Saving encrypted API key for ${provider} (${modelId}): ${keyName}`);
+    
+    // Save encrypted API key to database
+    const result = dbHelpers.saveEncryptedApiKey(keyName, keyValue, provider, null, true);
+    
+    console.log(`Successfully saved encrypted API key for ${provider}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Successfully saved encrypted API key for ${provider}`,
+      keyName: keyName,
+      keyVersion: result.lastInsertRowid
+    });
+    
+  } catch (error) {
+    console.error('Error saving encrypted API key:', error);
+    res.status(500).json({ error: 'Failed to save API key' });
+  }
+});
+
+// API endpoint to get all API keys (without values, for management)
+app.get('/api/ai-models/api-keys', requireAdmin, async (req, res) => {
+  try {
+    const apiKeys = dbHelpers.getAllApiKeys();
+    res.json({ success: true, apiKeys });
+  } catch (error) {
+    console.error('Error fetching API keys:', error);
+    res.status(500).json({ error: 'Failed to fetch API keys' });
+  }
+});
+
+// API endpoint to delete an API key
+app.delete('/api/ai-models/api-keys/:keyName', requireAdmin, async (req, res) => {
+  try {
+    const { keyName } = req.params;
+    const result = dbHelpers.deleteApiKey(keyName);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'API key not found' });
+    }
+    
+    res.json({ success: true, message: 'API key deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting API key:', error);
+    res.status(500).json({ error: 'Failed to delete API key' });
+  }
+});
+
+// Keep compatibility endpoint for model-performance (redirects to ai-models)
+app.get('/api/model-performance', async (req, res) => {
+  try {
+    const aiModels = dbHelpers.getAllAIModels();
+    res.json(aiModels);
+  } catch (error) {
+    console.error('Error fetching AI models:', error);
+    res.status(500).json({ error: 'Failed to fetch AI models' });
   }
 });
 

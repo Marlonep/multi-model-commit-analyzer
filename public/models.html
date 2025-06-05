@@ -5,6 +5,290 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Models - Commit Analyzer</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .models-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        
+        .models-controls .search-container {
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .totals-row {
+            background-color: var(--card-bg);
+            font-weight: bold;
+            border-top: 2px solid var(--border-color);
+        }
+        
+        .totals-row td {
+            padding: 12px 8px !important;
+        }
+        
+        .model-info {
+            line-height: 1.3;
+        }
+        
+        .no-data {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Unified badge styles for status, quality, and success rate */
+        .quality-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+        }
+        
+        .quality-badge.quality-1 {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .quality-badge.quality-2 {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border-color: #ffc107;
+        }
+        
+        .quality-badge.quality-3 {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border-color: #ffc107;
+        }
+        
+        .quality-badge.quality-4 {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .quality-badge.quality-5 {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .success-rate-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+        }
+        
+        .success-rate-badge.rate-excellent {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .success-rate-badge.rate-good {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border-color: #ffc107;
+        }
+        
+        .success-rate-badge.rate-poor {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+        
+        .success-rate-badge.rate-none {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        /* Override status badge styles to add borders and consistency */
+        .status-badge {
+            border: 1px solid !important;
+            border-radius: 12px !important;
+            padding: 4px 8px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        .status-active {
+            background-color: rgba(40, 167, 69, 0.1) !important;
+            color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+        
+        .status-inactive {
+            background-color: rgba(108, 117, 125, 0.1) !important;
+            color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+        
+        .status-error {
+            background-color: rgba(220, 53, 69, 0.1) !important;
+            color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+        
+        .status-warning {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+            color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
+        
+        /* Remove background colors from table rows */
+        #unifiedModelsTable tbody tr {
+            background-color: transparent !important;
+        }
+        
+        .model-row {
+            background-color: transparent !important;
+        }
+        
+        .model-row.model-active,
+        .model-row.model-inactive,
+        .model-row.model-error,
+        .model-row.model-warning {
+            background-color: transparent !important;
+        }
+        
+        /* API Key Modal Styles */
+        .api-key-form .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .api-key-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .api-key-form .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .api-key-form input.form-control {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .help-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .security-notice {
+            padding: 12px;
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons .btn.small {
+            padding: 4px 8px;
+            font-size: 11px;
+            min-width: 60px;
+        }
+        
+        /* Model Form Styles */
+        .modal-content.large {
+            max-width: 800px;
+            width: 90%;
+        }
+        
+        .model-form .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .model-form .form-group {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .model-form .form-group.full-width {
+            flex: 100%;
+        }
+        
+        .model-form select.form-control,
+        .model-form textarea.form-control {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .models-controls .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Button color variants */
+        .btn.success {
+            background-color: #28a745;
+            color: white;
+            border: 1px solid #28a745;
+        }
+        
+        .btn.success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        
+        .btn.warning {
+            background-color: #ffc107;
+            color: #212529;
+            border: 1px solid #ffc107;
+        }
+        
+        .btn.warning:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+        }
+        
+        .btn.danger {
+            background-color: #dc3545;
+            color: white;
+            border: 1px solid #dc3545;
+        }
+        
+        .btn.danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -18,7 +302,6 @@
                 <li><a href="/index.html" class="nav-link">Commits</a></li>
                 <li><a href="/users.html" class="nav-link">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
-                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link active">AI Models</a></li>
@@ -58,102 +341,51 @@
                     </div>
                 </section>
 
-                <!-- Model Configuration Table -->
+                <!-- Unified AI Models Table -->
                 <section class="table-section">
-                    <h3>Model Configuration</h3>
+                    <h3>AI Models Overview</h3>
+                    <div class="models-controls">
+                        <div class="search-container">
+                            <input type="text" class="search-bar" id="modelsSearch" placeholder="Search models...">
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn success" id="addNewModel">Add New Model</button>
+                            <button class="btn primary" id="testAllModels">Test All Models</button>
+                        </div>
+                    </div>
                     <div class="table-wrapper">
-                        <table id="modelsTable">
+                        <table id="unifiedModelsTable">
                             <thead>
                                 <tr>
                                     <th>Provider</th>
-                                    <th>Model Name</th>
-                                    <th>Model ID</th>
+                                    <th>Model</th>
                                     <th>Status</th>
+                                    <th>Quality Score</th>
+                                    <th>Response Time</th>
+                                    <th>Success Rate</th>
                                     <th>Input Cost</th>
                                     <th>Output Cost</th>
-                                    <th>API Endpoint</th>
-                                    <th>Parameters</th>
+                                    <th>Total Tokens</th>
+                                    <th>Total Cost</th>
                                     <th>Last Used</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="modelsTableBody">
+                            <tbody id="unifiedModelsTableBody">
                                 <!-- Models will be populated by JavaScript -->
                             </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Model Performance Analysis -->
-                <section class="table-section">
-                    <h3>Performance Metrics</h3>
-                    <div class="search-container">
-                        <input type="text" class="search-bar" id="performanceSearch" placeholder="Search performance data...">
-                    </div>
-                    <div class="table-wrapper">
-                        <table id="performanceTable">
-                            <thead>
-                                <tr>
-                                    <th>Model</th>
-                                    <th>Avg Quality Score</th>
-                                    <th>Avg Response Time</th>
-                                    <th>Total Tokens</th>
-                                    <th>Total Cost</th>
-                                    <th>Success Rate</th>
-                                    <th>Error Rate</th>
-                                    <th>Last Error</th>
-                                </tr>
-                            </thead>
-                            <tbody id="performanceTableBody">
-                                <!-- Performance data will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- AI Analysis Cost Summary -->
-                <section class="table-section">
-                    <h3>AI Analysis Cost Summary</h3>
-                    <div class="table-wrapper">
-                        <table id="costSummaryTable">
-                            <thead>
-                                <tr>
-                                    <th>Model Provider</th>
-                                    <th>Total Tokens</th>
-                                    <th>Total Cost</th>
-                                    <th>Avg Cost per Analysis</th>
-                                </tr>
-                            </thead>
-                            <tbody id="costSummaryBody">
-                                <!-- Data will be populated here -->
-                            </tbody>
                             <tfoot>
-                                <tr>
-                                    <td><strong>TOTAL</strong></td>
-                                    <td id="grandTotalTokens">0</td>
-                                    <td id="grandTotalCost">$0.00</td>
-                                    <td id="grandAvgCost">$0.00</td>
+                                <tr class="totals-row">
+                                    <td colspan="8" style="text-align: right;"><strong>TOTALS</strong></td>
+                                    <td><strong id="grandTotalTokensUnified">0</strong></td>
+                                    <td><strong id="grandTotalCostUnified">$0.00</strong></td>
+                                    <td colspan="2"><strong>Avg: <span id="avgCostPerAnalysisUnified">$0.00</span></strong></td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
                 </section>
 
-                <!-- Model Testing Section -->
-                <section class="table-section">
-                    <h3>Model Testing</h3>
-                    <div class="test-controls">
-                        <button class="btn primary" id="testAllModels">Test All Models</button>
-                        <button class="btn secondary" id="refreshStatus">Refresh Status</button>
-                        <select id="modelSelector" class="form-select">
-                            <option value="">Select model to test individually</option>
-                        </select>
-                        <button class="btn secondary" id="testSingleModel">Test Selected</button>
-                    </div>
-                    <div class="test-results" id="testResults">
-                        <!-- Test results will be displayed here -->
-                    </div>
-                </section>
 
                 <!-- Analysis Prompt Section -->
                 <section class="table-section">
@@ -169,32 +401,153 @@
                     </div>
                 </section>
 
-                <!-- Configuration Help -->
-                <section class="table-section">
-                    <h3>Configuration Guide</h3>
-                    <div class="config-help">
-                        <div class="help-card">
-                            <h4>Environment Variables Required:</h4>
-                            <ul>
-                                <li><code>OPENAI_API_KEY</code> - OpenAI API key for GPT models</li>
-                                <li><code>CLAUDE_API_KEY</code> - Anthropic API key for Claude models</li>
-                                <li><code>GEMINI_API_KEY</code> - Google API key for Gemini models</li>
-                                <li><code>GROK_API_KEY</code> - xAI API key for Grok models</li>
-                            </ul>
-                        </div>
-                        <div class="help-card">
-                            <h4>Model Switching:</h4>
-                            <p>To switch models, update the model ID in <code>analyzeCommit.js</code> and restart the service. 
-                            Use this page to verify the model is working before committing changes.</p>
-                        </div>
-                        <div class="help-card">
-                            <h4>Cost Management:</h4>
-                            <p>Monitor token usage and costs here. Set up alerts when costs exceed thresholds. 
-                            Gemini offers the lowest cost, while o3-mini has premium pricing.</p>
+            </main>
+        </div>
+    </div>
+
+    <!-- Test Results Modal -->
+    <div id="testResultsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Model Test Results</h2>
+                <span class="close" onclick="closeTestResultsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="modalTestResults">
+                    <!-- Test results will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn primary" onclick="updateModelStatuses()">Update Model Status</button>
+                <button class="btn secondary" onclick="closeTestResultsModal()">Ignore</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Configuration Modal -->
+    <div id="apiKeyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configure API Key</h2>
+                <span class="close" onclick="closeApiKeyModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="api-key-form">
+                    <div class="form-group">
+                        <label for="providerName">Provider:</label>
+                        <input type="text" id="providerName" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="apiKeyInput">API Key:</label>
+                        <input type="text" id="apiKeyInput" class="form-control" placeholder="Enter your API key (e.g., sk-ant-api03-...)">
+                        <small class="help-text">
+                            Enter only the API key value, without the key name prefix.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <div class="security-notice">
+                            <strong>⚠️ Security Notice:</strong> 
+                            API keys are stored securely on the server. Never share your API keys or paste them in untrusted applications.
                         </div>
                     </div>
-                </section>
-            </main>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn primary" onclick="saveApiKey()">Save API Key</button>
+                <button class="btn secondary" onclick="closeApiKeyModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Add/Edit Modal -->
+    <div id="modelModal" class="modal" style="display: none;">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="modelModalTitle">Add New AI Model</h2>
+                <span class="close" onclick="closeModelModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="model-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modelIdInput">Model ID:</label>
+                            <input type="text" id="modelIdInput" class="form-control" placeholder="e.g., claude-sonnet-4-20250514" required>
+                            <small class="help-text">Unique identifier for the model</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="providerInput">Provider:</label>
+                            <select id="providerInput" class="form-control" required>
+                                <option value="">Select Provider</option>
+                                <option value="OpenAI">OpenAI</option>
+                                <option value="Anthropic">Anthropic</option>
+                                <option value="Google">Google</option>
+                                <option value="xAI">xAI</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modelNameInput">Model Name:</label>
+                            <input type="text" id="modelNameInput" class="form-control" placeholder="e.g., Claude Sonnet 4" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modelTypeInput">Model Type:</label>
+                            <select id="modelTypeInput" class="form-control" required>
+                                <option value="">Select Type</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="claude">Claude</option>
+                                <option value="gemini">Gemini</option>
+                                <option value="grok">Grok</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputCostInput">Input Cost (per 1M tokens):</label>
+                            <input type="text" id="inputCostInput" class="form-control" placeholder="e.g., $3.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="outputCostInput">Output Cost (per 1M tokens):</label>
+                            <input type="text" id="outputCostInput" class="form-control" placeholder="e.g., $15.00" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="apiEndpointInput">API Endpoint:</label>
+                            <input type="text" id="apiEndpointInput" class="form-control" placeholder="e.g., https://api.anthropic.com/v1/messages" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="envVarInput">Environment Variable:</label>
+                            <input type="text" id="envVarInput" class="form-control" placeholder="e.g., CLAUDE_API_KEY" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="statusInput">Status:</label>
+                            <select id="statusInput" class="form-control">
+                                <option value="inactive">Inactive</option>
+                                <option value="active">Active</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="parametersInput">Parameters (JSON):</label>
+                            <textarea id="parametersInput" class="form-control" rows="3" placeholder='{"temperature": 0.3, "max_tokens": 500}'>{}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="notesInput">Notes:</label>
+                        <textarea id="notesInput" class="form-control" rows="2" placeholder="Optional notes about this model"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn success" id="updateApiKeyFromModal" onclick="updateApiKeyFromModal()" style="display: none;">Update API Key</button>
+                <button class="btn primary" onclick="saveModel()">Save Model</button>
+                <button class="btn secondary" onclick="closeModelModal()">Cancel</button>
+            </div>
         </div>
     </div>
 

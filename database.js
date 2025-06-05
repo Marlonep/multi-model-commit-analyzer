@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,22 +29,6 @@ const createTables = () => {
         )
     `);
 
-    // User details table (replaces user-details.json)
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS user_details (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER UNIQUE NOT NULL,
-            email TEXT,
-            phone TEXT,
-            whatsapp_available BOOLEAN DEFAULT 0,
-            min_hours_per_day INTEGER DEFAULT 8,
-            organizations TEXT DEFAULT '[]', -- JSON as TEXT
-            tools TEXT DEFAULT '[]', -- JSON as TEXT
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    `);
 
     // Commits table (replaces commit_analysis_history.json)
     db.exec(`
@@ -133,6 +118,56 @@ const createTables = () => {
         )
     `);
 
+    // AI Models table (stores all AI model configuration and performance data)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS ai_models (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            model_id TEXT UNIQUE NOT NULL,
+            provider TEXT NOT NULL,
+            model_name TEXT NOT NULL,
+            status TEXT DEFAULT 'inactive' CHECK (status IN ('active', 'inactive', 'error')),
+            input_cost TEXT NOT NULL,
+            output_cost TEXT NOT NULL,
+            api_endpoint TEXT NOT NULL,
+            parameters TEXT DEFAULT '{}', -- JSON as TEXT
+            env_var TEXT NOT NULL,
+            model_type TEXT NOT NULL,
+            notes TEXT,
+            
+            -- Performance metrics
+            avg_quality_score REAL DEFAULT 0,
+            avg_response_time REAL DEFAULT 0,
+            total_tokens INTEGER DEFAULT 0,
+            total_cost REAL DEFAULT 0,
+            success_count INTEGER DEFAULT 0,
+            error_count INTEGER DEFAULT 0,
+            total_analyses INTEGER DEFAULT 0,
+            last_error TEXT,
+            last_used_at DATETIME,
+            
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    // Encrypted API Keys table (stores encrypted API keys with metadata)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS encrypted_api_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key_name TEXT NOT NULL,
+            encrypted_key TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            user_id INTEGER,
+            is_global BOOLEAN DEFAULT 1,
+            last_used_at DATETIME,
+            key_version INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE(key_name, user_id, is_global)
+        )
+    `);
+
     // Create indexes for better performance
     db.exec(`
         CREATE INDEX IF NOT EXISTS idx_commits_user_name ON commits(user_name);
@@ -142,6 +177,7 @@ const createTables = () => {
         CREATE INDEX IF NOT EXISTS idx_commits_hash ON commits(commit_hash);
         CREATE INDEX IF NOT EXISTS idx_daily_commits_date ON daily_commits(date DESC);
         CREATE INDEX IF NOT EXISTS idx_daily_commits_user ON daily_commits(user_name);
+        CREATE INDEX IF NOT EXISTS idx_ai_models_model_id ON ai_models(model_id);
     `);
 
     // Create triggers for updated_at
@@ -153,13 +189,6 @@ const createTables = () => {
         END;
     `);
 
-    db.exec(`
-        CREATE TRIGGER IF NOT EXISTS update_user_details_timestamp 
-        AFTER UPDATE ON user_details
-        BEGIN
-            UPDATE user_details SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-        END;
-    `);
 
     db.exec(`
         CREATE TRIGGER IF NOT EXISTS update_commits_timestamp 
@@ -174,6 +203,14 @@ const createTables = () => {
         AFTER UPDATE ON daily_commits
         BEGIN
             UPDATE daily_commits SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+    `);
+
+    db.exec(`
+        CREATE TRIGGER IF NOT EXISTS update_ai_models_timestamp 
+        AFTER UPDATE ON ai_models
+        BEGIN
+            UPDATE ai_models SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END;
     `);
 
@@ -377,42 +414,6 @@ export const dbHelpers = {
         return db.prepare('UPDATE organizations SET is_active = 0 WHERE id = ?').run(id);
     },
 
-    // User Organizations
-    getUserOrganizations(userId) {
-        return db.prepare(`
-            SELECT o.*, uo.role, uo.department, uo.join_date, uo.end_date, uo.is_active as membership_active
-            FROM organizations o
-            JOIN user_organizations uo ON o.id = uo.organization_id
-            WHERE uo.user_id = ? AND uo.is_active = 1
-            ORDER BY o.name
-        `).all(userId);
-    },
-
-    addUserToOrganization(userId, organizationId, role, department) {
-        const stmt = db.prepare(`
-            INSERT OR REPLACE INTO user_organizations (user_id, organization_id, role, department, join_date, is_active)
-            VALUES (?, ?, ?, ?, DATE('now'), 1)
-        `);
-        return stmt.run(userId, organizationId, role, department);
-    },
-
-    removeUserFromOrganization(userId, organizationId) {
-        const stmt = db.prepare(`
-            UPDATE user_organizations SET is_active = 0, end_date = DATE('now')
-            WHERE user_id = ? AND organization_id = ?
-        `);
-        return stmt.run(userId, organizationId);
-    },
-
-    getOrganizationMembers(organizationId) {
-        return db.prepare(`
-            SELECT u.*, uo.role, uo.department, uo.join_date
-            FROM users u
-            JOIN user_organizations uo ON u.id = uo.user_id
-            WHERE uo.organization_id = ? AND uo.is_active = 1
-            ORDER BY u.name
-        `).all(organizationId);
-    },
 
     getCommitsByOrganizationId(organizationId) {
         return db.prepare(`
@@ -493,46 +494,6 @@ export const dbHelpers = {
         return db.prepare('DELETE FROM users WHERE id = ?').run(id);
     },
 
-    // User Details
-    getUserDetails(userId) {
-        const result = db.prepare('SELECT * FROM user_details WHERE user_id = ?').get(userId);
-        if (result) {
-            // Parse JSON fields
-            result.organizations = JSON.parse(result.organizations || '[]');
-            result.tools = JSON.parse(result.tools || '[]');
-        }
-        return result;
-    },
-
-    getUserDetailsByUsername(username) {
-        const result = db.prepare(`
-            SELECT ud.* FROM user_details ud
-            JOIN users u ON ud.user_id = u.id
-            WHERE u.username = ?
-        `).get(username);
-        if (result) {
-            result.organizations = JSON.parse(result.organizations || '[]');
-            result.tools = JSON.parse(result.tools || '[]');
-        }
-        return result;
-    },
-
-    createOrUpdateUserDetails(userId, details) {
-        const stmt = db.prepare(`
-            INSERT OR REPLACE INTO user_details 
-            (user_id, email, phone, whatsapp_available, min_hours_per_day, organizations, tools)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `);
-        return stmt.run(
-            userId,
-            details.email || '',
-            details.phone || '',
-            details.whatsapp_available ? 1 : 0,
-            details.min_hours_per_day || 8,
-            JSON.stringify(details.organizations || []),
-            JSON.stringify(details.tools || [])
-        );
-    },
 
     // Commits
     getAllCommits(userRole, userId, username) {
@@ -732,6 +693,327 @@ export const dbHelpers = {
 
     deleteTool(id) {
         return db.prepare('DELETE FROM tools WHERE id = ?').run(id);
+    },
+
+    // AI Models
+    getAllAIModels() {
+        return db.prepare('SELECT * FROM ai_models ORDER BY provider, model_name').all();
+    },
+
+    getAIModel(modelId) {
+        return db.prepare('SELECT * FROM ai_models WHERE model_id = ?').get(modelId);
+    },
+
+    createOrUpdateAIModel(modelData) {
+        const existing = this.getAIModel(modelData.model_id);
+        
+        if (existing) {
+            // Update existing record
+            const stmt = db.prepare(`
+                UPDATE ai_models 
+                SET provider = ?, model_name = ?, status = ?, 
+                    input_cost = ?, output_cost = ?, api_endpoint = ?,
+                    parameters = ?, env_var = ?, model_type = ?, notes = ?,
+                    avg_quality_score = ?, avg_response_time = ?, 
+                    total_tokens = ?, total_cost = ?, 
+                    success_count = ?, error_count = ?, total_analyses = ?,
+                    last_error = ?, last_used_at = ?
+                WHERE model_id = ?
+            `);
+            
+            return stmt.run(
+                modelData.provider,
+                modelData.model_name,
+                modelData.status || 'inactive',
+                modelData.input_cost,
+                modelData.output_cost,
+                modelData.api_endpoint,
+                modelData.parameters || '{}',
+                modelData.env_var,
+                modelData.model_type,
+                modelData.notes || null,
+                modelData.avg_quality_score || 0,
+                modelData.avg_response_time || 0,
+                modelData.total_tokens || 0,
+                modelData.total_cost || 0,
+                modelData.success_count || 0,
+                modelData.error_count || 0,
+                modelData.total_analyses || 0,
+                modelData.last_error || null,
+                modelData.last_used_at || null,
+                modelData.model_id
+            );
+        } else {
+            // Create new record
+            const stmt = db.prepare(`
+                INSERT INTO ai_models (
+                    model_id, provider, model_name, status, 
+                    input_cost, output_cost, api_endpoint,
+                    parameters, env_var, model_type, notes,
+                    avg_quality_score, avg_response_time, 
+                    total_tokens, total_cost, 
+                    success_count, error_count, total_analyses,
+                    last_error, last_used_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            
+            return stmt.run(
+                modelData.model_id,
+                modelData.provider,
+                modelData.model_name,
+                modelData.status || 'inactive',
+                modelData.input_cost,
+                modelData.output_cost,
+                modelData.api_endpoint,
+                modelData.parameters || '{}',
+                modelData.env_var,
+                modelData.model_type,
+                modelData.notes || null,
+                modelData.avg_quality_score || 0,
+                modelData.avg_response_time || 0,
+                modelData.total_tokens || 0,
+                modelData.total_cost || 0,
+                modelData.success_count || 0,
+                modelData.error_count || 0,
+                modelData.total_analyses || 0,
+                modelData.last_error || null,
+                modelData.last_used_at || null
+            );
+        }
+    },
+
+    updateAIModelStatus(modelId, status) {
+        return db.prepare('UPDATE ai_models SET status = ? WHERE model_id = ?').run(status, modelId);
+    },
+
+    updateAIModelPerformanceFromCommit(modelId, quality, responseTime, tokens, cost, success) {
+        const existing = this.getAIModel(modelId);
+        
+        if (!existing) {
+            console.warn(`Model ${modelId} not found in ai_models table`);
+            return;
+        }
+        
+        // Update with incremental statistics
+        const stmt = db.prepare(`
+            UPDATE ai_models 
+            SET total_analyses = total_analyses + 1,
+                success_count = success_count + ?,
+                error_count = error_count + ?,
+                total_tokens = total_tokens + ?,
+                total_cost = total_cost + ?,
+                avg_quality_score = ((avg_quality_score * total_analyses) + ?) / (total_analyses + 1),
+                avg_response_time = ((avg_response_time * total_analyses) + ?) / (total_analyses + 1),
+                last_used_at = CURRENT_TIMESTAMP,
+                last_error = CASE WHEN ? = 0 THEN ? ELSE last_error END
+            WHERE model_id = ?
+        `);
+        
+        return stmt.run(
+            success ? 1 : 0,
+            success ? 0 : 1,
+            tokens || 0,
+            cost || 0,
+            quality || 0,
+            responseTime || 0,
+            success ? 1 : 0,
+            success ? null : 'Analysis failed',
+            modelId
+        );
+    },
+
+    createAIModel(modelData) {
+        const stmt = db.prepare(`
+            INSERT INTO ai_models (
+                model_id, provider, model_name, status, 
+                input_cost, output_cost, api_endpoint,
+                parameters, env_var, model_type, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        
+        return stmt.run(
+            modelData.model_id,
+            modelData.provider,
+            modelData.model_name,
+            modelData.status || 'inactive',
+            modelData.input_cost,
+            modelData.output_cost,
+            modelData.api_endpoint,
+            modelData.parameters || '{}',
+            modelData.env_var,
+            modelData.model_type,
+            modelData.notes || null
+        );
+    },
+
+    updateAIModel(modelId, modelData) {
+        const stmt = db.prepare(`
+            UPDATE ai_models 
+            SET provider = ?, model_name = ?, status = ?, 
+                input_cost = ?, output_cost = ?, api_endpoint = ?,
+                parameters = ?, env_var = ?, model_type = ?, notes = ?
+            WHERE model_id = ?
+        `);
+        
+        return stmt.run(
+            modelData.provider,
+            modelData.model_name,
+            modelData.status,
+            modelData.input_cost,
+            modelData.output_cost,
+            modelData.api_endpoint,
+            modelData.parameters || '{}',
+            modelData.env_var,
+            modelData.model_type,
+            modelData.notes || null,
+            modelId
+        );
+    },
+
+    deleteAIModel(modelId) {
+        return db.prepare('DELETE FROM ai_models WHERE model_id = ?').run(modelId);
+    },
+
+    getAIModelById(id) {
+        return db.prepare('SELECT * FROM ai_models WHERE id = ?').get(id);
+    },
+
+    // Encryption utilities
+    getEncryptionKey() {
+        // Use environment variable or generate one (store securely in production)
+        return process.env.ENCRYPTION_KEY || 'commit-analyzer-default-key-change-in-production-32chars';
+    },
+
+    encryptApiKey(plainKey) {
+        try {
+            const algorithm = 'aes-256-cbc';
+            const key = crypto.scryptSync(this.getEncryptionKey(), 'salt', 32);
+            const iv = crypto.randomBytes(16);
+            
+            const cipher = crypto.createCipher(algorithm, key, iv);
+            
+            let encrypted = cipher.update(plainKey, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+            
+            // Combine iv + encrypted data
+            return iv.toString('hex') + ':' + encrypted;
+        } catch (error) {
+            console.error('Encryption error:', error);
+            throw new Error('Failed to encrypt API key');
+        }
+    },
+
+    decryptApiKey(encryptedKey) {
+        try {
+            const algorithm = 'aes-256-cbc';
+            const key = crypto.scryptSync(this.getEncryptionKey(), 'salt', 32);
+            
+            const parts = encryptedKey.split(':');
+            if (parts.length !== 2) {
+                throw new Error('Invalid encrypted key format');
+            }
+            
+            const iv = Buffer.from(parts[0], 'hex');
+            const encrypted = parts[1];
+            
+            const decipher = crypto.createDecipher(algorithm, key, iv);
+            
+            let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            
+            return decrypted;
+        } catch (error) {
+            console.error('Decryption error:', error);
+            throw new Error('Failed to decrypt API key');
+        }
+    },
+
+    // Encrypted API Keys management
+    saveEncryptedApiKey(keyName, plainKey, provider, userId = null, isGlobal = true) {
+        try {
+            const encryptedKey = this.encryptApiKey(plainKey);
+            
+            const stmt = db.prepare(`
+                INSERT OR REPLACE INTO encrypted_api_keys 
+                (key_name, encrypted_key, provider, user_id, is_global, key_version)
+                VALUES (?, ?, ?, ?, ?, 
+                    COALESCE((SELECT key_version + 1 FROM encrypted_api_keys 
+                             WHERE key_name = ? AND user_id IS ? AND is_global = ?), 1))
+            `);
+            
+            return stmt.run(keyName, encryptedKey, provider, userId, isGlobal ? 1 : 0, 
+                           keyName, userId, isGlobal ? 1 : 0);
+        } catch (error) {
+            console.error('Error saving encrypted API key:', error);
+            throw error;
+        }
+    },
+
+    getDecryptedApiKey(keyName, userId = null, isGlobal = true) {
+        try {
+            const stmt = db.prepare(`
+                SELECT encrypted_key, provider, last_used_at 
+                FROM encrypted_api_keys 
+                WHERE key_name = ? AND user_id IS ? AND is_global = ?
+                ORDER BY key_version DESC 
+                LIMIT 1
+            `);
+            
+            const result = stmt.get(keyName, userId, isGlobal ? 1 : 0);
+            
+            if (!result) {
+                return null;
+            }
+            
+            // Update last used timestamp
+            this.updateApiKeyLastUsed(keyName, userId, isGlobal);
+            
+            return {
+                key: this.decryptApiKey(result.encrypted_key),
+                provider: result.provider,
+                lastUsed: result.last_used_at
+            };
+        } catch (error) {
+            console.error('Error retrieving decrypted API key:', error);
+            return null;
+        }
+    },
+
+    updateApiKeyLastUsed(keyName, userId = null, isGlobal = true) {
+        const stmt = db.prepare(`
+            UPDATE encrypted_api_keys 
+            SET last_used_at = CURRENT_TIMESTAMP 
+            WHERE key_name = ? AND user_id IS ? AND is_global = ?
+        `);
+        return stmt.run(keyName, userId, isGlobal ? 1 : 0);
+    },
+
+    getAllApiKeys(userId = null, isGlobal = true) {
+        const stmt = db.prepare(`
+            SELECT key_name, provider, last_used_at, key_version, created_at
+            FROM encrypted_api_keys 
+            WHERE user_id IS ? AND is_global = ?
+            ORDER BY provider, key_name
+        `);
+        
+        return stmt.all(userId, isGlobal ? 1 : 0);
+    },
+
+    deleteApiKey(keyName, userId = null, isGlobal = true) {
+        const stmt = db.prepare(`
+            DELETE FROM encrypted_api_keys 
+            WHERE key_name = ? AND user_id IS ? AND is_global = ?
+        `);
+        return stmt.run(keyName, userId, isGlobal ? 1 : 0);
+    },
+
+    // Helper to get API key for AI model operations
+    getApiKeyForModel(modelId) {
+        const model = this.getAIModel(modelId);
+        if (!model) return null;
+        
+        // Try to get the API key using the model's env_var name
+        return this.getDecryptedApiKey(model.env_var);
     }
 };
 

@@ -21,7 +21,7 @@ function getDevLevel(level) {
 // Load organization details
 async function loadOrganizationDetails() {
     if (!organizationName) {
-        window.location.href = '/organizations.html';
+        window.location.href = '/analytics.html';
         return;
     }
 
@@ -47,7 +47,7 @@ async function loadOrganizationDetails() {
     } catch (error) {
         console.error('Error loading organization details:', error);
         alert('Error loading organization details');
-        window.location.href = '/organizations.html';
+        window.location.href = '/analytics.html';
     }
 }
 

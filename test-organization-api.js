@@ -99,7 +99,7 @@ console.log(`   Commits with organization_id: ${stats.commitsWithOrgId}/${stats.
 
 console.log('\n✅ Organization migration testing completed!');
 console.log('\n📊 Next steps:');
-console.log('   1. Test the web interface at http://localhost:3000/organizations.html');
+console.log('   1. Test the web interface at http://localhost:3000/analytics.html');
 console.log('   2. Test API endpoints with proper authentication');
 console.log('   3. Add more organization data through the admin interface');
 console.log('   4. Verify organization analytics and reporting');
