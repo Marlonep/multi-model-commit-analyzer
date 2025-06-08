@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Details</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Organization Details</title>
+    <link rel="stylesheet" href="../assets/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -15,15 +15,15 @@
                 <h2>Commit Analyzer</h2>
             </div>
             <ul class="nav-menu">
-                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
-                <li><a href="/index.html" class="nav-link">Commits</a></li>
-                <li><a href="/users.html" class="nav-link">Users</a></li>
-                <li><a href="/projects.html" class="nav-link active">Projects</a></li>
-                <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
-                <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
-                <li><a href="/models.html" class="nav-link">AI Models</a></li>
-                <li><a href="/tools.html" class="nav-link">Tools</a></li>
-                <li><a href="/settings.html" class="nav-link">Settings</a></li>
+                <li><a href="/pages/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/pages/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/pages/users.html" class="nav-link">Users</a></li>
+                <li><a href="/pages/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/pages/alerts.html" class="nav-link">Alerts</a></li>
+                <li><a href="/pages/daily-commits.html" class="nav-link">Daily Commits</a></li>
+                <li><a href="/pages/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/pages/tools.html" class="nav-link">Tools</a></li>
+                <li><a href="/pages/settings.html" class="nav-link">Settings</a></li>
             </ul>
         </nav>
 
@@ -32,48 +32,48 @@
             <header>
                 <div class="header-content">
                     <div>
-                        <h1>Project Analysis Details</h1>
+                        <h1>Organization Analysis Details</h1>
                     </div>
-                    <a href="/projects.html" class="back-button">← Back to Projects</a>
+                    <a href="/pages/analytics.html" class="back-button">← Back to Analytics</a>
                 </div>
             </header>
 
             <main>
-            <!-- Project Info -->
-            <h2 class="section-title">Project Information</h2>
+            <!-- Organization Info -->
+            <h2 class="section-title">Organization Information</h2>
             <section class="commit-info compact">
                 <div class="info-grid">
                     <div class="info-item">
-                        <span class="label">Project:</span>
-                        <a id="projectNameLink" href="#" target="_blank" class="value project-link">
-                            <span id="projectName"></span>
+                        <span class="label">Organization:</span>
+                        <span id="organizationName" class="value"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">GitHub:</span>
+                        <a id="githubOrgLink" href="#" target="_blank" class="value link">
+                            View on GitHub
                         </a>
                     </div>
                     <div class="info-item">
-                        <span class="label">Organization:</span>
-                        <span id="organizationName" class="value">-</span>
+                        <span class="label">Total Projects:</span>
+                        <span id="totalProjects" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total Contributors:</span>
+                        <span id="totalContributors" class="value">0</span>
                     </div>
                     <div class="info-item">
                         <span class="label">Total Commits:</span>
                         <span id="totalCommits" class="value">0</span>
                     </div>
                     <div class="info-item">
-                        <span class="label">Contributors:</span>
-                        <span id="totalContributors" class="value">0</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Active Days:</span>
-                        <span id="activeDays" class="value">0</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Organization:</span>
-                        <span id="projectOrganization" class="value">Unknown</span>
+                        <span class="label">Active Since:</span>
+                        <span id="activeSince" class="value">-</span>
                     </div>
                 </div>
             </section>
 
             <!-- Summary Stats -->
-            <h2 class="section-title">Project Metrics</h2>
+            <h2 class="section-title">Organization Metrics</h2>
             <section class="summary-stats compact">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -111,16 +111,16 @@
                     <canvas id="activityChart"></canvas>
                 </section>
 
+                <!-- Projects Chart -->
+                <section class="chart-section">
+                    <h3>Top Projects</h3>
+                    <canvas id="projectsChart"></canvas>
+                </section>
+
                 <!-- Contributors Chart -->
                 <section class="chart-section">
                     <h3>Top Contributors</h3>
                     <canvas id="contributorsChart"></canvas>
-                </section>
-
-                <!-- Code Changes Chart -->
-                <section class="chart-section">
-                    <h3>Code Changes Over Time</h3>
-                    <canvas id="codeChangesChart"></canvas>
                 </section>
 
                 <!-- Quality Trends Chart -->
@@ -128,68 +128,82 @@
                     <h3>Quality Trends</h3>
                     <canvas id="qualityTrendsChart"></canvas>
                 </section>
-
-                <!-- Contributors by Day Chart -->
-                <section class="chart-section">
-                    <h3>Daily Contributor Activity</h3>
-                    <canvas id="contributorsByDayChart"></canvas>
-                </section>
-
-                <!-- Daily Lines Changed Chart -->
-                <section class="chart-section">
-                    <h3>Daily Lines Added/Deleted</h3>
-                    <canvas id="dailyLinesChart"></canvas>
-                </section>
             </div>
 
             <!-- Contributors Table -->
-            <h2 class="section-title">Contributors</h2>
+            <h2 class="section-title">Organization Members</h2>
             <section class="table-section">
                 <div class="table-wrapper">
-                    <table id="contributorsTable">
+                    <table id="membersTable">
                         <thead>
                             <tr>
-                                <th>Contributor</th>
+                                <th>Member</th>
+                                <th>Projects</th>
                                 <th>Commits</th>
                                 <th>Lines Added</th>
                                 <th>Lines Deleted</th>
                                 <th>Avg Quality</th>
-                                <th>Avg Complexity</th>
                                 <th>Total Hours</th>
+                                <th>Last Activity</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="contributorsBody">
+                        <tbody id="membersBody">
                             <!-- Data will be populated here -->
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Project Commits Table -->
-            <h2 class="section-title">Commit History</h2>
+            <!-- Projects Table -->
+            <h2 class="section-title">Organization Projects</h2>
+            <section class="table-section">
+                <div class="table-wrapper">
+                    <table id="projectsTable">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Commits</th>
+                                <th>Contributors</th>
+                                <th>Lines Added</th>
+                                <th>Lines Deleted</th>
+                                <th>Avg Quality</th>
+                                <th>Total Hours</th>
+                                <th>Last Activity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectsBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Organization Commits Table -->
+            <h2 class="section-title">Recent Commits</h2>
             <section class="table-section">
                 <div class="search-container">
                     <input type="text" class="search-bar" id="commitsSearch" placeholder="Search commits...">
                 </div>
                 <div class="table-wrapper">
-                    <table id="projectCommitsTable">
+                    <table id="orgCommitsTable">
                         <thead>
                             <tr>
                                 <th>Date</th>
                                 <th>Hash</th>
                                 <th>User</th>
+                                <th>Project</th>
                                 <th>Message</th>
                                 <th>Files</th>
                                 <th>+Lines</th>
                                 <th>-Lines</th>
                                 <th>Quality</th>
-                                <th>Complexity</th>
                                 <th>AI %</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="projectCommitsBody">
+                        <tbody id="orgCommitsBody">
                             <!-- Data will be populated here -->
                         </tbody>
                     </table>
@@ -200,7 +214,7 @@
         </div>
     </div>
 
-    <script src="auth-utils.js"></script>
-    <script src="project-details.js"></script>
+    <script src="../pages/auth-utils.js"></script>
+    <script src="../pages/organization-details.js"></script>
 </body>
 </html>

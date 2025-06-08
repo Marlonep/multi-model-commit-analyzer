@@ -1,0 +1,85 @@
+{
+  "extractedAt": "2025-06-07T05:29:42.737Z",
+  "repository": {
+    "remoteUrl": "https://github.com/Nuclea-Solutions/multi-model-commit-analyzer.git",
+    "currentBranch": "feature/daily-commits-ui-improvements"
+  },
+  "commit": {
+    "hash": "495dad4d2330346827f426654dbc2d7b56d6b253",
+    "shortHash": "495dad4",
+    "author": {
+      "name": "Marlon Espinosa",
+      "email": "82923825+Marlonep@users.noreply.github.com",
+      "date": "2025-06-06T05:43:58.000Z"
+    },
+    "committer": {
+      "name": "Marlon Espinosa",
+      "email": "82923825+Marlonep@users.noreply.github.com",
+      "date": "2025-06-06T05:43:58.000Z"
+    },
+    "message": {
+      "subject": "Improve Daily Commits page UI/UX and fix sidebar padding",
+      "body": "- Redesigned daily commits controls with two-card layout\n- Enhanced date inputs with better visual design and icons\n- Fixed calendar icon visibility in dark theme\n- Improved button styling with hover effects\n- Added responsive design for mobile devices\n- Removed unnecessary 60px padding from sidebar nav-menu\n- Better visual hierarchy with card headers and separators"
+    },
+    "parents": [
+      "e1eabfbf36af3e499c4e3171c3d3d4e09d6506f8"
+    ],
+    "containingBranches": [
+      "origin/feature/daily-commits-ui-improvements"
+    ],
+    "stats": {
+      "filesChanged": 2,
+      "insertions": 367,
+      "deletions": 35,
+      "fileStats": [
+        {
+          "fileName": "public/daily-commits.html",
+          "changes": "99 +++++++++------"
+        },
+        {
+          "fileName": "public/styles.css",
+          "changes": "303 +++++++++++++++++++++++++++++++++++++++++++++-"
+        }
+      ]
+    },
+    "diff": {
+      "fullDiff": "diff --git a/public/daily-commits.html b/public/daily-commits.html\nindex 528312b..509043c 100644\n--- a/public/daily-commits.html\n+++ b/public/daily-commits.html\n@@ -33,40 +33,7 @@\n             </header>\n             \n             <main>\n-                <!-- Filters Section -->\n-                <section class=\"filters-section\">\n-                    <div class=\"filters-container\">\n-                        <div class=\"filter-group\">\n-                            <label for=\"startDate\">Start Date:</label>\n-                            <input type=\"date\" id=\"startDate\" class=\"filter-input\">\n-                        </div>\n-                        <div class=\"filter-group\">\n-                            <label for=\"endDate\">End Date:</label>\n-                            <input type=\"date\" id=\"endDate\" class=\"filter-input\">\n-                        </div>\n-                        <div class=\"filter-group\">\n-                            <label for=\"userFilter\">User:</label>\n-                            <select id=\"userFilter\" class=\"filter-select\">\n-                                <option value=\"\">All Users</option>\n-                            </select>\n-                        </div>\n-                        <button id=\"applyFilters\" class=\"btn-primary\">Apply Filters</button>\n-                        <button id=\"resetFilters\" class=\"btn-secondary\">Reset</button>\n-                    </div>\n-                </section>\n-                \n-                <!-- Actions Section -->\n-                <section class=\"actions-section\">\n-                    <div class=\"actions-container\">\n-                        <button id=\"generateReport\" class=\"btn-primary\">Generate All Daily Reports</button>\n-                        <div class=\"specific-date-group\">\n-                            <input type=\"date\" id=\"regenerateDate\" class=\"filter-input\" placeholder=\"Select date\">\n-                            <button id=\"regenerateSpecificDate\" class=\"btn-secondary\">Regenerate Specific Date</button>\n-                        </div>\n-                    </div>\n-                </section>\n-                \n-                <!-- Summary Stats -->\n+                <!-- Summary Stats - Moved to top -->\n                 <section class=\"summary-stats-section\">\n                     <div class=\"summary-stats\">\n                         <div class=\"stat-card\">\n@@ -84,6 +51,70 @@\n                     </div>\n                 </section>\n                 \n+                <!-- Unified Filters and Actions Section -->\n+                <section class=\"daily-controls-section\">\n+                    <div class=\"controls-container\">\n+                        <!-- Filters Card -->\n+                        <div class=\"control-card filters-card\">\n+                            <div class=\"card-header\">\n+                                <h3>🔍 Filter Reports</h3>\n+                            </div>\n+                            <div class=\"card-content\">\n+                                <div class=\"date-inputs\">\n+                                    <div class=\"input-group\">\n+                                        <label>From</label>\n+                                        <input type=\"date\" id=\"startDate\" class=\"date-input\">\n+                                    </div>\n+                                    <div class=\"date-separator\">→</div>\n+                                    <div class=\"input-group\">\n+                                        <label>To</label>\n+                                        <input type=\"date\" id=\"endDate\" class=\"date-input\">\n+                                    </div>\n+                                </div>\n+                                <div class=\"user-select-group\">\n+                                    <label>User</label>\n+                                    <select id=\"userFilter\" class=\"user-select\">\n+                                        <option value=\"\">All Users</option>\n+                                    </select>\n+                                </div>\n+                                <div class=\"filter-actions\">\n+                                    <button id=\"applyFilters\" class=\"btn-apply\">\n+                                        <span class=\"btn-icon\">✓</span> Apply\n+                                    </button>\n+                                    <button id=\"resetFilters\" class=\"btn-reset\">\n+                                        <span class=\"btn-icon\">↻</span> Reset\n+                                    </button>\n+                                </div>\n+                            </div>\n+                        </div>\n+\n+                        <!-- Generate Reports Card -->\n+                        <div class=\"control-card generate-card\">\n+                            <div class=\"card-header\">\n+                                <h3>📊 Generate Reports</h3>\n+                            </div>\n+                            <div class=\"card-content\">\n+                                <button id=\"generateReport\" class=\"btn-generate-all\">\n+                                    <span class=\"btn-icon\">⚡</span>\n+                                    Generate All Daily Reports\n+                                </button>\n+                                <div class=\"or-separator\">\n+                                    <span>or</span>\n+                                </div>\n+                                <div class=\"specific-date-section\">\n+                                    <label>Regenerate Specific Date</label>\n+                                    <div class=\"date-action-group\">\n+                                        <input type=\"date\" id=\"regenerateDate\" class=\"date-input\" placeholder=\"dd/mm/yyyy\">\n+                                        <button id=\"regenerateSpecificDate\" class=\"btn-regenerate\">\n+                                            <span class=\"btn-icon\">🔄</span> Regenerate\n+                                        </button>\n+                                    </div>\n+                                </div>\n+                            </div>\n+                        </div>\n+                    </div>\n+                </section>\n+                \n                 <!-- Table Section -->\n                 <section class=\"table-section\">\n                     <div class=\"table-wrapper\">\ndiff --git a/public/styles.css b/public/styles.css\nindex 4b7b794..f967e0e 100644\n--- a/public/styles.css\n+++ b/public/styles.css\n@@ -127,7 +127,6 @@ main::-webkit-scrollbar-thumb:hover {\n     padding: 0;\n     margin: 0;\n     flex: 1;\n-    padding-bottom: 60px; /* Space for logout button */\n }\n \n .nav-link {\n@@ -2947,6 +2946,308 @@ tfoot td {\n     color: var(--text-primary);\n }\n \n+/* Daily Commits Page - Enhanced Controls */\n+.daily-controls-section {\n+    margin-bottom: 30px;\n+}\n+\n+.controls-container {\n+    display: grid;\n+    grid-template-columns: 1fr 1fr;\n+    gap: 20px;\n+}\n+\n+.control-card {\n+    background: var(--bg-secondary);\n+    border: 1px solid var(--border-color);\n+    border-radius: 12px;\n+    overflow: hidden;\n+    transition: all 0.3s ease;\n+}\n+\n+.control-card:hover {\n+    border-color: var(--accent-green);\n+    box-shadow: 0 4px 12px rgba(57, 255, 20, 0.1);\n+}\n+\n+.card-header {\n+    background: rgba(57, 255, 20, 0.05);\n+    padding: 15px 20px;\n+    border-bottom: 1px solid var(--border-color);\n+}\n+\n+.card-header h3 {\n+    margin: 0;\n+    font-size: 1.1rem;\n+    color: var(--text-primary);\n+    display: flex;\n+    align-items: center;\n+    gap: 8px;\n+}\n+\n+.card-content {\n+    padding: 20px;\n+}\n+\n+/* Date Inputs Section */\n+.date-inputs {\n+    display: flex;\n+    align-items: center;\n+    gap: 15px;\n+    margin-bottom: 20px;\n+}\n+\n+.input-group {\n+    flex: 1;\n+}\n+\n+.input-group label,\n+.user-select-group label,\n+.specific-date-section label {\n+    display: block;\n+    font-size: 0.85rem;\n+    color: var(--text-secondary);\n+    margin-bottom: 8px;\n+    font-weight: 500;\n+    text-transform: uppercase;\n+    letter-spacing: 0.5px;\n+}\n+\n+.date-input,\n+.user-select {\n+    width: 100%;\n+    padding: 10px 15px;\n+    background: var(--bg-primary);\n+    border: 1px solid var(--border-color);\n+    border-radius: 6px;\n+    color: var(--text-primary);\n+    font-size: 0.95rem;\n+    transition: all 0.2s ease;\n+}\n+\n+/* Fix calendar icon visibility - force white icons */\n+.date-input::-webkit-calendar-picker-indicator {\n+    filter: invert(1) brightness(2);\n+    opacity: 0.8;\n+    cursor: pointer;\n+    transition: opacity 0.2s ease;\n+}\n+\n+.date-input::-webkit-calendar-picker-indicator:hover {\n+    opacity: 1;\n+    filter: invert(1) brightness(2.5);\n+}\n+\n+/* Alternative approach - use custom image */\n+input[type=\"date\"]::-webkit-calendar-picker-indicator {\n+    background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23c9d1d9\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"></rect><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"></line><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"></line><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"></line></svg>');\n+    background-repeat: no-repeat;\n+    background-size: 16px 16px;\n+    width: 16px;\n+    height: 16px;\n+    cursor: pointer;\n+    opacity: 0.7;\n+}\n+\n+input[type=\"date\"]::-webkit-calendar-picker-indicator:hover {\n+    opacity: 1;\n+}\n+\n+/* For Firefox and other browsers */\n+input[type=\"date\"] {\n+    color-scheme: dark;\n+    position: relative;\n+}\n+\n+/* Additional fix for all date inputs */\n+.date-input,\n+input[type=\"date\"] {\n+    -webkit-appearance: none;\n+    appearance: none;\n+    background-color: var(--bg-primary) !important;\n+    color: var(--text-primary) !important;\n+}\n+\n+.date-input:hover,\n+.user-select:hover {\n+    border-color: var(--accent-green);\n+}\n+\n+.date-input:focus,\n+.user-select:focus {\n+    outline: none;\n+    border-color: var(--accent-green);\n+    box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.1);\n+}\n+\n+.date-separator {\n+    color: var(--accent-green);\n+    font-size: 1.5rem;\n+    font-weight: bold;\n+    padding: 0 5px;\n+    margin-top: 25px;\n+}\n+\n+.user-select-group {\n+    margin-bottom: 20px;\n+}\n+\n+/* Filter Actions */\n+.filter-actions {\n+    display: flex;\n+    gap: 10px;\n+}\n+\n+.btn-apply,\n+.btn-reset {\n+    flex: 1;\n+    padding: 12px 20px;\n+    border: none;\n+    border-radius: 6px;\n+    font-size: 0.95rem;\n+    font-weight: 500;\n+    cursor: pointer;\n+    transition: all 0.2s ease;\n+    display: flex;\n+    align-items: center;\n+    justify-content: center;\n+    gap: 8px;\n+}\n+\n+.btn-apply {\n+    background: var(--accent-green);\n+    color: var(--bg-primary);\n+}\n+\n+.btn-apply:hover {\n+    background: #2bff00;\n+    box-shadow: 0 4px 12px rgba(57, 255, 20, 0.3);\n+}\n+\n+.btn-reset {\n+    background: transparent;\n+    color: var(--text-secondary);\n+    border: 1px solid var(--border-color);\n+}\n+\n+.btn-reset:hover {\n+    background: var(--bg-primary);\n+    color: var(--text-primary);\n+    border-color: var(--text-secondary);\n+}\n+\n+/* Generate Reports Card */\n+.btn-generate-all {\n+    width: 100%;\n+    padding: 16px 24px;\n+    background: linear-gradient(135deg, var(--accent-green), #2bff00);\n+    color: var(--bg-primary);\n+    border: none;\n+    border-radius: 8px;\n+    font-size: 1.05rem;\n+    font-weight: 600;\n+    cursor: pointer;\n+    transition: all 0.3s ease;\n+    display: flex;\n+    align-items: center;\n+    justify-content: center;\n+    gap: 10px;\n+}\n+\n+.btn-generate-all:hover {\n+    transform: translateY(-2px);\n+    box-shadow: 0 6px 20px rgba(57, 255, 20, 0.4);\n+}\n+\n+.or-separator {\n+    text-align: center;\n+    margin: 20px 0;\n+    position: relative;\n+}\n+\n+.or-separator span {\n+    background: var(--bg-secondary);\n+    padding: 0 15px;\n+    color: var(--text-secondary);\n+    font-size: 0.85rem;\n+    position: relative;\n+    z-index: 1;\n+}\n+\n+.or-separator::before {\n+    content: '';\n+    position: absolute;\n+    top: 50%;\n+    left: 0;\n+    right: 0;\n+    height: 1px;\n+    background: var(--border-color);\n+}\n+\n+.specific-date-section {\n+    margin-top: 20px;\n+}\n+\n+.date-action-group {\n+    display: flex;\n+    gap: 10px;\n+    margin-top: 8px;\n+}\n+\n+.date-action-group .date-input {\n+    flex: 1;\n+}\n+\n+.btn-regenerate {\n+    padding: 10px 20px;\n+    background: var(--bg-primary);\n+    color: var(--text-primary);\n+    border: 1px solid var(--border-color);\n+    border-radius: 6px;\n+    cursor: pointer;\n+    transition: all 0.2s ease;\n+    display: flex;\n+    align-items: center;\n+    gap: 8px;\n+    white-space: nowrap;\n+}\n+\n+.btn-regenerate:hover {\n+    background: var(--bg-secondary);\n+    border-color: var(--accent-green);\n+    color: var(--accent-green);\n+}\n+\n+.btn-icon {\n+    font-size: 1.1rem;\n+}\n+\n+/* Responsive Design */\n+@media (max-width: 968px) {\n+    .controls-container {\n+        grid-template-columns: 1fr;\n+    }\n+    \n+    .date-inputs {\n+        flex-direction: column;\n+        gap: 10px;\n+    }\n+    \n+    .date-separator {\n+        display: none;\n+    }\n+}\n+\n+@media (max-width: 480px) {\n+    .filter-actions {\n+        flex-direction: column;\n+    }\n+    \n+    .date-action-group {\n+        flex-direction: column;\n+    }\n+}\n+\n .category-badge {\n     display: inline-block;\n     padding: 4px 8px;\n",
+      "fileChanges": [
+        {
+          "status": "M",
+          "filePath": "public/daily-commits.html",
+          "statusDescription": "Modified"
+        },
+        {
+          "status": "M",
+          "filePath": "public/styles.css",
+          "statusDescription": "Modified"
+        }
+      ]
+    },
+    "fileSizes": [
+      {
+        "file": "public/daily-commits.html",
+        "sizeInCommit": 7165,
+        "sizeInParent": 5340,
+        "sizeDiff": 1825
+      },
+      {
+        "file": "public/styles.css",
+        "sizeInCommit": 81735,
+        "sizeInParent": 75611,
+        "sizeDiff": 6124
+      }
+    ],
+    "codeAnalysis": {
+      "fileExtensions": {
+        ".html": 1,
+        ".css": 1
+      },
+      "languages": {
+        "HTML": 1,
+        "CSS": 1
+      }
+    }
+  }
+}

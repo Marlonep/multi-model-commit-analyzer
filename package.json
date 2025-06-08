@@ -2,14 +2,18 @@
   "name": "multi-model-commit-analyzer",
   "version": "1.0.0",
   "description": "AI-powered git commit analyzer using multiple language models",
-  "main": "analyzeCommit.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "analyze": "node analyzeCommit.js",
-    "test": "node testAnalyzer.js",
-    "generate-daily-report": "node generateDailyReport.js",
-    "start": "node server.js",
-    "start:env": "node -r dotenv/config server.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "analyze": "node src/analyzers/commitAnalyzer.js",
+    "analyze:all": "node scripts/analysis/analyzeAllCommits.js",
+    "analyze:missing": "node scripts/analysis/analyzeMissingCommits.js",
+    "analyze:last": "node scripts/analysis/extractLastCommit.js",
+    "report:daily": "node scripts/reports/generateDailyReport.js",
+    "admin:reset-password": "node scripts/admin/reset-admin-password.js",
+    "admin:view-db": "node scripts/admin/view-database.js"
   },
   "keywords": [
     "git",

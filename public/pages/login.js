@@ -62,10 +62,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('User role:', data.role);
                 if (data.role === 'user') {
                     // Redirect regular users to commits page
-                    window.location.href = '/index.html';
+                    window.location.href = '/pages/index.html';
                 } else {
                     // Redirect admins to analytics page
-                    window.location.href = '/analytics.html';
+                    window.location.href = '/pages/analytics.html';
                 }
             } else {
                 // Show error message

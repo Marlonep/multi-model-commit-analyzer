@@ -3,10 +3,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { AIModels } from './analyzeCommit.js';
-import { authenticateUser, verifyToken, requireAuth } from './auth.js';
-import { dbHelpers } from './database.js';
-import { logger } from './src/logger.js';
+import { AIModels } from './analyzers/commitAnalyzer.js';
+import { authenticateUser, verifyToken, requireAuth } from './api/middleware/auth.middleware.js';
+import { dbHelpers } from './database/db.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import { UploadKeyService } from './src/upload-key-service.js';
@@ -48,81 +47,63 @@ app.use(session({
   }
 }));
 
-app.use(wm.getMiddleware());
-
-app.post('/api/upload-key', async (req, res) => {
-  const uploadKeyService = new UploadKeyService();
-  await uploadKeyService.initialize({
-    url: 'https://commits.covenant.space/api/gh-webhook',
-    key: req.body.key,
-  });
-  res.json({});
-})
-
-// Serve static files that don't need auth (login assets)
+// Serve login page
 app.get('/login', (req, res) => {
-  const loginPath = path.join(__dirname, 'public', 'login.html');
-  res.sendFile(loginPath);
+    const loginPath = path.join(__dirname, '..', 'public', 'pages', 'login.html');
+    res.sendFile(loginPath);
 });
 
-app.get('/login.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.js'));
-});
-
-app.get('/styles.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'styles.css'));
-});
-
-// Serve tools data JSON file (public endpoint)
-app.get('/tools-data.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'tools-data.json'));
-});
-
-// Serve static files after auth check
-app.use(express.static('public'));
-
-// Redirect root to analytics
-app.get('/', (req, res) => {
-  res.redirect('/analytics.html');
-});
+// Serve static files without auth for specific paths
+// Set up static serving for all public assets
+app.use('/pages', express.static(path.join(__dirname, '..', 'public', 'pages')));
+app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
 
 // Authentication middleware for all other routes
 app.use((req, res, next) => {
-  // Allow access to login API endpoints and favicon
-  if (req.path.startsWith('/api/login') ||
-    req.path.startsWith('/api/verify') ||
-    req.path.startsWith('/api/gh-webhook') ||
-    req.path === '/favicon.ico') {
-    return next();
-  }
-
-  // Check session first
-  if (req.session && req.session.userId) {
-    req.user = {
-      id: req.session.userId,
-      username: req.session.username,
-      role: req.session.role
-    };
-    return next();
-  }
-
-  // Check for token in Authorization header (for API calls)
-  const authHeader = req.headers.authorization;
-  if (authHeader) {
-    const token = authHeader.split(' ')[1];
-    const decoded = verifyToken(token);
-    if (decoded) {
-      req.user = decoded;
-      return next();
+    // Allow access to login API endpoints, static assets, and favicon
+    if (req.path.startsWith('/api/login') ||
+        req.path.startsWith('/api/verify') ||
+        req.path === '/favicon.ico' ||
+        req.path.startsWith('/assets/') ||
+        req.path === '/pages/login.js') {
+        return next();
     }
-  }
+    
+    // Check session first
+    if (req.session && req.session.userId) {
+        req.user = { 
+            id: req.session.userId, 
+            username: req.session.username,
+            role: req.session.role 
+        };
+        return next();
+    }
+    
+    // Check for token in Authorization header (for API calls)
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+        if (decoded) {
+            req.user = decoded;
+            return next();
+        }
+    }
+    
+    // No valid auth, handle based on request type
+    if (req.path === '/' || req.path.endsWith('.html')) {
+        res.redirect('/login');
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+});
 
-  // No valid auth, handle based on request type
-  if (req.path === '/' || req.path.endsWith('.html')) {
-    res.redirect('/login');
-  } else {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
+// Serve static files after auth check
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Redirect root to analytics
+app.get('/', (req, res) => {
+    res.redirect('/pages/analytics.html');
 });
 
 // Login endpoint

@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Create/open database
-const dbPath = path.join(__dirname, 'commit_analyzer.db');
+const dbPath = path.join(__dirname, '..', '..', 'commit_analyzer.db');
 const db = new Database(dbPath);
 
 // Enable foreign keys
