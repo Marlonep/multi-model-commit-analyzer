@@ -5,9 +5,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { AIModels } from './analyzeCommit.js';
-import { authenticateUser, verifyToken, requireAuth } from './auth.js';
-import { dbHelpers } from './database.js';
+import { AIModels } from './analyzers/commitAnalyzer.js';
+import { authenticateUser, verifyToken, requireAuth } from './api/middleware/auth.middleware.js';
+import { dbHelpers } from './database/db.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 
@@ -46,31 +46,25 @@ app.use(session({
     }
 }));
 
-// Serve static files that don't need auth (login assets)
+// Serve login page
 app.get('/login', (req, res) => {
-    const loginPath = path.join(__dirname, 'public', 'login.html');
+    const loginPath = path.join(__dirname, '..', 'public', 'pages', 'login.html');
     res.sendFile(loginPath);
 });
 
-app.get('/login.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.js'));
-});
-
-app.get('/styles.css', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'styles.css'));
-});
-
-// Serve tools data JSON file (public endpoint)
-app.get('/tools-data.json', (req, res) => {
-    res.sendFile(path.join(__dirname, 'tools-data.json'));
-});
+// Serve static files without auth for specific paths
+// Set up static serving for all public assets
+app.use('/pages', express.static(path.join(__dirname, '..', 'public', 'pages')));
+app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
 
 // Authentication middleware for all other routes
 app.use((req, res, next) => {
-    // Allow access to login API endpoints and favicon
+    // Allow access to login API endpoints, static assets, and favicon
     if (req.path.startsWith('/api/login') ||
         req.path.startsWith('/api/verify') ||
-        req.path === '/favicon.ico') {
+        req.path === '/favicon.ico' ||
+        req.path.startsWith('/assets/') ||
+        req.path === '/pages/login.js') {
         return next();
     }
     
@@ -104,11 +98,11 @@ app.use((req, res, next) => {
 });
 
 // Serve static files after auth check
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Redirect root to analytics
 app.get('/', (req, res) => {
-    res.redirect('/analytics.html');
+    res.redirect('/pages/analytics.html');
 });
 
 // Login endpoint

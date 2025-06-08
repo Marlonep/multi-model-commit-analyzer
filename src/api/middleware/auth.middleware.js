@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { dbHelpers } from './database.js';
+import { dbHelpers } from '../../database/db.js';
 
 // JWT secret - in production, use environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
