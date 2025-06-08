@@ -249,13 +249,13 @@ function displayAlerts() {
                 </a>
             </td>
             <td>
-                <a href="/user-details.html?user=${encodeURIComponent(commit.user)}" 
+                <a href="/pages/user-details.html?user=${encodeURIComponent(commit.user)}" 
                    class="table-link" title="View User Details">
                     ${commit.user}
                 </a>
             </td>
             <td>
-                <a href="/project-details.html?project=${encodeURIComponent(commit.project)}" 
+                <a href="/pages/project-details.html?project=${encodeURIComponent(commit.project)}" 
                    class="table-link" title="View Project Details">
                     ${commit.project}
                 </a>
@@ -303,7 +303,7 @@ function displayAlerts() {
 
 // View commit details
 function viewCommitDetails(index) {
-    window.location.href = `/details.html?index=${index}`;
+    window.location.href = `/pages/details.html?index=${index}`;
 }
 
 // Open delete modal

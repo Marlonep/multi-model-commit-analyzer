@@ -673,7 +673,7 @@ function viewCommitDetails(index) {
         .then(allCommits => {
             const commit = userCommits[index];
             const globalIndex = allCommits.findIndex(c => c.commitHash === commit.commitHash);
-            window.location.href = `/details.html?index=${globalIndex}`;
+            window.location.href = `/pages/details.html?index=${globalIndex}`;
         });
 }
 

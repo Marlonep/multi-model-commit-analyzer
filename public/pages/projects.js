@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Navigate to project details page
 function viewProjectDetails(projectName) {
-    window.location.href = `/project-details.html?project=${projectName}`;
+    window.location.href = `/pages/project-details.html?project=${projectName}`;
 }
 
 // Search functionality

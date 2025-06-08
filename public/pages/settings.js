@@ -96,7 +96,7 @@ function setupEventListeners() {
     const viewDetailsBtn = document.querySelector('.btn-small');
     if (viewDetailsBtn) {
         viewDetailsBtn.addEventListener('click', () => {
-            window.location.href = `/project-details.html?project=${encodeURIComponent(githubConfig.repository)}`;
+            window.location.href = `/pages/project-details.html?project=${encodeURIComponent(githubConfig.repository)}`;
         });
     }
     
