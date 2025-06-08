@@ -279,10 +279,10 @@ The platform provides comprehensive analytics:
 - **Bitbucket** (planned)
 
 ### AI Models Used
-- **GPT-4** (OpenAI) - Code analysis and reasoning
-- **Claude Sonnet 4** (Anthropic) - Quality assessment  
-- **Gemini 2.5 Flash** (Google) - Complexity evaluation
-- **Grok 3** (xAI) - Impact scoring
+- **GPT-4** (OpenAI)
+- **Claude Sonnet 4** (Anthropic)
+- **Gemini 2.5 Flash** (Google)
+- **Grok 3** (xAI) 
 
 ---
 
@@ -313,7 +313,7 @@ The platform provides comprehensive analytics:
 - **Support**: Contact maintainers for organization setup
 
 ### Maintainers
-- **Marlon Espinosa** - Creator and Lead Developer
+- **Marlon Espinosa & Eduardo Fuentes** - Creators and Lead Developers
 - **Contributors** - See CONTRIBUTORS.md for full list
 
 ---
