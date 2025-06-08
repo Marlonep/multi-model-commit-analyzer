@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Integrations - Commit Analyzer</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/pages/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/pages/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/pages/users.html" class="nav-link">Users</a></li>
+                <li><a href="/pages/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/pages/alerts.html" class="nav-link">Alerts</a></li>
+                <li><a href="/pages/daily-commits.html" class="nav-link">Daily Commits</a></li>
+                <li><a href="/pages/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/pages/tools.html" class="nav-link">Tools</a></li>
+                <li><a href="/pages/git.html" class="nav-link active">Git</a></li>
+                <li><a href="/pages/settings.html" class="nav-link">Roles</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Git Integrations</h1>
+                <p>Manage your Git platform connections and repository synchronization</p>
+            </header>
+
+            <main>
+                <!-- Active Integrations Section -->
+                <section class="settings-section">
+                    <h2>Active Integrations</h2>
+                    <div class="integrations-grid">
+                        
+                        <!-- GitHub Integration -->
+                        <div class="integration-card active">
+                            <div class="integration-header">
+                                <div class="integration-info">
+                                    <svg class="integration-icon" viewBox="0 0 24 24" width="40" height="40">
+                                        <path fill="currentColor" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                    </svg>
+                                    <div>
+                                        <h3>GitHub</h3>
+                                        <span class="integration-status active">Connected</span>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary">Configure</button>
+                            </div>
+                            
+                            <div class="integration-content">
+                                <div class="org-section">
+                                    <h4>Linked Organizations</h4>
+                                    <div class="org-list">
+                                        <div class="org-item">
+                                            <svg class="org-icon" viewBox="0 0 24 24" width="20" height="20">
+                                                <path fill="currentColor" d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2M4 1h5v3H4V1m11.5 7L20 12.5 18.5 14l-4.5-4.5V7h1.5M4 6h5v3H4V6m0 5h5v3H4v-3z"/>
+                                            </svg>
+                                            <span class="org-name">Nuclea-Solutions</span>
+                                        </div>
+                                        <div class="org-item">
+                                            <svg class="org-icon" viewBox="0 0 24 24" width="20" height="20">
+                                                <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                            </svg>
+                                            <span class="org-name">Personal</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="repo-section">
+                                    <h4>Active Repositories</h4>
+                                    <div class="repo-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-value">1</span>
+                                            <span class="stat-label">Repository</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-value">66</span>
+                                            <span class="stat-label">Commits Analyzed</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-value">Active</span>
+                                            <span class="stat-label">Sync Status</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="repo-list">
+                                        <div class="repo-item">
+                                            <div class="repo-info">
+                                                <svg class="repo-icon" viewBox="0 0 24 24" width="16" height="16">
+                                                    <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                                </svg>
+                                                <span class="repo-name">multi-model-commit-analyzer</span>
+                                            </div>
+                                            <div class="repo-actions">
+                                                <button class="btn-small">View Details</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GitLab Integration (Coming Soon) -->
+                        <div class="integration-card coming-soon">
+                            <div class="integration-header">
+                                <div class="integration-info">
+                                    <svg class="integration-icon" viewBox="0 0 24 24" width="40" height="40">
+                                        <path fill="currentColor" d="M4.845.904c-.435 0-.82.28-.955.692L.011 13.478a1.318 1.318 0 00.466 1.462l10.91 7.927c.14.101.307.152.475.152.168 0 .336-.051.475-.152l10.91-7.927a1.318 1.318 0 00.466-1.462L20.834 1.596a1.006 1.006 0 00-.955-.692c-.302 0-.588.139-.776.385l-2.912 3.803-2.409-5.891A1.002 1.002 0 0012.857 0h-1.714c-.396 0-.764.237-.925.60l-2.409 5.891-2.912-3.803A1.022 1.022 0 004.845.904z"/>
+                                    </svg>
+                                    <div>
+                                        <h3>GitLab</h3>
+                                        <span class="integration-status coming-soon">Coming Soon</span>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary" disabled>Configure</button>
+                            </div>
+                            
+                            <div class="integration-content">
+                                <div class="coming-soon-content">
+                                    <p>GitLab integration is currently under development.</p>
+                                    <p>Features coming soon:</p>
+                                    <ul>
+                                        <li>Connect multiple GitLab organizations</li>
+                                        <li>Analyze commits from GitLab repositories</li>
+                                        <li>Merge request analysis</li>
+                                        <li>GitLab CI/CD insights</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </section>
+
+                <!-- Repository Management Section -->
+                <section class="settings-section">
+                    <h2>Repository Management</h2>
+                    <div class="repo-management">
+                        <div class="repo-actions-header">
+                            <p>Manage repository synchronization and analysis settings</p>
+                            <button class="btn primary" id="addRepoBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Add Repository
+                            </button>
+                        </div>
+                        
+                        <div class="sync-status-grid">
+                            <div class="sync-card">
+                                <h4>Last Sync</h4>
+                                <p class="sync-time">2 minutes ago</p>
+                                <span class="sync-badge success">✓ Up to date</span>
+                            </div>
+                            <div class="sync-card">
+                                <h4>Next Sync</h4>
+                                <p class="sync-time">In 28 minutes</p>
+                                <span class="sync-badge pending">⏱ Scheduled</span>
+                            </div>
+                            <div class="sync-card">
+                                <h4>Sync Frequency</h4>
+                                <p class="sync-time">Every 30 minutes</p>
+                                <button class="btn-small">Configure</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Integration Health Section -->
+                <section class="settings-section">
+                    <h2>Integration Health</h2>
+                    <div class="health-overview">
+                        <div class="health-metrics">
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <h4>API Health</h4>
+                                    <span class="health-status healthy">Healthy</span>
+                                </div>
+                                <p>All GitHub API endpoints responding normally</p>
+                                <div class="health-bar">
+                                    <div class="health-progress" style="width: 98%"></div>
+                                </div>
+                                <small>98% uptime (last 24h)</small>
+                            </div>
+                            
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <h4>Rate Limits</h4>
+                                    <span class="health-status good">Good</span>
+                                </div>
+                                <p>GitHub API rate limits are within normal ranges</p>
+                                <div class="health-bar">
+                                    <div class="health-progress" style="width: 65%"></div>
+                                </div>
+                                <small>3,500 / 5,000 requests remaining</small>
+                            </div>
+                            
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <h4>Sync Performance</h4>
+                                    <span class="health-status excellent">Excellent</span>
+                                </div>
+                                <p>Repository synchronization is performing optimally</p>
+                                <div class="health-bar">
+                                    <div class="health-progress" style="width: 92%"></div>
+                                </div>
+                                <small>Average sync time: 1.2s</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="../pages/auth-utils.js"></script>
+    <script src="../pages/git.js"></script>
+</body>
+</html>
