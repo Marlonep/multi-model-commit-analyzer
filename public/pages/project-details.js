@@ -166,7 +166,7 @@ function displayContributorsTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <a href="/user-details.html?user=${encodeURIComponent(contributor.user)}" 
+                <a href="/pages/user-details.html?user=${encodeURIComponent(contributor.user)}" 
                    class="table-link" title="View User Details">
                     ${contributor.user}
                 </a>
@@ -205,7 +205,7 @@ function displayCommitsTable() {
                 </a>
             </td>
             <td>
-                <a href="/user-details.html?user=${encodeURIComponent(commit.user)}" 
+                <a href="/pages/user-details.html?user=${encodeURIComponent(commit.user)}" 
                    class="table-link" title="View User Details">
                     ${commit.user}
                 </a>
@@ -707,7 +707,7 @@ function truncate(str, length) {
 }
 
 function viewUserDetails(userName) {
-    window.location.href = `/user-details.html?user=${encodeURIComponent(userName)}`;
+    window.location.href = `/pages/user-details.html?user=${encodeURIComponent(userName)}`;
 }
 
 function viewCommitDetails(index) {
@@ -719,7 +719,7 @@ function viewCommitDetails(index) {
         .then(allCommits => {
             const commit = projectCommits[index];
             const globalIndex = allCommits.findIndex(c => c.commitHash === commit.commitHash);
-            window.location.href = `/details.html?index=${globalIndex}`;
+            window.location.href = `/pages/details.html?index=${globalIndex}`;
         });
 }
 

@@ -239,12 +239,12 @@ function updateNavigationVisibility() {
             // Create Profile link
             const profileLi = document.createElement('li');
             const profileLink = document.createElement('a');
-            profileLink.href = `/user-details.html?user=${encodeURIComponent(userData.username)}`;
+            profileLink.href = `/pages/user-details.html?user=${encodeURIComponent(userData.username)}`;
             profileLink.className = 'nav-link';
             profileLink.textContent = 'Profile';
             
             // Check if current page is user-details for this user
-            if (window.location.pathname === '/user-details.html' || 
+            if (window.location.pathname === '/pages/user-details.html' || 
                 window.location.pathname === '/user-details') {
                 const urlParams = new URLSearchParams(window.location.search);
                 const pageUser = urlParams.get('user');

@@ -87,7 +87,7 @@ function displayUserStats(userStats) {
         
         row.innerHTML = `
             <td>
-                <a href="/user-details.html?user=${encodeURIComponent(user.user)}" class="table-link">
+                <a href="/pages/user-details.html?user=${encodeURIComponent(user.user)}" class="table-link">
                     ${user.user}
                 </a>
             </td>
@@ -122,7 +122,7 @@ function getDevLevel(level) {
 }
 
 function viewUserDetails(userName) {
-    window.location.href = `/user-details.html?user=${encodeURIComponent(userName)}`;
+    window.location.href = `/pages/user-details.html?user=${encodeURIComponent(userName)}`;
 }
 
 function getGitHubProfileButton(userName) {
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Redirect non-admin users to their own profile
         const userData = getUserData();
         if (userData && userData.username) {
-            window.location.href = `/user-details.html?user=${encodeURIComponent(userData.username)}`;
+            window.location.href = `/pages/user-details.html?user=${encodeURIComponent(userData.username)}`;
         } else {
             window.location.href = '/index.html';
         }

@@ -229,7 +229,7 @@ function showCommitModal(dailyCommit) {
     const commitLinks = dailyCommit.commitIndices.map((index, i) => {
         const hash = dailyCommit.commitHashes[i];
         const shortHash = hash ? hash.substring(0, 7) : `Commit ${i + 1}`;
-        return `<a href="/details.html?index=${index}" class="commit-link">${shortHash}</a>`;
+        return `<a href="/pages/details.html?index=${index}" class="commit-link">${shortHash}</a>`;
     }).join(', ');
     
     modal.innerHTML = `

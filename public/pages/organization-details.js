@@ -144,7 +144,7 @@ function displayMembersTable() {
     members.forEach(member => {
         const row = document.createElement('tr');
         row.className = 'clickable-row';
-        row.onclick = () => window.location.href = `/user-details.html?user=${encodeURIComponent(member.user)}`;
+        row.onclick = () => window.location.href = `/pages/user-details.html?user=${encodeURIComponent(member.user)}`;
         
         row.innerHTML = `
             <td>${member.user}</td>
@@ -207,7 +207,7 @@ function displayProjectsTable() {
     projects.forEach(project => {
         const row = document.createElement('tr');
         row.className = 'clickable-row';
-        row.onclick = () => window.location.href = `/project-details.html?project=${encodeURIComponent(project.project)}`;
+        row.onclick = () => window.location.href = `/pages/project-details.html?project=${encodeURIComponent(project.project)}`;
         
         row.innerHTML = `
             <td>${project.project}</td>
@@ -239,7 +239,7 @@ function displayCommitsTable() {
     recentCommits.forEach(commit => {
         const row = document.createElement('tr');
         row.className = 'clickable-row';
-        row.onclick = () => window.location.href = `/details.html?hash=${commit.commitHash}`;
+        row.onclick = () => window.location.href = `/pages/details.html?hash=${commit.commitHash}`;
         
         const date = new Date(commit.timestamp);
         const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;

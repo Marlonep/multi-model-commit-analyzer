@@ -236,7 +236,7 @@ function displayOrganizationsTable(organizations) {
     organizations.forEach(org => {
         const row = document.createElement('tr');
         row.className = 'clickable-row';
-        row.onclick = () => window.location.href = `/organization-details.html?org=${encodeURIComponent(org.organization)}`;
+        row.onclick = () => window.location.href = `/pages/organization-details.html?org=${encodeURIComponent(org.organization)}`;
         
         row.innerHTML = `
             <td>${org.organization}</td>
