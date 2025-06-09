@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizations - Commit Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Commit Analyzer</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/analytics.html" class="nav-link">Analytics</a></li>
+                <li><a href="/index.html" class="nav-link">Commits</a></li>
+                <li><a href="/users.html" class="nav-link">Users</a></li>
+                <li><a href="/projects.html" class="nav-link">Projects</a></li>
+                <li><a href="/organizations.html" class="nav-link active">Organizations</a></li>
+                <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
+                <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
+                <li><a href="/models.html" class="nav-link">AI Models</a></li>
+                <li><a href="/tools.html" class="nav-link">Tools</a></li>
+                <li><a href="/settings.html" class="nav-link">Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Organizations</h1>
+                <div class="header-actions">
+                    <button class="btn primary" id="addOrganizationBtn" style="display: none;">
+                        <span>+ Add Organization</span>
+                    </button>
+                </div>
+            </header>
+
+            <main>
+                <!-- Organization Stats -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalOrganizations">0</div>
+                        <div class="stat-label">Total Organizations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalMembers">0</div>
+                        <div class="stat-label">Total Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalProjects">0</div>
+                        <div class="stat-label">Total Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalOrgCommits">0</div>
+                        <div class="stat-label">Total Commits</div>
+                    </div>
+                </section>
+
+                <!-- Organizations Table -->
+                <section class="table-section">
+                    <h3>All Organizations</h3>
+                    <div class="search-container">
+                        <input type="text" class="search-bar" id="organizationsSearch" placeholder="Search organizations...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="organizationsTable">
+                            <thead>
+                                <tr>
+                                    <th>Organization</th>
+                                    <th>Display Name</th>
+                                    <th>Members</th>
+                                    <th>Projects</th>
+                                    <th>Commits</th>
+                                    <th>Avg Quality</th>
+                                    <th>+Lines</th>
+                                    <th>-Lines</th>
+                                    <th>Industry</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="organizationsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Organization Modal -->
+    <div id="organizationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Add Organization</h2>
+            <form id="organizationForm">
+                <div class="form-group">
+                    <label for="orgName">Organization Name*</label>
+                    <input type="text" id="orgName" required>
+                </div>
+                <div class="form-group">
+                    <label for="orgDisplayName">Display Name</label>
+                    <input type="text" id="orgDisplayName">
+                </div>
+                <div class="form-group">
+                    <label for="orgSlug">Slug (URL-friendly name)</label>
+                    <input type="text" id="orgSlug" pattern="[a-z0-9-]+">
+                </div>
+                <div class="form-group">
+                    <label for="orgDescription">Description</label>
+                    <textarea id="orgDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="orgWebsite">Website</label>
+                    <input type="url" id="orgWebsite">
+                </div>
+                <div class="form-group">
+                    <label for="orgGithubUrl">GitHub URL</label>
+                    <input type="url" id="orgGithubUrl">
+                </div>
+                <div class="form-group">
+                    <label for="orgIndustry">Industry</label>
+                    <input type="text" id="orgIndustry">
+                </div>
+                <div class="form-group">
+                    <label for="orgLocation">Location</label>
+                    <input type="text" id="orgLocation">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn secondary" onclick="closeOrganizationModal()">Cancel</button>
+                    <button type="submit" class="btn primary">Save Organization</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth-utils.js"></script>
+    <script src="organizations.js"></script>
+</body>
+</html>

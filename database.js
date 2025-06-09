@@ -168,6 +168,47 @@ const createTables = () => {
         )
     `);
 
+    // Organizations table
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS organizations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            slug TEXT UNIQUE NOT NULL,
+            display_name TEXT,
+            description TEXT,
+            website TEXT,
+            github_url TEXT,
+            logo_url TEXT,
+            location TEXT,
+            industry TEXT,
+            size_category TEXT,
+            founded_date DATE,
+            timezone TEXT,
+            primary_language TEXT,
+            tech_stack TEXT DEFAULT '[]', -- JSON as TEXT
+            contact_email TEXT,
+            contact_phone TEXT,
+            is_active BOOLEAN DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    // Organization members table (many-to-many relationship)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS organization_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            organization_id INTEGER NOT NULL,
+            role TEXT,
+            department TEXT,
+            joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+            UNIQUE(user_id, organization_id)
+        )
+    `);
+
     // Create indexes for better performance
     db.exec(`
         CREATE INDEX IF NOT EXISTS idx_commits_user_name ON commits(user_name);
@@ -178,6 +219,10 @@ const createTables = () => {
         CREATE INDEX IF NOT EXISTS idx_daily_commits_date ON daily_commits(date DESC);
         CREATE INDEX IF NOT EXISTS idx_daily_commits_user ON daily_commits(user_name);
         CREATE INDEX IF NOT EXISTS idx_ai_models_model_id ON ai_models(model_id);
+        CREATE INDEX IF NOT EXISTS idx_organizations_slug ON organizations(slug);
+        CREATE INDEX IF NOT EXISTS idx_organizations_is_active ON organizations(is_active);
+        CREATE INDEX IF NOT EXISTS idx_organization_members_user_id ON organization_members(user_id);
+        CREATE INDEX IF NOT EXISTS idx_organization_members_org_id ON organization_members(organization_id);
     `);
 
     // Create triggers for updated_at
@@ -211,6 +256,14 @@ const createTables = () => {
         AFTER UPDATE ON ai_models
         BEGIN
             UPDATE ai_models SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+    `);
+
+    db.exec(`
+        CREATE TRIGGER IF NOT EXISTS update_organizations_timestamp 
+        AFTER UPDATE ON organizations
+        BEGIN
+            UPDATE organizations SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END;
     `);
 
@@ -415,12 +468,49 @@ export const dbHelpers = {
     },
 
 
+    getOrganizationMembers(organizationId) {
+        return db.prepare(`
+            SELECT u.*, om.role, om.department, om.joined_at
+            FROM organization_members om
+            JOIN users u ON om.user_id = u.id
+            WHERE om.organization_id = ?
+            ORDER BY u.name
+        `).all(organizationId);
+    },
+
+    addUserToOrganization(userId, organizationId, role, department) {
+        const stmt = db.prepare(`
+            INSERT INTO organization_members (user_id, organization_id, role, department)
+            VALUES (?, ?, ?, ?)
+        `);
+        return stmt.run(userId, organizationId, role || null, department || null);
+    },
+
+    removeUserFromOrganization(userId, organizationId) {
+        return db.prepare('DELETE FROM organization_members WHERE user_id = ? AND organization_id = ?')
+            .run(userId, organizationId);
+    },
+
+    getUserOrganizations(userId) {
+        return db.prepare(`
+            SELECT o.*, om.role, om.department, om.joined_at
+            FROM organization_members om
+            JOIN organizations o ON om.organization_id = o.id
+            WHERE om.user_id = ? AND o.is_active = 1
+            ORDER BY o.name
+        `).all(userId);
+    },
+
     getCommitsByOrganizationId(organizationId) {
+        // For now, get commits by organization name since commits table has organization as text
+        const org = this.getOrganizationById(organizationId);
+        if (!org) return [];
+        
         return db.prepare(`
             SELECT * FROM commits 
-            WHERE organization_id = ? 
+            WHERE organization = ? 
             ORDER BY timestamp DESC
-        `).all(organizationId);
+        `).all(org.name);
     },
 
     // Helper to find or create organization by name
