@@ -8,8 +8,7 @@ import { authenticateUser, verifyToken, requireAuth } from './api/middleware/aut
 import { dbHelpers } from './database/db.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { UploadKeyService } from './src/upload-key-service.js';
-import { wm } from './src/loaders.js';
+import { logger } from './logger.js';
 
 const execAsync = promisify(exec);
 
@@ -49,8 +48,8 @@ app.use(session({
 
 // Serve login page
 app.get('/login', (req, res) => {
-    const loginPath = path.join(__dirname, '..', 'public', 'pages', 'login.html');
-    res.sendFile(loginPath);
+  const loginPath = path.join(__dirname, '..', 'public', 'pages', 'login.html');
+  res.sendFile(loginPath);
 });
 
 // Serve static files without auth for specific paths
@@ -60,42 +59,42 @@ app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')
 
 // Authentication middleware for all other routes
 app.use((req, res, next) => {
-    // Allow access to login API endpoints, static assets, and favicon
-    if (req.path.startsWith('/api/login') ||
-        req.path.startsWith('/api/verify') ||
-        req.path === '/favicon.ico' ||
-        req.path.startsWith('/assets/') ||
-        req.path === '/pages/login.js') {
-        return next();
+  // Allow access to login API endpoints, static assets, and favicon
+  if (req.path.startsWith('/api/login') ||
+    req.path.startsWith('/api/verify') ||
+    req.path === '/favicon.ico' ||
+    req.path.startsWith('/assets/') ||
+    req.path === '/pages/login.js') {
+    return next();
+  }
+
+  // Check session first
+  if (req.session && req.session.userId) {
+    req.user = {
+      id: req.session.userId,
+      username: req.session.username,
+      role: req.session.role
+    };
+    return next();
+  }
+
+  // Check for token in Authorization header (for API calls)
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    if (decoded) {
+      req.user = decoded;
+      return next();
     }
-    
-    // Check session first
-    if (req.session && req.session.userId) {
-        req.user = { 
-            id: req.session.userId, 
-            username: req.session.username,
-            role: req.session.role 
-        };
-        return next();
-    }
-    
-    // Check for token in Authorization header (for API calls)
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyToken(token);
-        if (decoded) {
-            req.user = decoded;
-            return next();
-        }
-    }
-    
-    // No valid auth, handle based on request type
-    if (req.path === '/' || req.path.endsWith('.html')) {
-        res.redirect('/login');
-    } else {
-        res.status(401).json({ error: 'Unauthorized' });
-    }
+  }
+
+  // No valid auth, handle based on request type
+  if (req.path === '/' || req.path.endsWith('.html')) {
+    res.redirect('/login');
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 });
 
 // Serve static files after auth check
@@ -103,7 +102,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Redirect root to analytics
 app.get('/', (req, res) => {
-    res.redirect('/pages/analytics.html');
+  res.redirect('/pages/analytics.html');
 });
 
 // Login endpoint
@@ -333,7 +332,7 @@ app.post('/api/test-models', requireAdmin, async (req, res) => {
           cost: 0.001, // Minimal estimated cost for test
           tokens: 10 // Minimal estimated tokens for test
         });
-        
+
       } catch (error) {
         results.push({
           modelType: model.model_type,
