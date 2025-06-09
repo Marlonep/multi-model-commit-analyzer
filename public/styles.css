@@ -249,6 +249,17 @@ header p {
     font-weight: normal;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    margin: 0;
+}
+
 /* Search Bar */
 .search-container {
     margin-bottom: 15px;
@@ -2127,6 +2138,7 @@ tfoot td {
 }
 
 .modal-content {
+    position: relative;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -2177,7 +2189,7 @@ tfoot td {
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 30px;
 }
 
 .modal-footer {
@@ -2205,9 +2217,10 @@ tfoot td {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
-    padding: 10px;
+    padding: 10px 15px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -2217,10 +2230,16 @@ tfoot td {
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--accent-green);
     box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.2);
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
 }
 
 .form-help {
@@ -2653,6 +2672,9 @@ tfoot td {
     transition: all 0.3s;
     height: 32px;
     border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {
@@ -3352,12 +3374,13 @@ input[type="date"] {
     color: var(--text-primary);
 }
 
-.close {
+.modal-header .close {
     font-size: 28px;
     font-weight: bold;
     color: var(--text-secondary);
     cursor: pointer;
     transition: color 0.3s ease;
+    line-height: 1;
 }
 
 .close:hover,
@@ -3366,7 +3389,7 @@ input[type="date"] {
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 30px;
 }
 
 .form-group {

@@ -21,22 +21,38 @@ function getDevLevel(level) {
 // Load organization details
 async function loadOrganizationDetails() {
     if (!organizationName) {
-        window.location.href = '/analytics.html';
+        window.location.href = '/organizations.html';
         return;
     }
 
     try {
+        // First, fetch organization data using the slug
+        const orgResponse = await fetch(`/api/organizations/${organizationName}`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!orgResponse.ok) {
+            throw new Error('Organization not found');
+        }
+        
+        const organizationData = await orgResponse.json();
+        
         // Fetch all commits
-        const response = await fetch('/api/commits');
+        const response = await fetch('/api/commits', {
+            headers: getAuthHeaders()
+        });
         const allCommits = await response.json();
         
-        // Filter commits for this organization
+        // Filter commits for this organization using the actual organization name
         organizationCommits = allCommits.filter(commit => 
-            (commit.organization || 'Unknown') === organizationName
+            (commit.organization || 'Unknown') === organizationData.name
         );
         
         // Sort by date descending
         organizationCommits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // Store organization data for display
+        window.organizationData = organizationData;
         
         displayOrganizationInfo();
         displayOrganizationStats();
@@ -47,35 +63,65 @@ async function loadOrganizationDetails() {
     } catch (error) {
         console.error('Error loading organization details:', error);
         alert('Error loading organization details');
-        window.location.href = '/analytics.html';
+        window.location.href = '/organizations.html';
     }
 }
 
 // Display organization information
 function displayOrganizationInfo() {
-    document.getElementById('organizationName').textContent = organizationName;
+    const org = window.organizationData;
     
-    // Set GitHub organization link (assuming org name matches GitHub)
-    if (organizationName !== 'Unknown') {
-        document.getElementById('githubOrgLink').href = `https://github.com/${organizationName}`;
+    // Display organization name and details
+    document.getElementById('organizationName').textContent = org.display_name || org.name;
+    
+    // Set GitHub organization link
+    if (org.github_url) {
+        document.getElementById('githubOrgLink').href = org.github_url;
+    } else if (organizationName !== 'Unknown') {
+        document.getElementById('githubOrgLink').href = `https://github.com/${org.name}`;
     } else {
         document.getElementById('githubOrgLink').style.display = 'none';
     }
     
-    // Count unique projects
-    const projects = new Set(organizationCommits.map(c => c.project));
-    document.getElementById('totalProjects').textContent = projects.size;
-    
-    // Count unique contributors
-    const contributors = new Set(organizationCommits.map(c => c.user));
-    document.getElementById('totalContributors').textContent = contributors.size;
-    
-    document.getElementById('totalCommits').textContent = organizationCommits.length;
+    // Display stats from API response if available
+    if (org.stats) {
+        document.getElementById('totalProjects').textContent = org.stats.totalProjects || new Set(organizationCommits.map(c => c.project)).size;
+        document.getElementById('totalContributors').textContent = org.stats.totalMembers || new Set(organizationCommits.map(c => c.user)).size;
+        document.getElementById('totalCommits').textContent = org.stats.totalCommits || organizationCommits.length;
+    } else {
+        // Count unique projects
+        const projects = new Set(organizationCommits.map(c => c.project));
+        document.getElementById('totalProjects').textContent = projects.size;
+        
+        // Count unique contributors
+        const contributors = new Set(organizationCommits.map(c => c.user));
+        document.getElementById('totalContributors').textContent = contributors.size;
+        
+        document.getElementById('totalCommits').textContent = organizationCommits.length;
+    }
     
     // Find earliest commit date
     if (organizationCommits.length > 0) {
         const earliestDate = new Date(Math.min(...organizationCommits.map(c => new Date(c.timestamp))));
         document.getElementById('activeSince').textContent = earliestDate.toLocaleDateString();
+    }
+    
+    // Display additional organization info if available
+    if (org.description) {
+        const descElement = document.getElementById('orgDescription');
+        if (descElement) {
+            descElement.textContent = org.description;
+            descElement.style.display = 'block';
+        }
+    }
+    
+    if (org.website) {
+        const websiteElement = document.getElementById('orgWebsite');
+        if (websiteElement) {
+            websiteElement.href = org.website;
+            websiteElement.textContent = org.website;
+            websiteElement.style.display = 'inline';
+        }
     }
 }
 

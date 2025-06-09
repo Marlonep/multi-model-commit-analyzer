@@ -31,11 +31,6 @@
         <div class="main-content">
             <header>
                 <h1>Organizations</h1>
-                <div class="header-actions">
-                    <button class="btn primary" id="addOrganizationBtn" style="display: none;">
-                        <span>+ Add Organization</span>
-                    </button>
-                </div>
             </header>
 
             <main>
@@ -61,7 +56,12 @@
 
                 <!-- Organizations Table -->
                 <section class="table-section">
-                    <h3>All Organizations</h3>
+                    <div class="section-header">
+                        <h3>All Organizations</h3>
+                        <button class="btn primary" id="addOrganizationBtn" style="display: none;">
+                            <span>+ Add Organization</span>
+                        </button>
+                    </div>
                     <div class="search-container">
                         <input type="text" class="search-bar" id="organizationsSearch" placeholder="Search organizations...">
                     </div>
@@ -79,7 +79,7 @@
                                     <th>-Lines</th>
                                     <th>Industry</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="organizationsBody">
@@ -95,9 +95,12 @@
     <!-- Add/Edit Organization Modal -->
     <div id="organizationModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="modalTitle">Add Organization</h2>
-            <form id="organizationForm">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Organization</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="organizationForm">
                 <div class="form-group">
                     <label for="orgName">Organization Name*</label>
                     <input type="text" id="orgName" required>
@@ -135,6 +138,7 @@
                     <button type="submit" class="btn primary">Save Organization</button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 

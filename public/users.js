@@ -101,12 +101,12 @@ function displayUserStats(userStats) {
             <td>${user.totalHours.toFixed(1)}h</td>
             <td>${user.avgAiPercentage.toFixed(0)}%</td>
             <td>
-                <div class="action-buttons">
-                    <button class="view-details" onclick="viewUserDetails('${user.user}')">
-                        Details
-                    </button>
-                    ${getGitHubProfileButton(user.user)}
-                </div>
+                ${getGitHubProfileButton(user.user)}
+            </td>
+            <td>
+                <button class="view-details" onclick="viewUserDetails('${user.user}')">
+                    Details
+                </button>
             </td>
         `;
         

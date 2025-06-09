@@ -76,8 +76,6 @@ function renderOrganizationsTable() {
 
     allOrganizations.forEach(org => {
         const row = document.createElement('tr');
-        row.className = 'clickable-row';
-        row.onclick = () => viewOrganizationDetails(org.slug || org.id);
 
         const stats = org.stats || {};
         const avgQuality = stats.averageQuality ? stats.averageQuality.toFixed(1) : '-';
@@ -95,9 +93,10 @@ function renderOrganizationsTable() {
             <td class="negative">-${stats.totalLinesDeleted || 0}</td>
             <td>${org.industry || '-'}</td>
             <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-            <td class="actions">
-                <button class="btn small secondary" onclick="event.stopPropagation(); editOrganization(${org.id})">Edit</button>
-                <button class="btn small danger" onclick="event.stopPropagation(); deleteOrganization(${org.id})">Delete</button>
+            <td>
+                <button class="view-details" onclick="viewOrganizationDetails('${org.slug || org.id}')">
+                    Details
+                </button>
             </td>
         `;
 
