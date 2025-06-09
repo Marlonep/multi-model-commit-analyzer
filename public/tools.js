@@ -62,22 +62,33 @@ function setupEventListeners() {
 // Load tools from JSON file and localStorage for user customizations
 async function loadTools() {
     try {
+        console.log('Loading tools from API...');
         // Load tools from SQLite database via API
         const response = await fetch('/api/tools', {
             headers: getAuthHeaders()
         });
         
+        console.log('Tools API response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to fetch tools');
+            const errorText = await response.text();
+            console.error('API error response:', errorText);
+            throw new Error('Failed to fetch tools: ' + errorText);
         }
         
         const data = await response.json();
+        console.log('Tools API response data:', data);
+        
         tools = data.tools || [];
+        
+        // Also store the raw database tools for ID mapping
+        window.dbTools = data.tools || [];
         
         filteredTools = [...tools];
         renderTools();
         
         console.log(`Loaded ${tools.length} tools from database`);
+        console.log('Tools loaded:', tools);
     } catch (error) {
         console.error('Error loading tools:', error);
         // Fallback to empty array if API loading fails
@@ -179,8 +190,15 @@ function showAddToolModal() {
 
 // Show edit tool modal
 function editTool(toolId) {
+    console.log('Editing tool with ID:', toolId);
     const tool = tools.find(t => t.id === toolId);
-    if (!tool) return;
+    console.log('Found tool:', tool);
+    
+    if (!tool) {
+        console.error('Tool not found with ID:', toolId);
+        alert('Tool not found. Please refresh the page and try again.');
+        return;
+    }
     
     document.getElementById('modalTitle').textContent = 'Edit Tool';
     document.getElementById('toolId').value = tool.id;
@@ -227,19 +245,20 @@ async function handleToolSubmit(e) {
     toolData.costPerMonth = costPerMonth;
     
     try {
+        console.log('Saving tool data:', toolData);
+        
         if (toolId) {
             // Update existing tool
+            console.log('Updating existing tool with ID:', toolId);
             const existingTool = tools.find(t => t.id === toolId);
+            console.log('Found existing tool:', existingTool);
+            
             if (existingTool) {
-                // Find the database ID for this tool
-                const response = await fetch('/api/tools', {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
-                const dbTool = data.tools.find(t => t.id === toolId);
+                console.log('Using database ID for update:', existingTool.dbId);
                 
-                if (dbTool) {
-                    const updateResponse = await fetch(`/api/tools/${dbTool.id}`, {
+                if (existingTool.dbId) {
+                    console.log('Sending PUT request to update tool...');
+                    const updateResponse = await fetch(`/api/tools/${existingTool.dbId}`, {
                         method: 'PUT',
                         headers: {
                             ...getAuthHeaders(),
@@ -248,13 +267,24 @@ async function handleToolSubmit(e) {
                         body: JSON.stringify(toolData)
                     });
                     
+                    console.log('Update response status:', updateResponse.status);
+                    
                     if (!updateResponse.ok) {
-                        throw new Error('Failed to update tool');
+                        const errorText = await updateResponse.text();
+                        console.error('Update error response:', errorText);
+                        throw new Error('Failed to update tool: ' + errorText);
                     }
+                    
+                    console.log('Tool updated successfully');
+                } else {
+                    throw new Error('Tool database ID not found');
                 }
+            } else {
+                throw new Error('Tool not found in local tools array');
             }
         } else {
             // Add new tool
+            console.log('Creating new tool...');
             const response = await fetch('/api/tools', {
                 method: 'POST',
                 headers: {
@@ -264,48 +294,65 @@ async function handleToolSubmit(e) {
                 body: JSON.stringify(toolData)
             });
             
+            console.log('Create response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error('Failed to create tool');
+                const errorText = await response.text();
+                console.error('Create error response:', errorText);
+                throw new Error('Failed to create tool: ' + errorText);
             }
+            
+            console.log('Tool created successfully');
         }
         
         // Reload tools from database
+        console.log('Reloading tools...');
         await loadTools();
         hideModal();
+        console.log('Tool save process completed successfully');
         
     } catch (error) {
         console.error('Error saving tool:', error);
-        alert('Failed to save tool. Please try again.');
+        console.error('Full error details:', error.message, error.stack);
+        alert('Failed to save tool: ' + error.message);
     }
 }
 
 // Delete tool
 async function deleteTool(toolId) {
+    console.log('Deleting tool with ID:', toolId);
+    
     if (confirm('Are you sure you want to delete this tool?')) {
         try {
-            // Find the database ID for this tool
-            const response = await fetch('/api/tools', {
-                headers: getAuthHeaders()
-            });
-            const data = await response.json();
-            const dbTool = data.tools.find(t => t.id === toolId);
+            const tool = tools.find(t => t.id === toolId);
+            console.log('Found tool for deletion:', tool);
             
-            if (dbTool) {
-                const deleteResponse = await fetch(`/api/tools/${dbTool.id}`, {
+            if (tool && tool.dbId) {
+                console.log('Using database ID for deletion:', tool.dbId);
+                
+                const deleteResponse = await fetch(`/api/tools/${tool.dbId}`, {
                     method: 'DELETE',
                     headers: getAuthHeaders()
                 });
                 
+                console.log('Delete response status:', deleteResponse.status);
+                
                 if (!deleteResponse.ok) {
-                    throw new Error('Failed to delete tool');
+                    const errorText = await deleteResponse.text();
+                    console.error('Delete response error:', errorText);
+                    throw new Error('Failed to delete tool: ' + errorText);
                 }
                 
+                console.log('Tool deleted successfully');
                 // Reload tools from database
                 await loadTools();
+            } else {
+                console.error('Tool not found or missing database ID');
+                alert('Tool not found. Please refresh the page and try again.');
             }
         } catch (error) {
             console.error('Error deleting tool:', error);
-            alert('Failed to delete tool. Please try again.');
+            alert('Failed to delete tool: ' + error.message);
         }
     }
 }
@@ -323,6 +370,10 @@ window.reloadTools = async function() {
     await loadTools();
     console.log('Tools reloaded from database');
 };
+
+// Make edit and delete functions globally accessible
+window.editTool = editTool;
+window.deleteTool = deleteTool;
 
 // Load users for the cost calculator
 async function loadUsers() {

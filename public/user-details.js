@@ -7,7 +7,13 @@ let githubConfig = null;
 // Check if user has permission to view this user's details
 function checkUserDetailsAccess() {
     const currentUser = getUserData();
-    if (!currentUser) return false;
+    console.log('Current user:', currentUser);
+    console.log('Requested user:', userName);
+    
+    if (!currentUser) {
+        console.log('No current user data found');
+        return false;
+    }
     
     // Users can view their own details, admins can view all
     if (currentUser.role === 'user') {
@@ -16,10 +22,13 @@ function checkUserDetailsAccess() {
                            currentUser.name.toLowerCase() === userName.toLowerCase();
         
         if (!isOwnProfile) {
+            console.log('User trying to access another user profile, redirecting...');
             window.location.href = '/index.html';
             return false;
         }
     }
+    
+    console.log('Access granted for user details');
     return true;
 }
 
@@ -57,6 +66,8 @@ async function loadGithubConfig() {
 
 // Load user details
 async function loadUserDetails() {
+    console.log('Loading user details for:', userName);
+    
     if (!userName) {
         window.location.href = '/users.html';
         return;
@@ -64,6 +75,7 @@ async function loadUserDetails() {
     
     // Check permissions first
     if (!checkUserDetailsAccess()) {
+        console.log('Access denied for user details');
         return;
     }
 
@@ -72,11 +84,15 @@ async function loadUserDetails() {
         await loadGithubConfig();
         
         // Fetch user details from API
+        console.log('Fetching user details with headers:', getAuthHeaders());
         const userDetailsResponse = await fetch(`/api/users/${userName}/details`, {
             headers: getAuthHeaders()
         });
+        console.log('User details response status:', userDetailsResponse.status);
+        
         if (userDetailsResponse.ok) {
             const fetchedData = await userDetailsResponse.json();
+            console.log('User details fetched:', fetchedData);
             // Ensure all required fields exist
             userData = {
                 email: fetchedData.email || '',
@@ -89,38 +105,70 @@ async function loadUserDetails() {
         }
         
         // Fetch all commits
+        console.log('Fetching commits...');
         const response = await fetch('/api/commits', {
             headers: getAuthHeaders()
         });
-        const allCommits = await response.json();
         
-        // Filter commits for this user
-        userCommits = allCommits.filter(commit => commit.user === userName);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const allCommits = await response.json();
+        console.log('Total commits fetched:', allCommits.length);
+        
+        // Try to find system user by username to get their GitHub username
+        let githubUsername = userName;
+        try {
+            const systemUsersResponse = await fetch('/api/system-users', {
+                headers: getAuthHeaders()
+            });
+            if (systemUsersResponse.ok) {
+                const systemUsers = await systemUsersResponse.json();
+                const systemUser = systemUsers.find(u => u.username === userName);
+                if (systemUser && systemUser.github_username) {
+                    githubUsername = systemUser.github_username;
+                    console.log('Using GitHub username:', githubUsername);
+                }
+            }
+        } catch (error) {
+            console.log('Could not fetch system users, using default username');
+        }
+        
+        // Filter commits for this user (match by GitHub username in commits)
+        userCommits = allCommits.filter(commit => commit.githubUsername === githubUsername);
+        console.log('User commits found:', userCommits.length);
+        
+        // Fallback: if no commits found with GitHub username, try matching by user name
+        if (userCommits.length === 0) {
+            console.log('No commits found with GitHub username, trying to match by user name...');
+            userCommits = allCommits.filter(commit => commit.user === githubUsername);
+            console.log('Fallback user commits found:', userCommits.length);
+        }
         
         // Sort by date descending
         userCommits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
         displayUserInfo();
         displayUserStats();
-        displayContactInfo();
-        displayOrganizations();
-        displayTools();
         displayToolSubscriptions();
         displayContributionGraph();
         displayCommitsTable();
         createCharts();
     } catch (error) {
         console.error('Error loading user details:', error);
-        alert('Error loading user details');
+        alert('Error loading user details: ' + error.message);
         window.location.href = '/users.html';
     }
 }
 
-// Display user information
+// Display user information (unified section)
 function displayUserInfo() {
+    // Basic user info
     document.getElementById('userName').textContent = userName;
     document.getElementById('totalCommits').textContent = userCommits.length;
     
+    // Hours calculation
     const totalHours = userCommits.reduce((sum, commit) => sum + (commit.averageEstimatedHours || 0), 0);
     const totalHoursWithAI = userCommits.reduce((sum, commit) => sum + (commit.averageEstimatedHoursWithAi || 0), 0);
     const timeSaved = totalHours - totalHoursWithAI;
@@ -128,6 +176,12 @@ function displayUserInfo() {
     document.getElementById('totalHours').textContent = totalHours.toFixed(1) + 'h';
     document.getElementById('timeSaved').textContent = timeSaved.toFixed(1) + 'h (' + 
         ((timeSaved / totalHours * 100) || 0).toFixed(0) + '%)';
+    
+    // Contact info (read-only)
+    document.getElementById('userEmail').textContent = userData.email || 'Not provided';
+    document.getElementById('userPhone').textContent = userData.phone || 'Not provided';
+    document.getElementById('whatsappStatus').textContent = userData.whatsappAvailable ? 'Available' : 'Not available';
+    document.getElementById('minHoursPerDay').textContent = userData.minHoursPerDay || 8;
 }
 
 // Display user statistics
@@ -639,148 +693,45 @@ function setupSearch() {
     }
 }
 
-// Display contact information
-function displayContactInfo() {
-    document.getElementById('userEmail').textContent = userData.email || 'Not provided';
-    document.getElementById('userPhone').textContent = userData.phone || 'Not provided';
-    document.getElementById('whatsappAvailable').checked = userData.whatsappAvailable || false;
-    document.getElementById('minHoursPerDay').textContent = userData.minHoursPerDay || 8;
-}
 
-// Display organizations
-function displayOrganizations() {
-    const orgsList = document.getElementById('organizationsList');
-    orgsList.innerHTML = '';
-    
-    if (!userData.organizations || userData.organizations.length === 0) {
-        orgsList.innerHTML = '<p style="color: #8b949e; text-align: center;">No organizations added yet</p>';
-        return;
-    }
-    
-    userData.organizations.forEach(org => {
-        const orgCard = document.createElement('div');
-        orgCard.className = 'organization-card';
-        orgCard.innerHTML = `
-            <div class="org-header">
-                <h4 class="org-name">${org.name}</h4>
-                <button class="remove-org-btn" onclick="removeOrganization(${org.id})" title="Remove">×</button>
-            </div>
-            <div class="org-details">
-                <span class="org-role">${org.role}</span>
-                <span class="org-date">Joined: ${new Date(org.joinDate).toLocaleDateString()}</span>
-            </div>
-        `;
-        orgsList.appendChild(orgCard);
-    });
-}
 
-// Toggle edit mode for contact fields
-async function toggleEdit(field) {
-    const element = document.querySelector(`[data-field="${field}"]`);
-    const button = element.nextElementSibling;
-    
-    if (element.contentEditable === 'false') {
-        element.contentEditable = 'true';
-        element.focus();
-        button.textContent = '✓';
-        element.classList.add('editing');
-        
-        // Select all text for easier editing
-        const range = document.createRange();
-        range.selectNodeContents(element);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-    } else {
-        element.contentEditable = 'false';
-        button.textContent = '✏️';
-        element.classList.remove('editing');
-        
-        // Update the local data
-        if (field === 'email') {
-            userData.email = element.textContent;
-        } else if (field === 'phone') {
-            userData.phone = element.textContent;
-        } else if (field === 'minHoursPerDay') {
-            const hours = parseFloat(element.textContent);
-            userData.minHoursPerDay = isNaN(hours) || hours <= 0 ? 8 : hours;
-            element.textContent = userData.minHoursPerDay; // Update display with validated value
-        }
-        
-        // Save to API
-        await saveUserDetails();
-    }
-}
 
-// Toggle WhatsApp edit mode
-async function toggleWhatsAppEdit() {
-    const checkbox = document.getElementById('whatsappAvailable');
-    const button = checkbox.parentElement.querySelector('.edit-btn');
-    
-    if (checkbox.disabled) {
-        checkbox.disabled = false;
-        button.textContent = '✓';
-    } else {
-        checkbox.disabled = true;
-        button.textContent = '✏️';
-        userData.whatsappAvailable = checkbox.checked;
-        
-        // Save to API
-        await saveUserDetails();
-    }
-}
-
-// Show add organization dialog
-async function showAddOrganization() {
-    const orgName = prompt('Enter organization name:');
-    if (!orgName) return;
-    
-    const role = prompt('Enter your role:');
-    if (!role) return;
-    
-    const newOrg = {
-        id: Date.now(), // Simple ID generation
-        name: orgName,
-        role: role,
-        joinDate: new Date().toISOString()
-    };
-    
-    if (!userData.organizations) {
-        userData.organizations = [];
-    }
-    userData.organizations.push(newOrg);
-    displayOrganizations();
-    
-    // Save to API
-    await saveUserDetails();
-}
-
-// Remove organization
-async function removeOrganization(orgId) {
-    if (confirm('Are you sure you want to remove this organization?')) {
-        userData.organizations = userData.organizations.filter(org => org.id !== orgId);
-        displayOrganizations();
-        
-        // Save to API
-        await saveUserDetails();
-    }
-}
 
 // Save user details to API
 async function saveUserDetails() {
     try {
+        // Ensure all required fields are present
+        const dataToSend = {
+            email: userData.email || '',
+            phone: userData.phone || '',
+            whatsappAvailable: userData.whatsappAvailable || false,
+            minHoursPerDay: userData.minHoursPerDay || 8,
+            organizations: userData.organizations || [],
+            tools: userData.tools || []
+        };
+        
+        console.log('Saving user details:', dataToSend);
         const response = await fetch(`/api/users/${userName}/details`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(userData)
+            headers: {
+                ...getAuthHeaders(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSend)
         });
         
         if (response.ok) {
             const result = await response.json();
             showNotification('Changes saved successfully!', 'success');
         } else {
-            const error = await response.json();
-            showNotification('Failed to save changes: ' + error.error, 'error');
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            try {
+                const error = JSON.parse(errorText);
+                showNotification('Failed to save changes: ' + error.error, 'error');
+            } catch (parseError) {
+                showNotification('Failed to save changes: ' + errorText, 'error');
+            }
         }
     } catch (error) {
         console.error('Error saving user details:', error);
@@ -788,75 +739,6 @@ async function saveUserDetails() {
     }
 }
 
-// Display selected tools
-function displayTools() {
-    const toolsList = document.getElementById('selectedToolsList');
-    toolsList.innerHTML = '';
-    
-    if (!userData.tools || userData.tools.length === 0) {
-        toolsList.innerHTML = '<div class="no-tools-message">No tools selected</div>';
-        return;
-    }
-    
-    // Get active tools
-    const activeTools = userData.tools.filter(tool => {
-        // Handle both old format (string) and new format (object)
-        if (typeof tool === 'string') {
-            return true;
-        }
-        return tool.status === 'active';
-    });
-    
-    activeTools.forEach(tool => {
-        const toolId = typeof tool === 'string' ? tool : tool.toolId;
-        const toolChip = document.createElement('div');
-        toolChip.className = 'tool-chip';
-        toolChip.setAttribute('data-tool-id', toolId);
-        
-        // We'll update this with actual tool data
-        toolChip.innerHTML = `
-            <span class="tool-name-loading">Loading...</span>
-            <button class="remove-tool" onclick="removeTool('${toolId}')">&times;</button>
-        `;
-        
-        toolsList.appendChild(toolChip);
-    });
-    
-    if (activeTools.length === 0) {
-        toolsList.innerHTML = '<div class="no-tools-message">No active tools</div>';
-    }
-    
-    // Load tool details
-    loadToolDetails();
-}
-
-// Load actual tool details from tools data
-async function loadToolDetails() {
-    try {
-        const availableTools = await window.getAvailableTools();
-        const toolChips = document.querySelectorAll('.tool-chip');
-        
-        toolChips.forEach(chip => {
-            const toolId = chip.getAttribute('data-tool-id');
-            const tool = availableTools.find(t => t.id === toolId);
-            
-            if (tool) {
-                chip.innerHTML = `
-                    ${tool.image ? `<img src="${tool.image}" alt="${tool.name}" class="tool-icon">` : ''}
-                    <span class="tool-name">${tool.name}</span>
-                    <button class="remove-tool" onclick="removeTool('${toolId}')">&times;</button>
-                `;
-            } else {
-                chip.innerHTML = `
-                    <span class="tool-name">Unknown Tool</span>
-                    <button class="remove-tool" onclick="removeTool('${toolId}')">&times;</button>
-                `;
-            }
-        });
-    } catch (error) {
-        console.error('Error loading tool details:', error);
-    }
-}
 
 // Display tool subscriptions table
 async function displayToolSubscriptions() {
@@ -974,7 +856,6 @@ async function cancelSubscription(toolId) {
     });
     
     await saveUserDetails();
-    displayTools();
     displayToolSubscriptions();
 }
 
@@ -999,7 +880,6 @@ async function reactivateSubscription(toolId) {
     });
     
     await saveUserDetails();
-    displayTools();
     displayToolSubscriptions();
 }
 
@@ -1100,7 +980,6 @@ async function selectTool(toolId) {
             status: 'active',
             subscribedDate: new Date().toISOString()
         });
-        displayTools();
         displayToolSubscriptions();
         await saveUserDetails();
     }
@@ -1117,7 +996,6 @@ async function removeTool(toolId) {
             const currentToolId = typeof tool === 'string' ? tool : tool.toolId;
             return currentToolId !== toolId;
         });
-        displayTools();
         displayToolSubscriptions();
         await saveUserDetails();
     }
@@ -1190,10 +1068,6 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Make functions available globally for onclick handlers
-window.toggleEdit = toggleEdit;
-window.toggleWhatsAppEdit = toggleWhatsAppEdit;
-window.showAddOrganization = showAddOrganization;
-window.removeOrganization = removeOrganization;
 window.viewCommitDetails = viewCommitDetails;
 window.showToolSelector = showToolSelector;
 window.hideToolSelector = hideToolSelector;

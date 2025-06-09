@@ -18,7 +18,6 @@
                 <li><a href="/index.html" class="nav-link">Commits</a></li>
                 <li><a href="/users.html" class="nav-link">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
-                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/daily-commits.html" class="nav-link active">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
@@ -34,40 +33,7 @@
             </header>
             
             <main>
-                <!-- Filters Section -->
-                <section class="filters-section">
-                    <div class="filters-container">
-                        <div class="filter-group">
-                            <label for="startDate">Start Date:</label>
-                            <input type="date" id="startDate" class="filter-input">
-                        </div>
-                        <div class="filter-group">
-                            <label for="endDate">End Date:</label>
-                            <input type="date" id="endDate" class="filter-input">
-                        </div>
-                        <div class="filter-group">
-                            <label for="userFilter">User:</label>
-                            <select id="userFilter" class="filter-select">
-                                <option value="">All Users</option>
-                            </select>
-                        </div>
-                        <button id="applyFilters" class="btn-primary">Apply Filters</button>
-                        <button id="resetFilters" class="btn-secondary">Reset</button>
-                    </div>
-                </section>
-                
-                <!-- Actions Section -->
-                <section class="actions-section">
-                    <div class="actions-container">
-                        <button id="generateReport" class="btn-primary">Generate All Daily Reports</button>
-                        <div class="specific-date-group">
-                            <input type="date" id="regenerateDate" class="filter-input" placeholder="Select date">
-                            <button id="regenerateSpecificDate" class="btn-secondary">Regenerate Specific Date</button>
-                        </div>
-                    </div>
-                </section>
-                
-                <!-- Summary Stats -->
+                <!-- Summary Stats - Moved to top -->
                 <section class="summary-stats-section">
                     <div class="summary-stats">
                         <div class="stat-card">
@@ -81,6 +47,70 @@
                         <div class="stat-card">
                             <h3>Total Users</h3>
                             <p id="totalUsers">0</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Unified Filters and Actions Section -->
+                <section class="daily-controls-section">
+                    <div class="controls-container">
+                        <!-- Filters Card -->
+                        <div class="control-card filters-card">
+                            <div class="card-header">
+                                <h3>🔍 Filter Reports</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="date-inputs">
+                                    <div class="input-group">
+                                        <label>From</label>
+                                        <input type="date" id="startDate" class="date-input">
+                                    </div>
+                                    <div class="date-separator">→</div>
+                                    <div class="input-group">
+                                        <label>To</label>
+                                        <input type="date" id="endDate" class="date-input">
+                                    </div>
+                                </div>
+                                <div class="user-select-group">
+                                    <label>User</label>
+                                    <select id="userFilter" class="user-select">
+                                        <option value="">All Users</option>
+                                    </select>
+                                </div>
+                                <div class="filter-actions">
+                                    <button id="applyFilters" class="btn-apply">
+                                        <span class="btn-icon">✓</span> Apply
+                                    </button>
+                                    <button id="resetFilters" class="btn-reset">
+                                        <span class="btn-icon">↻</span> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Reports Card -->
+                        <div class="control-card generate-card">
+                            <div class="card-header">
+                                <h3>📊 Generate Reports</h3>
+                            </div>
+                            <div class="card-content">
+                                <button id="generateReport" class="btn-generate-all">
+                                    <span class="btn-icon">⚡</span>
+                                    Generate All Daily Reports
+                                </button>
+                                <div class="or-separator">
+                                    <span>or</span>
+                                </div>
+                                <div class="specific-date-section">
+                                    <label>Regenerate Specific Date</label>
+                                    <div class="date-action-group">
+                                        <input type="date" id="regenerateDate" class="date-input" placeholder="dd/mm/yyyy">
+                                        <button id="regenerateSpecificDate" class="btn-regenerate">
+                                            <span class="btn-icon">🔄</span> Regenerate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>

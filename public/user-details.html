@@ -19,7 +19,6 @@
                 <li><a href="/index.html" class="nav-link">Commits</a></li>
                 <li><a href="/users.html" class="nav-link">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
-                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
@@ -40,89 +39,61 @@
             </header>
 
             <main>
-            <!-- User Info -->
+            <!-- User Information -->
             <h2 class="section-title">User Information</h2>
-            <section class="commit-info compact">
+            <section class="user-info compact">
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="label">User:</span>
                         <span id="userName" class="value"></span>
                     </div>
                     <div class="info-item">
+                        <span class="label">Email:</span>
+                        <span id="userEmail" class="value">Not provided</span>
+                    </div>
+                    <div class="info-item">
                         <span class="label">Total Commits:</span>
                         <span id="totalCommits" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Phone:</span>
+                        <span id="userPhone" class="value">Not provided</span>
                     </div>
                     <div class="info-item">
                         <span class="label">Total Hours:</span>
                         <span id="totalHours" class="value">0</span>
                     </div>
                     <div class="info-item">
+                        <span class="label">WhatsApp:</span>
+                        <span id="whatsappStatus" class="value">Not available</span>
+                    </div>
+                    <div class="info-item">
                         <span class="label">Time Saved:</span>
                         <span id="timeSaved" class="value">0</span>
                     </div>
-                </div>
-            </section>
-
-            <!-- Contact Information -->
-            <h2 class="section-title">Contact Information</h2>
-            <section class="contact-info compact">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="label">Email:</span>
-                        <span id="userEmail" class="value editable" data-field="email" contenteditable="false">Loading...</span>
-                        <button class="edit-btn" onclick="toggleEdit('email')">✏️</button>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Phone:</span>
-                        <span id="userPhone" class="value editable" data-field="phone" contenteditable="false">Loading...</span>
-                        <button class="edit-btn" onclick="toggleEdit('phone')">✏️</button>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">WhatsApp:</span>
-                        <input type="checkbox" id="whatsappAvailable" class="whatsapp-checkbox" disabled>
-                        <label for="whatsappAvailable" class="whatsapp-label">Available on WhatsApp</label>
-                        <button class="edit-btn" onclick="toggleWhatsAppEdit()">✏️</button>
-                    </div>
                     <div class="info-item">
                         <span class="label">Min Hours/Day:</span>
-                        <span id="minHoursPerDay" class="value editable" data-field="minHoursPerDay" contenteditable="false">8</span>
-                        <button class="edit-btn" onclick="toggleEdit('minHoursPerDay')">✏️</button>
+                        <span id="minHoursPerDay" class="value">8</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Organizations -->
-            <h2 class="section-title">Organizations</h2>
-            <section class="organizations-section compact">
-                <div class="organizations-list" id="organizationsList">
-                    <!-- Organizations will be populated here -->
-                </div>
-                <button class="add-org-btn" onclick="showAddOrganization()">+ Add Organization</button>
-            </section>
 
             <!-- Developer Tools -->
             <h2 class="section-title">Developer Tools</h2>
-            <section class="developer-tools-section compact">
-                <div class="tools-container">
-                    <div class="selected-tools" id="selectedToolsList">
-                        <!-- Selected tools will be displayed as chips here -->
+            <section class="tool-subscriptions-section">
+                <div class="subscriptions-header">
+                    <div class="subscriptions-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Active Tools:</span>
+                            <span id="activeSubscriptionsCount" class="summary-value">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total Monthly Cost:</span>
+                            <span id="totalMonthlyCost" class="summary-value">$0.00</span>
+                        </div>
                     </div>
                     <button class="add-tool-btn" onclick="showToolSelector()">+ Add Tool</button>
-                </div>
-            </section>
-
-            <!-- Tool Subscriptions -->
-            <h2 class="section-title">Tool Subscriptions</h2>
-            <section class="tool-subscriptions-section">
-                <div class="subscriptions-summary">
-                    <div class="summary-item">
-                        <span class="summary-label">Active Subscriptions:</span>
-                        <span id="activeSubscriptionsCount" class="summary-value">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Total Monthly Cost:</span>
-                        <span id="totalMonthlyCost" class="summary-value">$0.00</span>
-                    </div>
                 </div>
                 <div class="table-wrapper">
                     <table id="toolSubscriptionsTable">
@@ -136,7 +107,7 @@
                             </tr>
                         </thead>
                         <tbody id="toolSubscriptionsBody">
-                            <!-- Subscriptions will be populated here -->
+                            <!-- Tools will be populated here -->
                         </tbody>
                     </table>
                 </div>
@@ -299,11 +270,60 @@
     </div>
 
     <script src="auth-utils.js"></script>
+    <style>
+        .subscriptions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        
+        .subscriptions-summary {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .add-tool-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .add-tool-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .user-info {
+            margin-bottom: 40px !important;
+        }
+        
+        @media (max-width: 768px) {
+            .subscriptions-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .subscriptions-summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
     <script>
-        // Load tools data without initializing the tools page
+        // Load tools data from API
         window.getAvailableTools = async function() {
             try {
-                const response = await fetch('/tools-data.json');
+                const response = await fetch('/api/tools', {
+                    headers: getAuthHeaders()
+                });
                 const data = await response.json();
                 return data.tools;
             } catch (error) {

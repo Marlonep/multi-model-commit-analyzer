@@ -161,6 +161,7 @@ function displaySystemUsers() {
             <td>${user.id}</td>
             <td><code>${user.username}</code></td>
             <td>${user.name}</td>
+            <td><code>${user.github_username || 'Not Set'}</code></td>
             <td><span class="role-badge role-${user.role}">${user.role.toUpperCase()}</span></td>
             <td><span class="status-badge status-${status}">${status.toUpperCase()}</span></td>
             <td>${createdDate}</td>
@@ -209,6 +210,7 @@ function openUserModal(userId = null) {
             document.getElementById('username').value = user.username;
             document.getElementById('name').value = user.name;
             document.getElementById('role').value = user.role;
+            document.getElementById('github_username').value = user.github_username || '';
         }
     } else {
         // Add mode
@@ -239,7 +241,8 @@ async function saveUser(event) {
         username: formData.get('username'),
         password: formData.get('password'),
         name: formData.get('name'),
-        role: formData.get('role')
+        role: formData.get('role'),
+        github_username: formData.get('github_username')
     };
     
     try {

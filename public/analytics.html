@@ -18,7 +18,6 @@
                 <li><a href="/index.html" class="nav-link">Commits</a></li>
                 <li><a href="/users.html" class="nav-link">Users</a></li>
                 <li><a href="/projects.html" class="nav-link">Projects</a></li>
-                <li><a href="/organizations.html" class="nav-link">Organizations</a></li>
                 <li><a href="/alerts.html" class="nav-link">Alerts</a></li>
                 <li><a href="/daily-commits.html" class="nav-link">Daily Commits</a></li>
                 <li><a href="/models.html" class="nav-link">AI Models</a></li>
@@ -146,6 +145,37 @@
                                     <td id="devLevelDist">-</td>
                                     <td id="avgDevLevel">-</td>
                                 </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Organization Analysis Summary -->
+                <section class="table-section">
+                    <h3>Organization Analysis Summary</h3>
+                    <div class="search-container">
+                        <input type="text" class="search-bar" id="organizationsSearch" placeholder="Search organizations...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="organizationsTable">
+                            <thead>
+                                <tr>
+                                    <th>Organization</th>
+                                    <th>Projects</th>
+                                    <th>Contributors</th>
+                                    <th>Total Commits</th>
+                                    <th>+Lines</th>
+                                    <th>-Lines</th>
+                                    <th>Last Activity</th>
+                                    <th>Avg Quality</th>
+                                    <th>Total Hours</th>
+                                    <th>Avg AI %</th>
+                                    <th>Total Cost</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="organizationsBody">
+                                <!-- Data will be populated here -->
                             </tbody>
                         </table>
                     </div>
