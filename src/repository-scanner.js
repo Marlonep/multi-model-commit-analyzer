@@ -3,9 +3,9 @@ import Nodegit from 'nodegit';
 import { promises as fs } from 'node:fs';
 import { exec } from 'node:child_process';
 import path from 'node:path';
-import { fileExists, spawn, convertCommitTimezoneOffset } from './utils';
+import { fileExists, spawn, convertCommitTimezoneOffset } from './utils.js';
 import { logger } from './logger.js';
-import { GitHubApi } from './github-api';
+import { GitHubApi } from './github-api.js';
 
 export class Stats {
 	constructor() {
@@ -129,10 +129,12 @@ export class RepositoryScanner {
 	/**
 	* @param {string} organization
 	* @param {string} repository
+	* @param {GitHubApi} api
 	*/
-	constructor(organization, repository) {
+	constructor(organization, repository, api) {
 		this.organization = organization;
 		this.repository = repository;
+		this.#api = api;
 	}
 
 	/**
@@ -163,7 +165,7 @@ export class RepositoryScanner {
 				resolve(0);
 			})
 		});
-		assert(result === 0, `repository-scanner: there was an error cloning the repository ${name}`);
+		assert(result === 0, `repository-scanner: there was an error cloning the repository ${this.organization}/${this.repository}`);
 
 		return repoPath;
 	}
@@ -188,8 +190,8 @@ export class RepositoryScanner {
 			});
 		});
 
-		let code = await spawn('git', ['reset', '--hard',], {
-			cwd: path,
+		let code = await spawn('git', ['reset', '--hard'], {
+			cwd: opts.path,
 		});
 		assert(code === 0, `there was an error reseting default branch`);
 		await spawn('git', ['checkout', opts.defaultBranch], {
@@ -293,6 +295,25 @@ export class RepositoryScanner {
 				}
 			}
 
+			// const diffs = await commit.getDiff();
+			// const patchesList = await Promise.all(diffs.map(d => d.patches()))
+			// for (const patches of patchesList) {
+			// 	for (const patch of patches) {
+			// 		console.log(`\n=== ${patch.newFile().path()} ===`);
+			//
+			// 		const hunks = await patch.hunks();
+			// 		for (const hunk of hunks) {
+			// 			console.log(`@@ ${hunk.header().trim()} @@`);
+			// 			const lines = await hunk.lines();
+			// 			for (const line of lines) {
+			// 				const origin = String.fromCharCode(line.origin());
+			// 				const content = line.content().trim();
+			// 				console.log(`${origin}${content}`);
+			// 			}
+			// 		}
+			// 	}
+			// }
+
 			for (const username of usernames) {
 				computed.push({
 					branch: opts.branch,
@@ -303,6 +324,7 @@ export class RepositoryScanner {
 					name: author.name(),
 					email: author.email(),
 					created_at: commit.date(),
+					diff: commit.getDiff(),
 					username: username,
 					repository: this.repository,
 					organization: this.organization,
@@ -362,7 +384,7 @@ export class RepositoryScanner {
 	* @param {Stats} stats
 	*/
 	async extractCommitsFromPullRequests(stats) {
-		const referenceDate = new Date(2025, 4, 1, 0, 0, 0);
+		const referenceDate = new Date(2025, 5, 1, 0, 0, 0);
 		const prs = (await this.#api.fetchPullRequest(this.organization, this.repository, referenceDate));
 		logger.info(`${this.organization}/${this.repository}: number of prs ${prs.length}`);
 
@@ -451,7 +473,7 @@ export class RepositoryScanner {
 		}
 
 		await spawn('git', ['checkout', opts.defaultBranch], {
-			cwd: path
+			cwd: opts.path
 		});
 	}
 

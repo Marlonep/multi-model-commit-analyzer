@@ -13,7 +13,7 @@ export async function fileExists(path) {
 		await fs.promises.stat(path);
 		return true;
 	} catch (err) {
-		logger.error(`error checking for file existance: ${err.message}`);
+		logger.warn(`error checking for file existance: ${err.message}`);
 		return false;
 	}
 }

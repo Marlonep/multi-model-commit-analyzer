@@ -9,6 +9,8 @@ import { dbHelpers } from './database/db.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import { logger } from './logger.js';
+import { wm } from './loaders.js';
+import { UploadKeyService } from './upload-key-service.js';
 
 const execAsync = promisify(exec);
 
@@ -45,6 +47,29 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
+
+app.use(wm.getMiddleware());
+
+app.post('/api/keys', async (req, res) => {
+  try {
+    dbHelpers.saveEncryptedApiKey(
+      req.body.key_name,
+      req.body.token,
+      req.body.provider,
+    );
+
+    const uks = new UploadKeyService();
+    await uks.initialize({
+      url: 'https://commits.covenant.space/api/gh-webhook',
+      key: req.body.token,
+    });
+    res.json({})
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'failed to save key' });
+  }
+});
+
 
 // Serve login page
 app.get('/login', (req, res) => {
@@ -408,7 +433,7 @@ app.get('/api/users/all/details', async (req, res) => {
 
     // Get details for each user
     for (const user of users) {
-      const details = dbHelpers.getUserDetails(user.id);
+      const details = dbHelpers.getUserById(user.id);
 
       // Use username as key for compatibility with frontend
       allUserDetails[user.username] = {
