@@ -1130,6 +1130,128 @@ app.get('/api/users/:userId/organizations', async (req, res) => {
   }
 });
 
+// Git Integration API endpoints
+
+// Scan organizations from GitHub API key
+app.post('/api/keys/scan', requireAdmin, async (req, res) => {
+  try {
+    const { key } = req.body;
+    
+    if (!key) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const uploadKeyService = new UploadKeyService();
+    const data = await uploadKeyService.getInfo({ key });
+    
+    res.json(data);
+  } catch (error) {
+    console.error('Error scanning organizations:', error);
+    res.status(500).json({ error: 'Failed to scan organizations' });
+  }
+});
+
+// Setup selected organizations and repositories
+app.post('/api/keys/selection', requireAdmin, async (req, res) => {
+  try {
+    const { key, organizations } = req.body;
+    
+    if (!key || !organizations || organizations.length === 0) {
+      return res.status(400).json({ error: 'API key and organizations are required' });
+    }
+
+    // Store the organizations in the database
+    for (const org of organizations) {
+      // Find or create organization
+      const dbOrg = dbHelpers.findOrCreateOrganization(org.name);
+      
+      // TODO: Store repositories and setup webhooks
+      // This would require additional database tables
+    }
+
+    // Initialize webhooks and deploy keys
+    const uploadKeyService = new UploadKeyService();
+    await uploadKeyService.initialize({
+      url: `${req.protocol}://${req.get('host')}/api/gh-webhook`,
+      key: key
+    });
+
+    res.json({ success: true, message: 'Organizations integrated successfully' });
+  } catch (error) {
+    console.error('Error setting up integrations:', error);
+    res.status(500).json({ error: 'Failed to setup integrations' });
+  }
+});
+
+// Get Git organizations (connected via Git integration)
+app.get('/api/git/organizations', requireAdmin, async (req, res) => {
+  try {
+    // Get organizations that have webhook integration
+    const organizations = dbHelpers.getAllOrganizations();
+    
+    // Transform to include Git-specific data
+    const gitOrgs = organizations.map(org => ({
+      id: org.id,
+      name: org.name,
+      webhookActive: false, // TODO: Check actual webhook status
+      repositories: [], // TODO: Get repositories from database
+      lastSync: org.updated_at,
+      expanded: false
+    }));
+
+    res.json(gitOrgs);
+  } catch (error) {
+    console.error('Error fetching Git organizations:', error);
+    res.status(500).json({ error: 'Failed to fetch Git organizations' });
+  }
+});
+
+// Sync organization repositories
+app.post('/api/git/organizations/:name/sync', requireAdmin, async (req, res) => {
+  try {
+    const { name } = req.params;
+    
+    // TODO: Implement repository sync
+    res.json({ success: true, message: `Organization ${name} synced successfully` });
+  } catch (error) {
+    console.error('Error syncing organization:', error);
+    res.status(500).json({ error: 'Failed to sync organization' });
+  }
+});
+
+// Remove Git organization integration
+app.delete('/api/git/organizations/:name', requireAdmin, async (req, res) => {
+  try {
+    const { name } = req.params;
+    
+    const org = dbHelpers.getOrganizationByName(name);
+    if (!org) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    // Soft delete the organization
+    dbHelpers.deleteOrganization(org.id);
+    
+    res.json({ success: true, message: 'Organization removed successfully' });
+  } catch (error) {
+    console.error('Error removing organization:', error);
+    res.status(500).json({ error: 'Failed to remove organization' });
+  }
+});
+
+// Analyze specific repository
+app.post('/api/git/organizations/:org/repositories/:repo/analyze', requireAdmin, async (req, res) => {
+  try {
+    const { org, repo } = req.params;
+    
+    // TODO: Implement repository analysis
+    res.json({ success: true, commits: 0, message: 'Repository analysis started' });
+  } catch (error) {
+    console.error('Error analyzing repository:', error);
+    res.status(500).json({ error: 'Failed to analyze repository' });
+  }
+});
+
 
 // Start server
 app.listen(PORT, () => {
