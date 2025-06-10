@@ -168,6 +168,47 @@ const createTables = () => {
         )
     `);
 
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS pending_integrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            status TEXT NOT NULL,
+            -- json data
+            data TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            encrypted_api_key_id INTEGER,
+            FOREIGN KEY (encrypted_api_key_id) REFERENCES encrypted_api_keys(id) ON DELETE CASCADE
+        )
+    `);
+
+
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS organizations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            provider TEXT NOT NULL,
+            provider_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            user_id INTEGER,
+            encrypted_api_key_id INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (encrypted_api_key_id) REFERENCES encrypted_api_keys(id) ON DELETE CASCADE
+        )
+    `);
+
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS repositories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            provider_id TEXT NOT NULL,
+            enabled BOOLEAN NOT NULL,
+            organization_id INTEGER,
+            FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+        )
+    `);
+
     // Create indexes for better performance
     db.exec(`
         CREATE INDEX IF NOT EXISTS idx_commits_user_name ON commits(user_name);
@@ -221,7 +262,7 @@ const createTables = () => {
             FROM pragma_table_info('commits') 
             WHERE name = 'model_scores'
         `).get();
-        
+
         if (columnExists.count === 0) {
             db.exec('ALTER TABLE commits ADD COLUMN model_scores TEXT');
             console.log('✅ Added model_scores column to existing commits table');
@@ -237,7 +278,7 @@ const createTables = () => {
             FROM pragma_table_info('users') 
             WHERE name = 'github_username'
         `).get();
-        
+
         if (columnExists.count === 0) {
             db.exec('ALTER TABLE users ADD COLUMN github_username TEXT');
             console.log('✅ Added github_username column to existing users table');
@@ -253,14 +294,14 @@ const createTables = () => {
             FROM pragma_table_info('commits') 
             WHERE name = 'github_username'
         `).get();
-        
+
         if (columnExists.count === 0) {
             db.exec('ALTER TABLE commits ADD COLUMN github_username TEXT');
             console.log('✅ Added github_username column to existing commits table');
-            
+
             // Migrate existing data
             console.log('🔄 Migrating existing commit data...');
-            
+
             // Set default GitHub usernames for known users
             const userMappings = [
                 { username: 'admin', github_username: 'admin' },
@@ -277,7 +318,7 @@ const createTables = () => {
                         SET github_username = ? 
                         WHERE username = ? AND github_username IS NULL
                     `).run(mapping.github_username, mapping.username);
-                    
+
                     if (result.changes > 0) {
                         console.log(`✅ Set GitHub username for user: ${mapping.username} -> ${mapping.github_username}`);
                     }
@@ -293,7 +334,7 @@ const createTables = () => {
                     SET github_username = 'Marlonep' 
                     WHERE user_name = 'Marlon Espinosa' AND github_username IS NULL
                 `).run();
-                
+
                 if (marlonResult.changes > 0) {
                     console.log(`✅ Linked ${marlonResult.changes} commits from "Marlon Espinosa" to GitHub user "Marlonep"`);
                 }
@@ -320,7 +361,7 @@ const createTables = () => {
                 FROM pragma_table_info('daily_commits') 
                 WHERE name = '${column.name}'
             `).get();
-            
+
             if (columnExists.count === 0) {
                 db.exec(`ALTER TABLE daily_commits ADD COLUMN ${column.name} ${column.type}`);
                 console.log(`✅ Added ${column.name} column to existing daily_commits table`);
@@ -428,15 +469,15 @@ export const dbHelpers = {
         if (!orgName || orgName === 'Unknown') {
             return null;
         }
-        
+
         // Try to find existing organization
         let org = this.getOrganizationByName(orgName);
-        
+
         if (!org) {
             // Create new organization
             const slug = orgName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
             const githubUrl = `https://github.com/${orgName}`;
-            
+
             const result = this.createOrganization({
                 name: orgName,
                 slug: slug,
@@ -444,10 +485,10 @@ export const dbHelpers = {
                 github_url: githubUrl,
                 tech_stack: []
             });
-            
+
             org = this.getOrganizationById(result.lastInsertRowid);
         }
-        
+
         return org;
     },
     // Users
@@ -528,11 +569,11 @@ export const dbHelpers = {
                 tokens_used, status, manually_reviewed, status_log, analysis_details, model_scores
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        
+
         // Try to find user_id from user_name
         const user = this.getUserByUsername(commitData.user_name);
         const userId = user ? user.id : null;
-        
+
         return stmt.run(
             commitData.commit_hash,
             commitData.user_name,
@@ -595,29 +636,29 @@ export const dbHelpers = {
         // Check which columns exist in the table
         const tableInfo = db.prepare('PRAGMA table_info(daily_commits)').all();
         const existingColumns = new Set(tableInfo.map(col => col.name));
-        
+
         // Build dynamic query based on existing columns
         const baseColumns = ['date', 'user_name', 'user_id', 'total_commits', 'total_lines_added', 'total_lines_deleted', 'total_hours', 'average_quality', 'average_complexity', 'summary'];
         const optionalColumns = ['average_dev_level', 'projects', 'commit_hashes', 'commit_indices'];
-        
+
         const columnsToInsert = baseColumns.filter(col => existingColumns.has(col));
         const optionalColumnsToInsert = optionalColumns.filter(col => existingColumns.has(col));
-        
+
         const allColumns = [...columnsToInsert, ...optionalColumnsToInsert];
         const placeholders = allColumns.map(() => '?').join(', ');
-        
+
         const stmt = db.prepare(`
             INSERT OR REPLACE INTO daily_commits (${allColumns.join(', ')})
             VALUES (${placeholders})
         `);
-        
+
         // Try to find user_id from user_name
         const user = this.getUserByUsername(dailyData.user_name);
         const userId = user ? user.id : null;
-        
+
         // Build values array
         const values = [];
-        
+
         // Add base values
         if (existingColumns.has('date')) values.push(dailyData.date);
         if (existingColumns.has('user_name')) values.push(dailyData.user_name);
@@ -629,13 +670,13 @@ export const dbHelpers = {
         if (existingColumns.has('average_quality')) values.push(dailyData.average_quality || 0);
         if (existingColumns.has('average_complexity')) values.push(dailyData.average_complexity || 0);
         if (existingColumns.has('summary')) values.push(dailyData.summary || '');
-        
+
         // Add optional values
         if (existingColumns.has('average_dev_level')) values.push(dailyData.average_dev_level || 0);
         if (existingColumns.has('projects')) values.push(JSON.stringify(dailyData.projects || []));
         if (existingColumns.has('commit_hashes')) values.push(JSON.stringify(dailyData.commit_hashes || []));
         if (existingColumns.has('commit_indices')) values.push(JSON.stringify(dailyData.commit_indices || []));
-        
+
         return stmt.run(...values);
     },
 
@@ -657,7 +698,7 @@ export const dbHelpers = {
             INSERT INTO tools (tool_id, image, name, category, description, price, cost_per_month, website, created_by)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        
+
         return stmt.run(
             toolData.tool_id || toolData.id,
             toolData.image || null,
@@ -678,7 +719,7 @@ export const dbHelpers = {
                 price = ?, cost_per_month = ?, website = ?
             WHERE id = ?
         `);
-        
+
         return stmt.run(
             toolData.image || null,
             toolData.name,
@@ -706,7 +747,7 @@ export const dbHelpers = {
 
     createOrUpdateAIModel(modelData) {
         const existing = this.getAIModel(modelData.model_id);
-        
+
         if (existing) {
             // Update existing record
             const stmt = db.prepare(`
@@ -720,7 +761,7 @@ export const dbHelpers = {
                     last_error = ?, last_used_at = ?
                 WHERE model_id = ?
             `);
-            
+
             return stmt.run(
                 modelData.provider,
                 modelData.model_name,
@@ -756,7 +797,7 @@ export const dbHelpers = {
                     last_error, last_used_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
-            
+
             return stmt.run(
                 modelData.model_id,
                 modelData.provider,
@@ -788,12 +829,12 @@ export const dbHelpers = {
 
     updateAIModelPerformanceFromCommit(modelId, quality, responseTime, tokens, cost, success) {
         const existing = this.getAIModel(modelId);
-        
+
         if (!existing) {
             console.warn(`Model ${modelId} not found in ai_models table`);
             return;
         }
-        
+
         // Update with incremental statistics
         const stmt = db.prepare(`
             UPDATE ai_models 
@@ -808,7 +849,7 @@ export const dbHelpers = {
                 last_error = CASE WHEN ? = 0 THEN ? ELSE last_error END
             WHERE model_id = ?
         `);
-        
+
         return stmt.run(
             success ? 1 : 0,
             success ? 0 : 1,
@@ -830,7 +871,7 @@ export const dbHelpers = {
                 parameters, env_var, model_type, notes
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        
+
         return stmt.run(
             modelData.model_id,
             modelData.provider,
@@ -854,7 +895,7 @@ export const dbHelpers = {
                 parameters = ?, env_var = ?, model_type = ?, notes = ?
             WHERE model_id = ?
         `);
-        
+
         return stmt.run(
             modelData.provider,
             modelData.model_name,
@@ -889,12 +930,12 @@ export const dbHelpers = {
             const algorithm = 'aes-256-cbc';
             const key = crypto.scryptSync(this.getEncryptionKey(), 'salt', 32);
             const iv = crypto.randomBytes(16);
-            
+
             const cipher = crypto.createCipher(algorithm, key, iv);
-            
+
             let encrypted = cipher.update(plainKey, 'utf8', 'hex');
             encrypted += cipher.final('hex');
-            
+
             // Combine iv + encrypted data
             return iv.toString('hex') + ':' + encrypted;
         } catch (error) {
@@ -907,20 +948,20 @@ export const dbHelpers = {
         try {
             const algorithm = 'aes-256-cbc';
             const key = crypto.scryptSync(this.getEncryptionKey(), 'salt', 32);
-            
+
             const parts = encryptedKey.split(':');
             if (parts.length !== 2) {
                 throw new Error('Invalid encrypted key format');
             }
-            
+
             const iv = Buffer.from(parts[0], 'hex');
             const encrypted = parts[1];
-            
+
             const decipher = crypto.createDecipher(algorithm, key, iv);
-            
+
             let decrypted = decipher.update(encrypted, 'hex', 'utf8');
             decrypted += decipher.final('utf8');
-            
+
             return decrypted;
         } catch (error) {
             console.error('Decryption error:', error);
@@ -932,7 +973,7 @@ export const dbHelpers = {
     saveEncryptedApiKey(keyName, plainKey, provider, userId = null, isGlobal = true) {
         try {
             const encryptedKey = this.encryptApiKey(plainKey);
-            
+
             const stmt = db.prepare(`
                 INSERT OR REPLACE INTO encrypted_api_keys 
                 (key_name, encrypted_key, provider, user_id, is_global, key_version)
@@ -940,12 +981,42 @@ export const dbHelpers = {
                     COALESCE((SELECT key_version + 1 FROM encrypted_api_keys 
                              WHERE key_name = ? AND user_id IS ? AND is_global = ?), 1))
             `);
-            
-            return stmt.run(keyName, encryptedKey, provider, userId, isGlobal ? 1 : 0, 
-                           keyName, userId, isGlobal ? 1 : 0);
+
+            return stmt.run(keyName, encryptedKey, provider, userId, isGlobal ? 1 : 0,
+                keyName, userId, isGlobal ? 1 : 0);
         } catch (error) {
             console.error('Error saving encrypted API key:', error);
             throw error;
+        }
+    },
+
+    getDecryptedApiKeyById(id) {
+        try {
+            const stmt = db.prepare(`
+                SELECT encrypted_key, provider, last_used_at 
+                FROM encrypted_api_keys 
+                WHERE id = ?
+                ORDER BY key_version DESC 
+                LIMIT 1
+            `);
+
+            const result = stmt.get(id);
+
+            if (!result) {
+                return null;
+            }
+
+            // Update last used timestamp
+            this.updateApiKeyLastUsed(result.keyName, result.userId, result.isGlobal);
+
+            return {
+                key: this.decryptApiKey(result.encrypted_key),
+                provider: result.provider,
+                lastUsed: result.last_used_at
+            };
+        } catch (error) {
+            console.error('Error retrieving decrypted API key:', error);
+            return null;
         }
     },
 
@@ -958,16 +1029,16 @@ export const dbHelpers = {
                 ORDER BY key_version DESC 
                 LIMIT 1
             `);
-            
+
             const result = stmt.get(keyName, userId, isGlobal ? 1 : 0);
-            
+
             if (!result) {
                 return null;
             }
-            
+
             // Update last used timestamp
             this.updateApiKeyLastUsed(keyName, userId, isGlobal);
-            
+
             return {
                 key: this.decryptApiKey(result.encrypted_key),
                 provider: result.provider,
@@ -990,12 +1061,12 @@ export const dbHelpers = {
 
     getAllApiKeys(userId = null, isGlobal = true) {
         const stmt = db.prepare(`
-            SELECT key_name, provider, last_used_at, key_version, created_at
+            SELECT id, key_name, provider, last_used_at, key_version, created_at
             FROM encrypted_api_keys 
             WHERE user_id IS ? AND is_global = ?
             ORDER BY provider, key_name
         `);
-        
+
         return stmt.all(userId, isGlobal ? 1 : 0);
     },
 
@@ -1011,9 +1082,373 @@ export const dbHelpers = {
     getApiKeyForModel(modelId) {
         const model = this.getAIModel(modelId);
         if (!model) return null;
-        
+
         // Try to get the API key using the model's env_var name
         return this.getDecryptedApiKey(model.env_var);
+    },
+
+    // Pending Integrations management
+    createPendingIntegration(status, data, encryptedApiKeyId) {
+        try {
+            const stmt = db.prepare(`
+                INSERT INTO pending_integrations (status, data, encrypted_api_key_id)
+                VALUES (?, ?, ?)
+            `);
+
+            const result = stmt.run(
+                status,
+                typeof data === 'object' ? JSON.stringify(data) : data,
+                encryptedApiKeyId
+            );
+
+            return {
+                id: result.lastInsertRowid,
+                status,
+                data,
+                encrypted_api_key_id: encryptedApiKeyId
+            };
+        } catch (error) {
+            console.error('Error creating pending integration:', error);
+            throw error;
+        }
+    },
+
+    getPendingIntegration(id) {
+        try {
+            const result = db.prepare(`
+                SELECT * FROM pending_integrations WHERE id = ?
+            `).get(id);
+
+            if (result && result.data) {
+                try {
+                    result.data = JSON.parse(result.data);
+                } catch (e) {
+                    // If JSON parsing fails, return as is
+                }
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error getting pending integration:', error);
+            return null;
+        }
+    },
+
+    updatePendingIntegration(id, status, data = null) {
+        try {
+            let stmt;
+            let params;
+
+            if (data !== null) {
+                stmt = db.prepare(`
+                    UPDATE pending_integrations 
+                    SET status = ?, data = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                `);
+                params = [
+                    status,
+                    typeof data === 'object' ? JSON.stringify(data) : data,
+                    id
+                ];
+            } else {
+                stmt = db.prepare(`
+                    UPDATE pending_integrations 
+                    SET status = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                `);
+                params = [status, id];
+            }
+
+            return stmt.run(...params);
+        } catch (error) {
+            console.error('Error updating pending integration:', error);
+            throw error;
+        }
+    },
+
+    getAllPendingIntegrations(status = null) {
+        try {
+            let query = 'SELECT * FROM pending_integrations';
+            let params = [];
+
+            if (status) {
+                query += ' WHERE status = ?';
+                params.push(status);
+            }
+
+            query += ' ORDER BY created_at DESC';
+
+            const results = db.prepare(query).all(...params);
+
+            // Parse JSON data for each result
+            return results.map(result => {
+                if (result.data) {
+                    try {
+                        result.data = JSON.parse(result.data);
+                    } catch (e) {
+                        // If JSON parsing fails, return as is
+                    }
+                }
+                return result;
+            });
+        } catch (error) {
+            console.error('Error getting pending integrations:', error);
+            return [];
+        }
+    },
+
+    deletePendingIntegration(id) {
+        try {
+            return db.prepare('DELETE FROM pending_integrations WHERE id = ?').run(id);
+        } catch (error) {
+            console.error('Error deleting pending integration:', error);
+            throw error;
+        }
+    },
+
+    // Git Organizations management (for the new organizations table structure)
+    createGitOrganization(orgData) {
+        try {
+            const stmt = db.prepare(`
+                INSERT INTO organizations (provider, provider_id, name, user_id, encrypted_api_key_id)
+                VALUES (?, ?, ?, ?, ?)
+            `);
+
+            const result = stmt.run(
+                orgData.provider,
+                orgData.provider_id,
+                orgData.name,
+                orgData.user_id || null,
+                orgData.encrypted_api_key_id || null
+            );
+
+            return {
+                id: result.lastInsertRowid,
+                ...orgData
+            };
+        } catch (error) {
+            console.error('Error creating git organization:', error);
+            throw error;
+        }
+    },
+
+    getGitOrganizationByProviderId(provider, providerId) {
+        try {
+            return db.prepare(`
+                SELECT * FROM organizations 
+                WHERE provider = ? AND provider_id = ?
+            `).get(provider, providerId);
+        } catch (error) {
+            console.error('Error getting git organization by provider ID:', error);
+            return null;
+        }
+    },
+
+    getGitOrganizationsByKeyId(encryptedApiKeyId) {
+        try {
+            return db.prepare(`
+                SELECT * FROM organizations 
+                WHERE encrypted_api_key_id = ?
+                ORDER BY name
+            `).all(encryptedApiKeyId);
+        } catch (error) {
+            console.error('Error getting git organizations by key ID:', error);
+            return [];
+        }
+    },
+
+    updateGitOrganization(id, orgData) {
+        try {
+            const stmt = db.prepare(`
+                UPDATE organizations 
+                SET provider = ?, provider_id = ?, name = ?, user_id = ?, encrypted_api_key_id = ?
+                WHERE id = ?
+            `);
+
+            return stmt.run(
+                orgData.provider,
+                orgData.provider_id,
+                orgData.name,
+                orgData.user_id || null,
+                orgData.encrypted_api_key_id || null,
+                id
+            );
+        } catch (error) {
+            console.error('Error updating git organization:', error);
+            throw error;
+        }
+    },
+
+    deleteGitOrganization(id) {
+        try {
+            return db.prepare('DELETE FROM organizations WHERE id = ?').run(id);
+        } catch (error) {
+            console.error('Error deleting git organization:', error);
+            throw error;
+        }
+    },
+
+    // Git Repositories management
+    createGitRepository(repoData) {
+        try {
+            const stmt = db.prepare(`
+                INSERT INTO repositories (name, description, provider_id, enabled, organization_id)
+                VALUES (?, ?, ?, ?, ?)
+            `);
+
+            const result = stmt.run(
+                repoData.name,
+                repoData.description || '',
+                repoData.provider_id,
+                repoData.enabled ? 1 : 0,
+                repoData.organization_id
+            );
+
+            return {
+                id: result.lastInsertRowid,
+                ...repoData
+            };
+        } catch (error) {
+            console.error('Error creating git repository:', error);
+            throw error;
+        }
+    },
+
+    getGitRepositoryByProviderId(providerId) {
+        try {
+            return db.prepare(`
+                SELECT * FROM repositories 
+                WHERE provider_id = ?
+            `).get(providerId);
+        } catch (error) {
+            console.error('Error getting git repository by provider ID:', error);
+            return null;
+        }
+    },
+
+    getGitRepositoriesByOrganization(organizationId) {
+        try {
+            return db.prepare(`
+                SELECT * FROM repositories 
+                WHERE organization_id = ?
+                ORDER BY name
+            `).all(organizationId);
+        } catch (error) {
+            console.error('Error getting git repositories by organization:', error);
+            return [];
+        }
+    },
+
+    getEnabledGitRepositoriesByOrganization(organizationId) {
+        try {
+            return db.prepare(`
+                SELECT * FROM repositories 
+                WHERE organization_id = ? AND enabled = 1
+                ORDER BY name
+            `).all(organizationId);
+        } catch (error) {
+            console.error('Error getting enabled git repositories by organization:', error);
+            return [];
+        }
+    },
+
+    updateGitRepository(id, repoData) {
+        try {
+            const stmt = db.prepare(`
+                UPDATE repositories 
+                SET name = ?, description = ?, provider_id = ?, enabled = ?, organization_id = ?
+                WHERE id = ?
+            `);
+
+            return stmt.run(
+                repoData.name,
+                repoData.description || '',
+                repoData.provider_id,
+                repoData.enabled ? 1 : 0,
+                repoData.organization_id,
+                id
+            );
+        } catch (error) {
+            console.error('Error updating git repository:', error);
+            throw error;
+        }
+    },
+
+    enableGitRepository(id) {
+        try {
+            return db.prepare('UPDATE repositories SET enabled = 1 WHERE id = ?').run(id);
+        } catch (error) {
+            console.error('Error enabling git repository:', error);
+            throw error;
+        }
+    },
+
+    disableGitRepository(id) {
+        try {
+            return db.prepare('UPDATE repositories SET enabled = 0 WHERE id = ?').run(id);
+        } catch (error) {
+            console.error('Error disabling git repository:', error);
+            throw error;
+        }
+    },
+
+    deleteGitRepository(id) {
+        try {
+            return db.prepare('DELETE FROM repositories WHERE id = ?').run(id);
+        } catch (error) {
+            console.error('Error deleting git repository:', error);
+            throw error;
+        }
+    },
+
+    // Helper method to create organization and repositories in one transaction
+    createOrganizationWithRepositories(orgData, repositories, userId = null) {
+        try {
+            const transaction = db.transaction(() => {
+                // Create organization
+                const org = this.createGitOrganization({
+                    ...orgData,
+                    user_id: userId
+                });
+
+                // Create repositories
+                const createdRepos = [];
+                for (const repo of repositories) {
+                    const createdRepo = this.createGitRepository({
+                        ...repo,
+                        organization_id: org.id
+                    });
+                    createdRepos.push(createdRepo);
+                }
+
+                return { organization: org, repositories: createdRepos };
+            });
+
+            return transaction();
+        } catch (error) {
+            console.error('Error creating organization with repositories:', error);
+            throw error;
+        }
+    },
+
+    // Helper method to get organization with all its repositories
+    getOrganizationWithRepositories(organizationId) {
+        try {
+            const organization = db.prepare('SELECT * FROM organizations WHERE id = ?').get(organizationId);
+            if (!organization) {
+                return null;
+            }
+
+            const repositories = this.getGitRepositoriesByOrganization(organizationId);
+            
+            return {
+                ...organization,
+                repositories
+            };
+        } catch (error) {
+            console.error('Error getting organization with repositories:', error);
+            return null;
+        }
     }
 };
 

@@ -8,6 +8,7 @@ import { wm } from './loaders.js';
 import { RepositoryScanner } from './repository-scanner.js';
 import { KeyManager } from './key-manager.js';
 import { SSH_STORAGE_PATH } from './env.js';
+import { dbHelpers } from './database/db.js';
 
 const ReferenceDate = new Date(2025, 5, 1, 0, 0, 0);
 
