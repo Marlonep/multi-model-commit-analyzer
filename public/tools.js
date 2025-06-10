@@ -171,9 +171,15 @@ function renderTools() {
                     'N/A'
                 }
             </td>
-            <td class="tool-actions">
-                <button class="btn-small btn-edit" onclick="editTool('${tool.id}')">Edit</button>
-                <button class="btn-small btn-delete" onclick="deleteTool('${tool.id}')">Delete</button>
+            <td>
+                <div class="action-buttons">
+                    <button class="view-details" onclick="editTool('${tool.id}')">
+                        Edit
+                    </button>
+                    <button class="btn-danger-small" onclick="deleteTool('${tool.id}')">
+                        Delete
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
