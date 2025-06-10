@@ -52,12 +52,15 @@ export class KeyManager {
 		const keyFilePath = path.join(this.#storagePath, this.getKeyFileName(organization, repository));
 		const code = await spawn('ssh-keygen', ['-t', 'ed25519', '-f', keyFilePath, '-C', 'codepulse@nuclea.solutions', '-N', '']);
 		assert(code === 0, `could not generate ssh key with ed25519`);
+		logger.info('key generated');
 
-		const publicKeyPath = `${path}.pub`;
+		const publicKeyPath = `${keyFilePath}.pub`;
 		const exists = await fileExists(publicKeyPath);
 		assert(exists === true, 'public key was not found');
+		logger.info('public key generated');
 
 		const publicKeyContents = await fs.readFile(publicKeyPath, 'utf-8');
+		logger.info(publicKeyContents);
 		const response = await this.#api.createDeployKey(organization, repository, publicKeyContents);
 		assert(response.status === 201, "error creating key in github");
 
@@ -94,6 +97,9 @@ export class KeyManager {
 		logger.warn(`key-manager: deploy key found in github but no in file system, deleting ${key.id}`);
 		await this.#api.deleteDeployKey(organization, repository, key.id);
 		return this.#createKey(organization, repository);
+	}
+
+	async destroyKey(organization, repository, id) {
 	}
 
 }

@@ -4,11 +4,6 @@
  * Handles API key management and validation for various AI services
  */
 
-import { config } from 'dotenv';
-
-// Load environment variables
-config();
-
 export class KeyManagerService {
     /**
      * Get all available API keys
@@ -81,7 +76,7 @@ export class KeyManagerService {
     static maskApiKey(key) {
         if (!key) return 'Not configured';
         if (key.length < 8) return '*'.repeat(key.length);
-        
+
         return key.substring(0, 4) + '*'.repeat(key.length - 8) + key.substring(key.length - 4);
     }
 

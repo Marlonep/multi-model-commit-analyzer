@@ -11,7 +11,6 @@
  * @version 1.0.0
  */
 
-import { config } from 'dotenv';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
@@ -19,9 +18,6 @@ import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { LineAnalyzer } from './codeAnalyzer.js';
-
-// Load environment variables from .env file
-config();
 
 // Promisify exec for async/await usage
 const execAsync = promisify(exec);
@@ -167,7 +163,7 @@ class AIModels {
       this.models.push({
         name: 'Grok 3',
         provider: 'xAI',
-        client: new OpenAI({ 
+        client: new OpenAI({
           apiKey: grokKey,
           baseURL: 'https://api.x.ai/v1'
         }),
@@ -293,8 +289,8 @@ Respond ONLY in this JSON format:
 
       // Calculate cost
       const pricing = MODEL_PRICING[modelKey];
-      const cost = pricing ? 
-        (inputTokens * pricing.input / 1000) + (outputTokens * pricing.output / 1000) : 
+      const cost = pricing ?
+        (inputTokens * pricing.input / 1000) + (outputTokens * pricing.output / 1000) :
         0;
 
       const elapsedTime = (Date.now() - startTime) / 1000;
@@ -309,7 +305,7 @@ Respond ONLY in this JSON format:
         const jsonStart = result.indexOf('{');
         const jsonEnd = result.lastIndexOf('}') + 1;
         let parsed;
-        
+
         if (jsonStart !== -1 && jsonEnd !== 0) {
           const jsonStr = result.substring(jsonStart, jsonEnd);
           parsed = JSON.parse(jsonStr);
@@ -385,10 +381,10 @@ class CommitDatabase {
 
   async saveAnalysis(analysis) {
     await this.loadHistory();
-    
+
     // Check if this commit already exists (might be updating from "analyzing" status)
     const existingIndex = this.history.findIndex(item => item.commitHash === analysis.commitHash);
-    
+
     if (existingIndex !== -1) {
       // Update existing entry
       this.history[existingIndex] = analysis;
@@ -396,17 +392,17 @@ class CommitDatabase {
       // Add new entry
       this.history.push(analysis);
     }
-    
+
     await fs.writeFile(this.dbFile, JSON.stringify(this.history, null, 2));
   }
-  
+
   async saveInitialCommit(commitInfo, user, project, organization) {
     await this.loadHistory();
-    
+
     // Check if already exists
     const exists = this.history.some(item => item.commitHash === commitInfo.hash);
     if (exists) return;
-    
+
     // Create initial entry with "analyzing" status
     const initialEntry = {
       commitHash: commitInfo.hash,
@@ -430,7 +426,7 @@ class CommitDatabase {
       totalCost: 0,
       avgCostPerModel: 0
     };
-    
+
     this.history.push(initialEntry);
     await fs.writeFile(this.dbFile, JSON.stringify(this.history, null, 2));
   }
@@ -441,7 +437,7 @@ async function getOrganizationFromRemote() {
     // Get the remote URL
     const { stdout: remoteUrl } = await execAsync('git remote get-url origin');
     const url = remoteUrl.trim();
-    
+
     // Extract organization from GitHub URL
     // Format: https://github.com/organization/repository.git or git@github.com:organization/repository.git
     const match = url.match(/github\.com[:/]([^/]+)\//);
@@ -527,15 +523,14 @@ function printModelScoresTable(modelScores) {
   // Data rows
   let totalCost = 0;
   let totalTokens = 0;
-  
+
   for (const score of modelScores) {
-    const devLevelStr = `${score.devLevel.toFixed(1)} (${
-      score.devLevel <= 1.5 ? 'Jr' : score.devLevel <= 2.5 ? 'Mid' : 'Sr'
-    })`;
-    
+    const devLevelStr = `${score.devLevel.toFixed(1)} (${score.devLevel <= 1.5 ? 'Jr' : score.devLevel <= 2.5 ? 'Mid' : 'Sr'
+      })`;
+
     totalCost += score.cost;
     totalTokens += score.tokensUsed;
-    
+
     console.log(
       `${score.modelName.padEnd(20)} ${score.provider.padEnd(10)} ` +
       `${score.codeQuality.toFixed(1).padEnd(8)} ${devLevelStr.padEnd(10)} ` +
@@ -545,7 +540,7 @@ function printModelScoresTable(modelScores) {
       `${score.responseTime.toFixed(2).padEnd(7)}`
     );
   }
-  
+
   // Total row
   console.log('-'.repeat(170));
   console.log(
@@ -638,7 +633,7 @@ function printCommitHistoryTable(history) {
     const tokens = commit.totalTokens || 0;
     const cost = commit.totalCost || 0;
     const avgCost = commit.avgCostPerModel || 0;
-    
+
     grandTotalTokens += tokens;
     grandTotalCost += cost;
 
@@ -663,7 +658,7 @@ function printCommitHistoryTable(history) {
 async function main() {
   // Get commit hash from arguments or use HEAD
   const commitHash = process.argv[2] || 'HEAD';
-  
+
   // Check if we're in a git repository
   try {
     await execAsync('git rev-parse --git-dir');
@@ -675,7 +670,7 @@ async function main() {
   // Get git user info
   let user = process.argv[3] || 'unknown';
   let project = process.argv[4] || 'unknown';
-  
+
   // Try to get user from git config if not provided
   if (user === 'unknown') {
     try {
@@ -691,7 +686,7 @@ async function main() {
       }
     }
   }
-  
+
   // Try to get project name from git remote if not provided
   if (project === 'unknown') {
     try {
@@ -741,7 +736,7 @@ async function main() {
   console.log('\n📊 Running code analysis on repository...');
   const lineAnalyzer = new LineAnalyzer();
   await lineAnalyzer.analyze('.');
-  
+
   const codeAnalysis = {
     totalLines: lineAnalyzer.stats.total,
     codeLines: lineAnalyzer.stats.code,
@@ -807,17 +802,15 @@ async function main() {
 
   console.log('\n📊 AVERAGE SCORES:');
   console.log(`Code Quality: ${avgQuality.toFixed(1)}/5`);
-  console.log(`Developer Level: ${avgDevLevel.toFixed(1)}/3 (${
-    avgDevLevel <= 1.5 ? 'Junior' : avgDevLevel <= 2.5 ? 'Mid' : 'Senior'
-  })`);
+  console.log(`Developer Level: ${avgDevLevel.toFixed(1)}/3 (${avgDevLevel <= 1.5 ? 'Junior' : avgDevLevel <= 2.5 ? 'Mid' : 'Senior'
+    })`);
   console.log(`Complexity: ${avgComplexity.toFixed(1)}/5`);
   console.log(`Estimated Hours: ${avgHours.toFixed(1)}`);
   console.log(`AI Code Percentage: ${avgAiPercentage.toFixed(1)}%`);
   console.log(`Estimated Hours with AI: ${avgHoursWithAi.toFixed(1)}`);
-  console.log(`Time Savings with AI: ${(avgHours - avgHoursWithAi).toFixed(1)} hours (${
-    Math.round(((avgHours - avgHoursWithAi) / avgHours) * 100)
-  }% reduction)`);
-  
+  console.log(`Time Savings with AI: ${(avgHours - avgHoursWithAi).toFixed(1)} hours (${Math.round(((avgHours - avgHoursWithAi) / avgHours) * 100)
+    }% reduction)`);
+
   console.log('\n💰 COST ANALYSIS:');
   console.log(`Total Tokens Used: ${totalTokens.toLocaleString()}`);
   console.log(`Total Cost: $${totalCost.toFixed(4)}`);
