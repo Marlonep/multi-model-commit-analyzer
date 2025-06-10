@@ -39,7 +39,7 @@ export class GitHubApi {
 
 	/**
 	* @param {string} organization
-	* @param {Date} fromDate
+	* @param {Date|null} fromDate
 	* @returns {Promise<Array<{ ssh_url: string; name: string; updated_at: string; default_branch: string; }>>}
 	*/
 	async fetch(organization, fromDate) {
@@ -59,7 +59,11 @@ export class GitHubApi {
 
 
 			const afterDate = response.data.filter(r => {
-				return new Date(r.pushed_at) >= fromDate;
+				if (fromDate) {
+					return new Date(r.pushed_at) >= fromDate;
+				}
+
+				return true;
 			});
 
 			repos.push(...afterDate);

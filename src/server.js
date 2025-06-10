@@ -50,7 +50,7 @@ app.use(session({
 
 app.use(wm.getMiddleware());
 
-app.post('/api/keys', async (req, res) => {
+app.post('/api/keys/scan', async (req, res) => {
   try {
     dbHelpers.saveEncryptedApiKey(
       req.body.key_name,
@@ -59,14 +59,22 @@ app.post('/api/keys', async (req, res) => {
     );
 
     const uks = new UploadKeyService();
-    await uks.initialize({
-      url: 'https://commits.covenant.space/api/gh-webhook',
+    const data = await uks.getInfo({
       key: req.body.token,
     });
-    res.json({})
+
+    // create scan record to hold data between requests (selection request)
+
+    res.json({ data })
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: 'failed to save key' });
+  }
+});
+
+app.post('/api/keys/selection', async (req, res) => {
+  try {
+  } catch (err) {
   }
 });
 

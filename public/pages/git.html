@@ -722,13 +722,23 @@
     <div id="repoSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Select Repositories</h2>
+                <h2>Select Repositories to Analyze</h2>
                 <button class="close-btn" onclick="closeRepoSelectionModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="search-container">
-                    <span class="material-icons search-icon">search</span>
-                    <input type="text" class="search-input" id="repoSearchInput" placeholder="Search repositories...">
+                <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
+                    Select the repositories you want to analyze. Private repositories are marked with a lock icon.
+                </p>
+                <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                    <div class="search-container" style="flex: 1; margin-bottom: 0;">
+                        <span class="material-icons search-icon">search</span>
+                        <input type="text" class="search-input" id="repoSearchInput" placeholder="Search repositories..." oninput="filterRepositories()">
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary); font-size: 14px;">
+                        <input type="checkbox" id="showPrivateOnly" onchange="filterRepositories()" style="cursor: pointer;">
+                        <span class="material-icons" style="font-size: 16px; color: var(--warning-color);">lock</span>
+                        Private only
+                    </label>
                 </div>
                 <div class="repo-list" id="repoList">
                     <!-- Repository checkboxes will be dynamically loaded here -->
