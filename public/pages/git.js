@@ -363,26 +363,64 @@ async function handleAddOrganization(e) {
         submitBtn.textContent = 'Validating token...';
         submitBtn.disabled = true;
         
-        // Mock API call to validate token and get repositories
-        const response = await mockValidateTokenAPI(orgData);
+        // Call the /api/keys/scan endpoint
+        const response = await fetch('/api/keys/scan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                key_name: orgData.name,
+                provider: orgData.provider,
+                token: orgData.token
+            })
+        });
         
-        if (response.status === 'success') {
+        if (!response.ok) {
+            throw new Error('Failed to validate token');
+        }
+        
+        const result = await response.json();
+        
+        if (result.data && result.data.orgs) {
+            // Process the organizations and repositories from the API
+            const allRepos = [];
+            result.data.orgs.forEach(org => {
+                if (org.repositories && org.repositories.length > 0) {
+                    org.repositories.forEach(repo => {
+                        allRepos.push({
+                            id: repo.id,
+                            name: repo.name,
+                            full_name: repo.full_name,
+                            description: repo.description || 'No description available',
+                            private: repo.private,
+                            org_name: org.name,  // Changed from org.login to org.name
+                            org_id: org.id,
+                            commits_analyzed: 0,
+                            last_sync: null,
+                            active: false
+                        });
+                    });
+                }
+            });
+            
             // Store the token data temporarily for the modal
             window.tempOrgData = {
                 name: orgData.name,
                 provider: orgData.provider,
                 token: orgData.token,
-                repositories: response.repositories
+                repositories: allRepos,
+                organizations: result.data.orgs
             };
             
             // Close modal and open repository selection
             closeAddOrganizationModal();
             
             // Load repositories for selection (all checked by default)
-            renderRepositoryListWithStatus(response.repositories);
+            renderRepositoryListWithStatus(allRepos);
             openRepoSelectionModal();
         } else {
-            throw new Error(response.message || 'Token validation failed');
+            throw new Error('No organizations found for this token');
         }
         
         // Reset button state
@@ -473,46 +511,115 @@ function renderRepositoryListWithStatus(repos) {
     const repoList = document.getElementById('repoList');
     repoList.innerHTML = '';
     
+    // Group repositories by organization
+    const reposByOrg = {};
     repos.forEach(repo => {
-        const repoItem = document.createElement('div');
-        repoItem.className = 'repo-item';
-        repoItem.innerHTML = `
-            <input type="checkbox" id="repo-${repo.id}" value="${repo.id}" checked onchange="updateSelectedCount()">
-            <label for="repo-${repo.id}" class="repo-item-info">
-                <div class="repo-name">${repo.name}</div>
-                <div class="repo-description">${repo.description || 'No description'}</div>
-            </label>
-        `;
-        repoList.appendChild(repoItem);
+        const orgName = repo.org_name || 'Unknown';
+        if (!reposByOrg[orgName]) {
+            reposByOrg[orgName] = [];
+        }
+        reposByOrg[orgName].push(repo);
+    });
+    
+    // Render repositories grouped by organization
+    Object.entries(reposByOrg).forEach(([orgName, orgRepos]) => {
+        // Add organization header
+        const orgHeader = document.createElement('div');
+        orgHeader.style.cssText = 'padding: 8px 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); font-weight: 500; color: var(--accent-green);';
+        orgHeader.innerHTML = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">business</span>${orgName} (${orgRepos.length} repositories)`;
+        repoList.appendChild(orgHeader);
+        
+        // Add repositories for this organization
+        orgRepos.forEach(repo => {
+            const repoItem = document.createElement('div');
+            repoItem.className = 'repo-item';
+            const isPrivate = repo.private ? '<span class="material-icons" style="font-size: 14px; color: var(--warning-color); margin-left: 4px;" title="Private repository">lock</span>' : '';
+            repoItem.innerHTML = `
+                <input type="checkbox" id="repo-${repo.id}" value="${repo.id}" checked onchange="updateSelectedCount()">
+                <label for="repo-${repo.id}" class="repo-item-info">
+                    <div class="repo-name">${repo.name}${isPrivate}</div>
+                    <div class="repo-description">${repo.description || 'No description'}</div>
+                </label>
+            `;
+            repoList.appendChild(repoItem);
+        });
     });
     
     updateSelectedCount();
 }
 
-// Filter repositories based on search
+// Filter repositories based on search and privacy settings
 function filterRepositories() {
     const searchTerm = document.getElementById('repoSearchInput').value.toLowerCase();
+    const showPrivateOnly = document.getElementById('showPrivateOnly').checked;
     const repoItems = document.querySelectorAll('.repo-item');
     
     repoItems.forEach(item => {
         const repoName = item.querySelector('.repo-name').textContent.toLowerCase();
         const repoDesc = item.querySelector('.repo-description').textContent.toLowerCase();
+        const isPrivate = item.querySelector('.repo-name .material-icons') !== null; // Check if lock icon exists
         
-        if (repoName.includes(searchTerm) || repoDesc.includes(searchTerm)) {
+        // Apply search filter
+        const matchesSearch = repoName.includes(searchTerm) || repoDesc.includes(searchTerm);
+        
+        // Apply privacy filter
+        const matchesPrivacy = !showPrivateOnly || isPrivate;
+        
+        if (matchesSearch && matchesPrivacy) {
             item.style.display = 'flex';
         } else {
             item.style.display = 'none';
         }
     });
+    
+    // Also hide/show organization headers if all repos in that org are hidden
+    const orgHeaders = document.querySelectorAll('#repoList > div:not(.repo-item)');
+    orgHeaders.forEach(header => {
+        let nextSibling = header.nextElementSibling;
+        let hasVisibleRepo = false;
+        
+        while (nextSibling && nextSibling.classList.contains('repo-item')) {
+            if (nextSibling.style.display !== 'none') {
+                hasVisibleRepo = true;
+                break;
+            }
+            nextSibling = nextSibling.nextElementSibling;
+        }
+        
+        header.style.display = hasVisibleRepo ? 'block' : 'none';
+    });
+    
+    updateSelectedCount();
 }
 
 // Update selected repository count
 function updateSelectedCount() {
+    const visibleItems = document.querySelectorAll('.repo-item:not([style*="display: none"])');
+    const visibleBoxes = [];
+    const checkedVisibleBoxes = [];
+    
+    visibleItems.forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+            visibleBoxes.push(checkbox);
+            if (checkbox.checked) {
+                checkedVisibleBoxes.push(checkbox);
+            }
+        }
+    });
+    
+    const totalCount = visibleBoxes.length;
+    const selectedCount = checkedVisibleBoxes.length;
+    
+    // Also show total repository count if filtering
     const allBoxes = document.querySelectorAll('#repoList input[type="checkbox"]');
-    const checkedBoxes = document.querySelectorAll('#repoList input[type="checkbox"]:checked');
-    const totalCount = allBoxes.length;
-    const selectedCount = checkedBoxes.length;
-    document.getElementById('selectedCount').textContent = `${selectedCount} of ${totalCount} repos selected`;
+    const filterActive = document.getElementById('showPrivateOnly').checked || document.getElementById('repoSearchInput').value.trim() !== '';
+    
+    if (filterActive && totalCount < allBoxes.length) {
+        document.getElementById('selectedCount').textContent = `${selectedCount} of ${totalCount} visible repos selected (${allBoxes.length} total)`;
+    } else {
+        document.getElementById('selectedCount').textContent = `${selectedCount} of ${totalCount} repos selected`;
+    }
 }
 
 // Sync selected repositories

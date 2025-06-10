@@ -267,6 +267,7 @@ export class RepositoryScanner {
 	 * @param {object} opts
 	 * @param {string} opts.path
 	 * @param {string} opts.branch
+	 * @param {Date} opts.referenceDate
 	 */
 	async extractCommitsData(opts) {
 		// checkout to another branch
@@ -275,12 +276,10 @@ export class RepositoryScanner {
 		});
 
 		const repo = await Nodegit.Repository.open(opts.path);
-		const referenceDate = new Date(2025, 5, 1, 0, 0, 0);
-		const commits = await this.#getCommits(repo, referenceDate);
+		const commits = await this.#getCommits(repo, opts.referenceDate);
 		const computed = [];
 		for (const commit of commits) {
 			const diff = await commit.getDiff();
-			const stats = await diff[0].getStats();
 			const author = commit.author();
 			const message = commit.message();
 			const email = author.email();
@@ -295,42 +294,78 @@ export class RepositoryScanner {
 				}
 			}
 
-			// const diffs = await commit.getDiff();
-			// const patchesList = await Promise.all(diffs.map(d => d.patches()))
-			// for (const patches of patchesList) {
-			// 	for (const patch of patches) {
-			// 		console.log(`\n=== ${patch.newFile().path()} ===`);
-			//
-			// 		const hunks = await patch.hunks();
-			// 		for (const hunk of hunks) {
-			// 			console.log(`@@ ${hunk.header().trim()} @@`);
-			// 			const lines = await hunk.lines();
-			// 			for (const line of lines) {
-			// 				const origin = String.fromCharCode(line.origin());
-			// 				const content = line.content().trim();
-			// 				console.log(`${origin}${content}`);
-			// 			}
-			// 		}
-			// 	}
-			// }
+			let insertions = 0;
+			let deletions = 0;
+
+			// Build git show format diff
+			let fullDiff = '';
+			for (const diffItem of diff) {
+				const stats = await diffItem.getStats();
+				insertions += +stats.insertions();
+				deletions += +stats.deletions();
+
+				const patches = await diffItem.patches();
+				for (const patch of patches) {
+					const oldFile = patch.oldFile().path();
+					const newFile = patch.newFile().path();
+					const oldId = patch.oldFile().id().tostrS().substring(0, 7);
+					const newId = patch.newFile().id().tostrS().substring(0, 7);
+					const oldMode = patch.oldFile().mode();
+					const newMode = patch.newFile().mode();
+
+					// Add diff header
+					fullDiff += `diff --git a/${oldFile} b/${newFile}\n`;
+
+					// Add index line
+					if (oldMode === newMode) {
+						fullDiff += `index ${oldId}..${newId} ${oldMode.toString(8)}\n`;
+					} else {
+						fullDiff += `old mode ${oldMode.toString(8)}\n`;
+						fullDiff += `new mode ${newMode.toString(8)}\n`;
+						fullDiff += `index ${oldId}..${newId}\n`;
+					}
+
+					// Add file headers
+					fullDiff += `--- a/${oldFile}\n`;
+					fullDiff += `+++ b/${newFile}\n`;
+
+					// Add hunks
+					const hunks = await patch.hunks();
+					for (const hunk of hunks) {
+						const header = hunk.header();
+						fullDiff += header;
+
+						const lines = await hunk.lines();
+						for (const line of lines) {
+							const origin = String.fromCharCode(line.origin());
+							const content = line.content();
+							// Ensure content ends with newline for proper formatting
+							fullDiff += origin + content;
+							if (!content.endsWith('\n')) {
+								fullDiff += '\n';
+							}
+						}
+					}
+				}
+			}
 
 			for (const username of usernames) {
 				computed.push({
 					branch: opts.branch,
 					hash: commit.id().tostrS(),
 					message: message,
-					added_lines: stats.insertions(),
-					deleted_lines: stats.deletions(),
+					added_lines: insertions,
+					deleted_lines: deletions,
 					name: author.name(),
 					email: author.email(),
 					created_at: commit.date(),
-					diff: commit.getDiff(),
+					diff: fullDiff,
 					username: username,
 					repository: this.repository,
 					organization: this.organization,
 					timezone_offset: convertCommitTimezoneOffset(commit.timeOffset()),
 					type: 'commit',
-					from: 'raw'
+					from: 'raw',
 				})
 			}
 		}
@@ -382,10 +417,11 @@ export class RepositoryScanner {
 
 	/**
 	* @param {Stats} stats
+	* @param {object} opts
+	* @param {Date} opts.referenceDate
 	*/
-	async extractCommitsFromPullRequests(stats) {
-		const referenceDate = new Date(2025, 5, 1, 0, 0, 0);
-		const prs = (await this.#api.fetchPullRequest(this.organization, this.repository, referenceDate));
+	async extractCommitsFromPullRequests(stats, opts) {
+		const prs = (await this.#api.fetchPullRequest(this.organization, this.repository, opts.referenceDate));
 		logger.info(`${this.organization}/${this.repository}: number of prs ${prs.length}`);
 
 		for (const pr of prs) {
@@ -446,17 +482,17 @@ export class RepositoryScanner {
 	}
 
 
-	/*
+	/**
 	 * @param {object} opts
 	 * @param {string} opts.path
 	 * @param {string} opts.defaultBranch
 	 * @param {string} opts.sshKeyPath
-	 *
+	 * @param {Date} opts.referenceDate
 	 */
 	async scan(opts) {
 		const stats = new Stats();
 
-		await this.extractCommitsFromPullRequests(stats);
+		await this.extractCommitsFromPullRequests(stats, { referenceDate: opts.referenceDate });
 
 		await this.fetch({
 			path: opts.path,
@@ -468,6 +504,7 @@ export class RepositoryScanner {
 			const commits = await this.extractCommitsData({
 				path: opts.path,
 				branch: branch,
+				referenceDate: opts.referenceDate,
 			});
 			stats.addCommits(commits);
 		}
@@ -475,6 +512,8 @@ export class RepositoryScanner {
 		await spawn('git', ['checkout', opts.defaultBranch], {
 			cwd: opts.path
 		});
+
+		return stats.commits;
 	}
 
 }
