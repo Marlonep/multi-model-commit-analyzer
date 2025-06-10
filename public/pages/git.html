@@ -405,6 +405,195 @@
             display: flex;
             gap: 8px;
         }
+
+        .btn-danger {
+            background-color: transparent;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .delete-warning {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .delete-warning h3 {
+            color: var(--error-color);
+            margin: 16px 0 12px 0;
+        }
+
+        .delete-warning p {
+            color: var(--text-primary);
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .delete-confirm-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .delete-confirm-input:focus {
+            outline: none;
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .delete-confirm-input.valid {
+            border-color: var(--accent-green);
+        }
+
+        .delete-confirm-input.invalid {
+            border-color: var(--error-color);
+        }
+
+        .token-display {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+        }
+
+        .org-link, .repo-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .org-link:hover, .repo-link:hover {
+            color: var(--accent-green);
+            text-decoration: underline;
+        }
+
+        .org-link:visited, .repo-link:visited {
+            color: var(--text-primary);
+        }
+
+        .org-link:visited:hover, .repo-link:visited:hover {
+            color: var(--accent-green);
+        }
+
+        .btn-warning {
+            background-color: transparent;
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .repo-action-info {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .repo-action-info h3 {
+            color: var(--text-primary);
+            margin: 16px 0 12px 0;
+        }
+
+        .repo-action-info p {
+            color: var(--text-primary);
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .activation-options {
+            margin: 24px 0;
+        }
+
+        .option-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--bg-primary);
+        }
+
+        .option-card:hover {
+            border-color: var(--accent-green);
+            background: var(--hover-bg);
+        }
+
+        .option-card.selected {
+            border-color: var(--accent-green);
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .option-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .option-label {
+            cursor: pointer;
+            display: block;
+        }
+
+        .option-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .option-header .material-icons {
+            font-size: 20px;
+            color: var(--accent-green);
+        }
+
+        .option-header strong {
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .option-label p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .cost-warning {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 6px 8px;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .cost-warning small {
+            margin: 0;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -471,8 +660,11 @@
                                 <tr>
                                     <th>Organization / Repository</th>
                                     <th>Provider</th>
+                                    <th>Token</th>
                                     <th>Webhook Status</th>
                                     <th>Commits Analyzed</th>
+                                    <th>Date Added</th>
+                                    <th>Added By</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -546,6 +738,168 @@
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeRepoSelectionModal()">Cancel</button>
                     <button type="button" class="btn primary" onclick="syncSelectedRepositories()">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Organization Confirmation Modal -->
+    <div id="deleteOrganizationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Organization</h2>
+                <button class="close-btn" onclick="closeDeleteOrganizationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-warning">
+                    <span class="material-icons" style="color: var(--error-color); font-size: 48px; margin-bottom: 16px;">warning</span>
+                    <h3>This action cannot be undone</h3>
+                    <p>This will permanently delete the organization <strong id="deleteOrgName"></strong> (Token: •••<span id="deleteOrgToken"></span>) and all of its repository configurations.</p>
+                    <p>Please type <strong id="confirmOrgName"></strong> to confirm:</p>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="deleteConfirmInput" placeholder="Type organization name here..." 
+                           oninput="validateDeleteInput()" class="delete-confirm-input">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeleteOrganizationModal()">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled onclick="confirmDeleteOrganization()">
+                        Delete Organization
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organization Activation Mode Modal -->
+    <div id="orgActivationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Organization Analysis Mode</h2>
+                <button class="close-btn" onclick="closeOrgActivationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="repo-action-info">
+                    <span class="material-icons" style="color: var(--accent-green); font-size: 48px; margin-bottom: 16px;">business</span>
+                    <h3>Choose analysis mode for organization</h3>
+                    <p>Organization <strong id="orgActivationName"></strong> will start analyzing commits from <span id="selectedRepoCount">0</span> selected repositories.</p>
+                    <p>Please choose how you want to proceed:</p>
+                </div>
+                
+                <div class="activation-options">
+                    <div class="option-card" onclick="selectOrgActivationOption('future')">
+                        <input type="radio" id="orgFutureOnly" name="orgActivationMode" value="future">
+                        <label for="orgFutureOnly" class="option-label">
+                            <div class="option-header">
+                                <span class="material-icons">schedule</span>
+                                <strong>Future commits only</strong>
+                            </div>
+                            <p>Only analyze new commits from now on. Faster setup, immediate activation for all repositories.</p>
+                        </label>
+                    </div>
+                    
+                    <div class="option-card" onclick="selectOrgActivationOption('all')">
+                        <input type="radio" id="orgAllCommits" name="orgActivationMode" value="all">
+                        <label for="orgAllCommits" class="option-label">
+                            <div class="option-header">
+                                <span class="material-icons">history</span>
+                                <strong>Scan all commit history</strong>
+                            </div>
+                            <p>Analyze all existing commits plus new ones for all repositories. Complete analysis but may take longer.</p>
+                            <div class="cost-warning">
+                                <span class="material-icons" style="color: var(--warning-color); font-size: 16px;">warning</span>
+                                <small style="color: var(--warning-color);">Note: Scanning complete history may result in higher analysis costs.</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeOrgActivationModal()">Cancel</button>
+                    <button type="button" class="btn primary" id="confirmOrgActivationBtn" disabled onclick="confirmOrgActivation()">
+                        <span class="material-icons">business</span>
+                        Create Organization
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deactivate Repository Modal -->
+    <div id="deactivateRepoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Deactivate Repository</h2>
+                <button class="close-btn" onclick="closeDeactivateRepoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="repo-action-info">
+                    <span class="material-icons" style="color: var(--warning-color); font-size: 48px; margin-bottom: 16px;">pause_circle</span>
+                    <h3>Stop analyzing new commits</h3>
+                    <p>Repository <strong id="deactivateRepoName"></strong> will stop analyzing new commits.</p>
+                    <p>All past analysis data will remain in the platform and can be accessed anytime.</p>
+                    <p>You can reactivate this repository later if needed.</p>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeactivateRepoModal()">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="confirmDeactivateRepository()">
+                        <span class="material-icons">pause</span>
+                        Deactivate Repository
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activate Repository Modal -->
+    <div id="activateRepoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Activate Repository</h2>
+                <button class="close-btn" onclick="closeActivateRepoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="repo-action-info">
+                    <span class="material-icons" style="color: var(--accent-green); font-size: 48px; margin-bottom: 16px;">play_circle</span>
+                    <h3>Choose activation mode</h3>
+                    <p>Repository <strong id="activateRepoName"></strong> will start analyzing commits.</p>
+                    <p>Please choose how you want to proceed:</p>
+                </div>
+                
+                <div class="activation-options">
+                    <div class="option-card" onclick="selectActivationOption('future')">
+                        <input type="radio" id="futureOnly" name="activationMode" value="future">
+                        <label for="futureOnly" class="option-label">
+                            <div class="option-header">
+                                <span class="material-icons">schedule</span>
+                                <strong>Future commits only</strong>
+                            </div>
+                            <p>Only analyze new commits from now on. Faster setup, immediate activation.</p>
+                        </label>
+                    </div>
+                    
+                    <div class="option-card" onclick="selectActivationOption('all')">
+                        <input type="radio" id="allCommits" name="activationMode" value="all">
+                        <label for="allCommits" class="option-label">
+                            <div class="option-header">
+                                <span class="material-icons">history</span>
+                                <strong>Scan all commit history</strong>
+                            </div>
+                            <p>Analyze all existing commits plus new ones. Complete analysis but may take longer.</p>
+                            <div class="cost-warning">
+                                <span class="material-icons" style="color: var(--warning-color); font-size: 16px;">warning</span>
+                                <small style="color: var(--warning-color);">Note: Scanning complete history may result in higher analysis costs.</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeActivateRepoModal()">Cancel</button>
+                    <button type="button" class="btn primary" id="confirmActivateBtn" disabled onclick="confirmActivateRepository()">
+                        <span class="material-icons">play_arrow</span>
+                        Activate Repository
+                    </button>
                 </div>
             </div>
         </div>
