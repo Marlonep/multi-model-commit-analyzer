@@ -13,7 +13,7 @@ function getTokenSuffix(token) {
 
 // Helper function to generate provider URLs
 function getProviderOrgUrl(provider, orgName) {
-    switch(provider) {
+    switch (provider) {
         case 'github':
             return `https://github.com/${orgName}`;
         case 'gitlab':
@@ -26,7 +26,7 @@ function getProviderOrgUrl(provider, orgName) {
 }
 
 function getProviderRepoUrl(provider, repoFullName) {
-    switch(provider) {
+    switch (provider) {
         case 'github':
             return `https://github.com/${repoFullName}`;
         case 'gitlab':
@@ -42,15 +42,55 @@ function getProviderRepoUrl(provider, repoFullName) {
 document.addEventListener('DOMContentLoaded', async () => {
     // Load existing organizations
     await loadOrganizations();
-    
+
     // Setup form submission
     setupFormListeners();
 });
 
-// Load organizations (mock data only - no database)
+// Load organizations from database
 async function loadOrganizations() {
-    // Always show demo data - no database interaction
-    showDemoData();
+    try {
+        const response = await fetch('/api/git/organizations');
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.organizations) {
+                // Transform API data to match frontend format
+                organizations = result.organizations.map(org => ({
+                    id: org.id,
+                    name: org.name,
+                    provider: org.provider,
+                    token: `••••${org.token_suffix || '••••'}`,
+                    webhook_active: org.webhook_active,
+                    date_added: org.created_at,
+                    added_by: 'System', // TODO: Get actual user info
+                    repositories: org.repositories.map(repo => ({
+                        id: repo.id,
+                        name: repo.name,
+                        full_name: repo.full_name,
+                        description: repo.description,
+                        commits_analyzed: repo.commits_analyzed,
+                        last_sync: repo.last_sync,
+                        active: repo.active,
+                        enabled: repo.enabled,
+                        date_added: org.created_at,
+                        added_by: 'System'
+                    }))
+                }));
+
+                renderOrganizationsTable();
+                updateStats();
+                return;
+            }
+        }
+
+        // Fall back to demo data if API fails
+        console.warn('Failed to load organizations from API, showing demo data');
+        showDemoData();
+    } catch (error) {
+        console.error('Error loading organizations:', error);
+        // Fall back to demo data if there's an error
+        showDemoData();
+    }
 }
 
 // Show demo data when API is not available
@@ -86,17 +126,17 @@ function showDemoData() {
 function renderOrganizationsTable() {
     const tbody = document.getElementById('organizationsTableBody');
     const emptyState = document.getElementById('emptyState');
-    
+
     if (organizations.length === 0) {
         tbody.style.display = 'none';
         emptyState.style.display = 'block';
         return;
     }
-    
+
     tbody.style.display = '';
     emptyState.style.display = 'none';
     tbody.innerHTML = '';
-    
+
     organizations.forEach(org => {
         // Create organization row
         const orgRow = document.createElement('tr');
@@ -138,7 +178,7 @@ function renderOrganizationsTable() {
             </td>
         `;
         tbody.appendChild(orgRow);
-        
+
         // Create repository rows (hidden by default)
         if (org.repositories && org.repositories.length > 0) {
             org.repositories.forEach(repo => {
@@ -146,13 +186,13 @@ function renderOrganizationsTable() {
                 repoRow.className = 'repo-row';
                 repoRow.id = `org-${org.id}-repos`;
                 repoRow.style.display = 'none';
-                
+
                 // Determine repository status
                 const repoStatus = repo.active ? 'active' : 'inactive';
                 const statusColor = repo.active ? 'var(--accent-green)' : 'var(--error-color)';
                 const statusText = repo.active ? 'Active' : 'Inactive';
                 const statusIcon = repo.active ? 'check_circle' : 'cancel';
-                
+
                 repoRow.innerHTML = `
                     <td>
                         <div class="org-info">
@@ -197,7 +237,7 @@ function renderOrganizationsTable() {
 function toggleOrganization(orgId) {
     const icon = event.target;
     const repoRows = document.querySelectorAll(`#org-${orgId}-repos`);
-    
+
     if (icon.classList.contains('expanded')) {
         icon.classList.remove('expanded');
         icon.textContent = 'chevron_right';
@@ -212,11 +252,11 @@ function toggleOrganization(orgId) {
 // Update statistics
 function updateStats() {
     document.getElementById('orgCount').textContent = organizations.length;
-    
+
     let totalRepos = 0;
     let activeRepos = 0;
     let activeWebhooks = 0;
-    
+
     organizations.forEach(org => {
         if (org.repositories) {
             totalRepos += org.repositories.length;
@@ -226,10 +266,10 @@ function updateStats() {
             activeWebhooks++;
         }
     });
-    
+
     document.getElementById('repoCount').textContent = `${activeRepos}/${totalRepos}`;
     document.getElementById('activeWebhooks').textContent = activeWebhooks;
-    
+
     // Update last sync
     let lastSync = '--';
     organizations.forEach(org => {
@@ -267,16 +307,16 @@ function formatRelativeTime(date) {
     const now = new Date();
     const diff = now - date;
     const minutes = Math.floor(diff / 60000);
-    
+
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
-    
+
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-    
+
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-    
+
     return date.toLocaleDateString();
 }
 
@@ -289,7 +329,7 @@ function setupFormListeners() {
         form.addEventListener('submit', handleAddOrganization);
         console.log('Form event listener attached'); // Debug log
     }
-    
+
     const searchInput = document.getElementById('repoSearchInput');
     if (searchInput) {
         searchInput.removeEventListener('input', filterRepositories);
@@ -301,7 +341,7 @@ function setupFormListeners() {
 function openAddOrganizationModal() {
     const modal = document.getElementById('addOrganizationModal');
     modal.classList.add('show');
-    
+
     // Set up event listeners when modal opens
     setTimeout(() => {
         setupFormListeners();
@@ -326,11 +366,11 @@ function closeRepoSelectionModal() {
 function handleFormSubmit(e) {
     e.preventDefault();
     console.log('Button clicked!'); // Debug log
-    
+
     // Get form element directly
     const form = document.getElementById('addOrganizationForm');
     if (form) {
-        handleAddOrganization({ target: form, preventDefault: () => {} });
+        handleAddOrganization({ target: form, preventDefault: () => { } });
     }
 }
 
@@ -338,7 +378,7 @@ function handleFormSubmit(e) {
 async function handleAddOrganization(e) {
     e.preventDefault();
     console.log('Form submitted!'); // Debug log
-    
+
     // Get form element - handle both form submit and button click
     const form = e.target.tagName === 'FORM' ? e.target : document.getElementById('addOrganizationForm');
     const formData = new FormData(form);
@@ -347,22 +387,22 @@ async function handleAddOrganization(e) {
         provider: formData.get('provider'),
         token: formData.get('token')
     };
-    
+
     console.log('Form data:', orgData); // Debug log
-    
+
     // Validate required fields
     if (!orgData.name || !orgData.provider || !orgData.token) {
         alert('Please fill in all required fields');
         return;
     }
-    
+
     try {
         // Show loading state
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Validating token...';
         submitBtn.disabled = true;
-        
+
         // Call the /api/keys/scan endpoint
         const response = await fetch('/api/keys/scan', {
             method: 'POST',
@@ -375,13 +415,13 @@ async function handleAddOrganization(e) {
                 token: orgData.token
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to validate token');
         }
-        
+
         const result = await response.json();
-        
+
         if (result.data && result.data.orgs) {
             // Process the organizations and repositories from the API
             const allRepos = [];
@@ -403,34 +443,35 @@ async function handleAddOrganization(e) {
                     });
                 }
             });
-            
+
             // Store the token data temporarily for the modal
             window.tempOrgData = {
                 name: orgData.name,
                 provider: orgData.provider,
                 token: orgData.token,
                 repositories: allRepos,
-                organizations: result.data.orgs
+                organizations: result.data.orgs,
+                integration_id: result.integration_id
             };
-            
+
             // Close modal and open repository selection
             closeAddOrganizationModal();
-            
+
             // Load repositories for selection (all checked by default)
             renderRepositoryListWithStatus(allRepos);
             openRepoSelectionModal();
         } else {
             throw new Error('No organizations found for this token');
         }
-        
+
         // Reset button state
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
-        
+
     } catch (error) {
         console.error('Error validating token:', error);
         alert(`Failed to validate token: ${error.message}`);
-        
+
         // Reset button state
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.textContent = 'Create Organization';
@@ -442,7 +483,7 @@ async function handleAddOrganization(e) {
 async function mockValidateTokenAPI(orgData) {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     // Mock different responses based on provider
     if (orgData.provider === 'github') {
         // Simulate successful GitHub token validation
@@ -510,7 +551,7 @@ async function mockValidateTokenAPI(orgData) {
 function renderRepositoryListWithStatus(repos) {
     const repoList = document.getElementById('repoList');
     repoList.innerHTML = '';
-    
+
     // Group repositories by organization
     const reposByOrg = {};
     repos.forEach(repo => {
@@ -520,7 +561,7 @@ function renderRepositoryListWithStatus(repos) {
         }
         reposByOrg[orgName].push(repo);
     });
-    
+
     // Render repositories grouped by organization
     Object.entries(reposByOrg).forEach(([orgName, orgRepos]) => {
         // Add organization header
@@ -528,7 +569,7 @@ function renderRepositoryListWithStatus(repos) {
         orgHeader.style.cssText = 'padding: 8px 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); font-weight: 500; color: var(--accent-green);';
         orgHeader.innerHTML = `<span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">business</span>${orgName} (${orgRepos.length} repositories)`;
         repoList.appendChild(orgHeader);
-        
+
         // Add repositories for this organization
         orgRepos.forEach(repo => {
             const repoItem = document.createElement('div');
@@ -544,7 +585,7 @@ function renderRepositoryListWithStatus(repos) {
             repoList.appendChild(repoItem);
         });
     });
-    
+
     updateSelectedCount();
 }
 
@@ -553,31 +594,31 @@ function filterRepositories() {
     const searchTerm = document.getElementById('repoSearchInput').value.toLowerCase();
     const showPrivateOnly = document.getElementById('showPrivateOnly').checked;
     const repoItems = document.querySelectorAll('.repo-item');
-    
+
     repoItems.forEach(item => {
         const repoName = item.querySelector('.repo-name').textContent.toLowerCase();
         const repoDesc = item.querySelector('.repo-description').textContent.toLowerCase();
         const isPrivate = item.querySelector('.repo-name .material-icons') !== null; // Check if lock icon exists
-        
+
         // Apply search filter
         const matchesSearch = repoName.includes(searchTerm) || repoDesc.includes(searchTerm);
-        
+
         // Apply privacy filter
         const matchesPrivacy = !showPrivateOnly || isPrivate;
-        
+
         if (matchesSearch && matchesPrivacy) {
             item.style.display = 'flex';
         } else {
             item.style.display = 'none';
         }
     });
-    
+
     // Also hide/show organization headers if all repos in that org are hidden
     const orgHeaders = document.querySelectorAll('#repoList > div:not(.repo-item)');
     orgHeaders.forEach(header => {
         let nextSibling = header.nextElementSibling;
         let hasVisibleRepo = false;
-        
+
         while (nextSibling && nextSibling.classList.contains('repo-item')) {
             if (nextSibling.style.display !== 'none') {
                 hasVisibleRepo = true;
@@ -585,10 +626,10 @@ function filterRepositories() {
             }
             nextSibling = nextSibling.nextElementSibling;
         }
-        
+
         header.style.display = hasVisibleRepo ? 'block' : 'none';
     });
-    
+
     updateSelectedCount();
 }
 
@@ -597,7 +638,7 @@ function updateSelectedCount() {
     const visibleItems = document.querySelectorAll('.repo-item:not([style*="display: none"])');
     const visibleBoxes = [];
     const checkedVisibleBoxes = [];
-    
+
     visibleItems.forEach(item => {
         const checkbox = item.querySelector('input[type="checkbox"]');
         if (checkbox) {
@@ -607,14 +648,14 @@ function updateSelectedCount() {
             }
         }
     });
-    
+
     const totalCount = visibleBoxes.length;
     const selectedCount = checkedVisibleBoxes.length;
-    
+
     // Also show total repository count if filtering
     const allBoxes = document.querySelectorAll('#repoList input[type="checkbox"]');
     const filterActive = document.getElementById('showPrivateOnly').checked || document.getElementById('repoSearchInput').value.trim() !== '';
-    
+
     if (filterActive && totalCount < allBoxes.length) {
         document.getElementById('selectedCount').textContent = `${selectedCount} of ${totalCount} visible repos selected (${allBoxes.length} total)`;
     } else {
@@ -627,15 +668,15 @@ async function syncSelectedRepositories() {
     const allBoxes = document.querySelectorAll('#repoList input[type="checkbox"]');
     const checkedBoxes = document.querySelectorAll('#repoList input[type="checkbox"]:checked');
     const uncheckedBoxes = document.querySelectorAll('#repoList input[type="checkbox"]:not(:checked)');
-    
+
     if (checkedBoxes.length === 0) {
         alert('Please select at least one repository');
         return;
     }
-    
+
     // Store selected repositories count for the next modal
     window.selectedRepositoriesCount = checkedBoxes.length;
-    
+
     // Close repository selection modal and open organization activation modal
     closeRepoSelectionModal();
     openOrgActivationModal();
@@ -648,11 +689,11 @@ function openOrgActivationModal() {
         alert('Organization data not found');
         return;
     }
-    
+
     // Update modal content
     document.getElementById('orgActivationName').textContent = tempData.name;
     document.getElementById('selectedRepoCount').textContent = window.selectedRepositoriesCount || 0;
-    
+
     // Reset form state
     document.querySelectorAll('input[name="orgActivationMode"]').forEach(radio => {
         radio.checked = false;
@@ -661,7 +702,7 @@ function openOrgActivationModal() {
         card.classList.remove('selected');
     });
     document.getElementById('confirmOrgActivationBtn').disabled = true;
-    
+
     // Show modal
     document.getElementById('orgActivationModal').classList.add('show');
 }
@@ -673,106 +714,157 @@ function closeOrgActivationModal() {
 function selectOrgActivationOption(mode) {
     // Update radio button
     document.getElementById(mode === 'future' ? 'orgFutureOnly' : 'orgAllCommits').checked = true;
-    
+
     // Update visual selection
     document.querySelectorAll('#orgActivationModal .option-card').forEach(card => {
         card.classList.remove('selected');
     });
     event.currentTarget.classList.add('selected');
-    
+
     // Enable confirm button
     document.getElementById('confirmOrgActivationBtn').disabled = false;
 }
 
 async function confirmOrgActivation() {
     const selectedMode = document.querySelector('input[name="orgActivationMode"]:checked')?.value;
-    
+
     if (!selectedMode) {
         alert('Please select an activation mode');
         return;
     }
-    
+
     try {
         // Show loading state
         const confirmBtn = document.getElementById('confirmOrgActivationBtn');
         const originalText = confirmBtn.textContent;
         confirmBtn.textContent = 'Creating...';
         confirmBtn.disabled = true;
-        
+
         // Get the temporary organization data
         const tempData = window.tempOrgData;
         if (!tempData) {
             throw new Error('No organization data found');
         }
-        
-        // Create new organization with selected repositories and activation mode
-        const allBoxes = document.querySelectorAll('#repoList input[type="checkbox"]');
+
+        // Build the organizations array for the API
+        const organizationsToSend = [];
+
+        // Group checked repositories by organization
         const checkedBoxes = document.querySelectorAll('#repoList input[type="checkbox"]:checked');
-        const selectedRepos = [];
-        const unselectedRepos = [];
-        
+        const selectedRepoIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+        // Group selected repositories by organization
+        const reposByOrg = {};
         tempData.repositories.forEach(repo => {
-            const checkbox = document.getElementById(`repo-${repo.id}`);
-            if (checkbox && checkbox.checked) {
-                selectedRepos.push({
-                    ...repo,
-                    active: true,
-                    last_sync: new Date().toISOString(),
-                    scan_mode: selectedMode,
-                    date_added: new Date().toISOString(),
-                    added_by: 'admin@nuclea.com'
-                });
-            } else {
-                unselectedRepos.push({
-                    ...repo,
-                    active: false,
-                    last_sync: null,
-                    scan_mode: null,
-                    date_added: new Date().toISOString(),
-                    added_by: 'admin@nuclea.com'
+            if (selectedRepoIds.includes(repo.id.toString())) {
+                const orgName = repo.org_name || 'Unknown';
+                if (!reposByOrg[orgName]) {
+                    reposByOrg[orgName] = [];
+                }
+                reposByOrg[orgName].push({
+                    name: repo.name,
                 });
             }
         });
-        
-        // Add to organizations array (mock data)
-        const newOrg = {
-            id: organizations.length + 1,
-            name: tempData.name,
-            provider: tempData.provider,
-            token: tempData.token,
-            webhook_active: true,
-            date_added: new Date().toISOString(),
-            added_by: 'admin@nuclea.com', // Mock current user
-            default_scan_mode: selectedMode,
-            repositories: [...selectedRepos, ...unselectedRepos]
-        };
-        
-        organizations.push(newOrg);
-        
-        // Clean up temporary data
-        delete window.tempOrgData;
-        delete window.selectedRepositoriesCount;
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        closeOrgActivationModal();
-        renderOrganizationsTable();
-        updateStats();
-        
-        // Reset button state
-        confirmBtn.textContent = originalText;
-        confirmBtn.disabled = false;
-        
-        const activeCount = selectedRepos.length;
-        const inactiveCount = unselectedRepos.length;
-        const modeText = selectedMode === 'future' ? 'future commits only' : 'all commit history';
-        alert(`Organization "${tempData.name}" created successfully!\n${activeCount} repositories active with ${modeText} analysis.\n${inactiveCount} repositories inactive.`);
-        
+
+        // Convert to the format expected by the API
+        Object.entries(reposByOrg).forEach(([orgName, repos]) => {
+            organizationsToSend.push({
+                name: orgName,
+                repositories: repos
+            });
+        });
+
+        // Send the data to the /api/keys/selection endpoint
+        const response = await fetch('/api/keys/selection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                integration_id: tempData.integration_id || window.integrationId,
+                organizations: organizationsToSend,
+                scan_filter: selectedMode
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to create organizations and repositories');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Create mock organization for UI display (this will be replaced with real data in production)
+            const allBoxes = document.querySelectorAll('#repoList input[type="checkbox"]');
+            const checkedBoxes = document.querySelectorAll('#repoList input[type="checkbox"]:checked');
+            const selectedRepos = [];
+            const unselectedRepos = [];
+
+            tempData.repositories.forEach(repo => {
+                const checkbox = document.getElementById(`repo-${repo.id}`);
+                if (checkbox && checkbox.checked) {
+                    selectedRepos.push({
+                        ...repo,
+                        active: true,
+                        last_sync: new Date().toISOString(),
+                        scan_mode: selectedMode,
+                        date_added: new Date().toISOString(),
+                        added_by: 'admin@nuclea.com'
+                    });
+                } else {
+                    unselectedRepos.push({
+                        ...repo,
+                        active: false,
+                        last_sync: null,
+                        scan_mode: null,
+                        date_added: new Date().toISOString(),
+                        added_by: 'admin@nuclea.com'
+                    });
+                }
+            });
+
+            // Add to organizations array (mock data for UI)
+            const newOrg = {
+                id: organizations.length + 1,
+                name: tempData.name,
+                provider: tempData.provider,
+                token: tempData.token,
+                webhook_active: true,
+                date_added: new Date().toISOString(),
+                added_by: 'admin@nuclea.com',
+                default_scan_mode: selectedMode,
+                repositories: [...selectedRepos, ...unselectedRepos]
+            };
+
+            organizations.push(newOrg);
+
+            // Clean up temporary data
+            delete window.tempOrgData;
+            delete window.selectedRepositoriesCount;
+            delete window.integrationId;
+
+            closeOrgActivationModal();
+            renderOrganizationsTable();
+            updateStats();
+
+            // Reset button state
+            confirmBtn.textContent = originalText;
+            confirmBtn.disabled = false;
+
+            const activeCount = selectedRepos.length;
+            const inactiveCount = unselectedRepos.length;
+            const modeText = selectedMode === 'future' ? 'future commits only' : 'all commit history';
+            alert(`Organization "${tempData.name}" created successfully!\n${activeCount} repositories active with ${modeText} analysis.\n${inactiveCount} repositories inactive.\n\nDatabase: ${result.total_organizations} organizations and ${result.total_repositories} repositories created.`);
+        } else {
+            throw new Error(result.message || 'Failed to create organization');
+        }
+
     } catch (error) {
         console.error('Error creating organization:', error);
-        alert('Failed to create organization. Please try again.');
-        
+        alert(`Failed to create organization: ${error.message}`);
+
         // Reset button state
         const confirmBtn = document.getElementById('confirmOrgActivationBtn');
         confirmBtn.textContent = 'Create Organization';
@@ -786,20 +878,20 @@ let organizationToDelete = null;
 function openDeleteOrganizationModal(orgId) {
     const org = organizations.find(o => o.id === orgId);
     if (!org) return;
-    
+
     organizationToDelete = org;
-    
+
     // Update modal content
     document.getElementById('deleteOrgName').textContent = org.name;
     document.getElementById('deleteOrgToken').textContent = getTokenSuffix(org.token);
     document.getElementById('confirmOrgName').textContent = org.name;
     document.getElementById('deleteConfirmInput').value = '';
     document.getElementById('confirmDeleteBtn').disabled = true;
-    
+
     // Remove previous input validation classes
     const input = document.getElementById('deleteConfirmInput');
     input.classList.remove('valid', 'invalid');
-    
+
     // Show modal
     document.getElementById('deleteOrganizationModal').classList.add('show');
 }
@@ -815,14 +907,14 @@ function validateDeleteInput() {
     const input = document.getElementById('deleteConfirmInput');
     const confirmBtn = document.getElementById('confirmDeleteBtn');
     const inputValue = input.value.trim();
-    
+
     if (!organizationToDelete) return;
-    
+
     const isValid = inputValue === organizationToDelete.name;
-    
+
     // Update button state
     confirmBtn.disabled = !isValid;
-    
+
     // Update input styling
     input.classList.remove('valid', 'invalid');
     if (inputValue.length > 0) {
@@ -832,26 +924,26 @@ function validateDeleteInput() {
 
 function confirmDeleteOrganization() {
     if (!organizationToDelete) return;
-    
+
     const input = document.getElementById('deleteConfirmInput');
     if (input.value.trim() !== organizationToDelete.name) {
         alert('Organization name does not match');
         return;
     }
-    
+
     // Remove organization from array
     const orgIndex = organizations.findIndex(o => o.id === organizationToDelete.id);
     if (orgIndex > -1) {
         organizations.splice(orgIndex, 1);
     }
-    
+
     // Close modal
     closeDeleteOrganizationModal();
-    
+
     // Update UI
     renderOrganizationsTable();
     updateStats();
-    
+
     alert(`Organization "${organizationToDelete.name}" has been deleted successfully.`);
 }
 
@@ -863,14 +955,14 @@ let repositoryToToggle = null;
 function openDeactivateRepoModal(orgId, repoId) {
     const org = organizations.find(o => o.id === orgId);
     const repo = org.repositories.find(r => r.id === repoId);
-    
+
     if (!repo) return;
-    
+
     repositoryToToggle = { orgId, repoId, repo, org };
-    
+
     // Update modal content
     document.getElementById('deactivateRepoName').textContent = repo.name;
-    
+
     // Show modal
     document.getElementById('deactivateRepoModal').classList.add('show');
 }
@@ -882,20 +974,20 @@ function closeDeactivateRepoModal() {
 
 function confirmDeactivateRepository() {
     if (!repositoryToToggle) return;
-    
+
     const { repo } = repositoryToToggle;
-    
+
     // Deactivate repository
     repo.active = false;
     repo.last_sync = null;
-    
+
     // Close modal
     closeDeactivateRepoModal();
-    
+
     // Update UI
     renderOrganizationsTable();
     updateStats();
-    
+
     alert(`Repository "${repo.name}" has been deactivated. Past analysis data remains available.`);
 }
 
@@ -903,14 +995,14 @@ function confirmDeactivateRepository() {
 function openActivateRepoModal(orgId, repoId) {
     const org = organizations.find(o => o.id === orgId);
     const repo = org.repositories.find(r => r.id === repoId);
-    
+
     if (!repo) return;
-    
+
     repositoryToToggle = { orgId, repoId, repo, org };
-    
+
     // Update modal content
     document.getElementById('activateRepoName').textContent = repo.name;
-    
+
     // Reset form state
     document.querySelectorAll('input[name="activationMode"]').forEach(radio => {
         radio.checked = false;
@@ -919,7 +1011,7 @@ function openActivateRepoModal(orgId, repoId) {
         card.classList.remove('selected');
     });
     document.getElementById('confirmActivateBtn').disabled = true;
-    
+
     // Show modal
     document.getElementById('activateRepoModal').classList.add('show');
 }
@@ -932,28 +1024,28 @@ function closeActivateRepoModal() {
 function selectActivationOption(mode) {
     // Update radio button
     document.getElementById(mode === 'future' ? 'futureOnly' : 'allCommits').checked = true;
-    
+
     // Update visual selection
     document.querySelectorAll('.option-card').forEach(card => {
         card.classList.remove('selected');
     });
     event.currentTarget.classList.add('selected');
-    
+
     // Enable confirm button
     document.getElementById('confirmActivateBtn').disabled = false;
 }
 
 function confirmActivateRepository() {
     if (!repositoryToToggle) return;
-    
+
     const { repo } = repositoryToToggle;
     const selectedMode = document.querySelector('input[name="activationMode"]:checked')?.value;
-    
+
     if (!selectedMode) {
         alert('Please select an activation mode');
         return;
     }
-    
+
     // Activate repository
     repo.active = true;
     repo.last_sync = new Date().toISOString();
@@ -962,14 +1054,14 @@ function confirmActivateRepository() {
         repo.date_added = new Date().toISOString();
         repo.added_by = 'admin@nuclea.com';
     }
-    
+
     // Close modal
     closeActivateRepoModal();
-    
+
     // Update UI
     renderOrganizationsTable();
     updateStats();
-    
+
     const modeText = selectedMode === 'future' ? 'future commits only' : 'all commit history';
     alert(`Repository "${repo.name}" has been activated with ${modeText} analysis mode.`);
 }
