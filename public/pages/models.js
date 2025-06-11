@@ -26,6 +26,7 @@ class ModelsManager {
         this.models = [];
         this.performanceData = {};
         this.apiKeyStatus = {}; // Track which models have API keys
+        this.apiTokens = []; // Store API tokens
         this.init();
     }
 
@@ -101,11 +102,177 @@ class ModelsManager {
         await this.loadModelsConfiguration();
         await this.loadApiKeyStatus();
         this.renderUnifiedModelsTable();
+        this.renderApiTokensTable(); // Add mock tokens table
         this.updateStats();
         this.bindEvents();
         await this.loadCommitsData();
         this.calculateCostSummary(allCommits);
         this.displayAnalysisPrompt();
+    }
+
+    initializeApiTokens() {
+        // Initialize with mock data if no tokens exist
+        if (this.apiTokens.length === 0) {
+            this.apiTokens = [
+            {
+                provider: 'OpenAI',
+                token: 'sk-proj-abcdefghijklmnopqrstuvwxyz123456789',
+                uploadedBy: 'admin',
+                uploadDate: '2025-01-05',
+                lastUsed: '2025-01-06 14:32',
+                status: 'active',
+                models: ['o3', 'o3-mini', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo']
+            },
+            {
+                provider: 'Anthropic',
+                token: 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz123456789',
+                uploadedBy: 'john.doe',
+                uploadDate: '2025-01-03',
+                lastUsed: '2025-01-06 15:45',
+                status: 'active',
+                models: ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3-sonnet', 'claude-2.1', 'claude-instant', 'claude-2']
+            },
+            {
+                provider: 'Google',
+                token: 'AIzaSyB-abcdefghijklmnopqrstuvwxyz12345',
+                uploadedBy: 'jane.smith',
+                uploadDate: '2025-01-02',
+                lastUsed: '2025-01-04 09:12',
+                status: 'active',
+                models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro', 'gemini-exp']
+            },
+            {
+                provider: 'xAI',
+                token: 'xai-abcdefghijklmnopqrstuvwxyz123456789',
+                uploadedBy: 'admin',
+                uploadDate: '2024-12-28',
+                lastUsed: '2024-12-30 16:20',
+                status: 'expired',
+                models: ['grok-3', 'grok-2', 'grok-vision', 'grok-1.5', 'grok-mini']
+            },
+            {
+                provider: 'OpenAI',
+                token: 'sk-proj-zyxwvutsrqponmlkjihgfedcba987654321',
+                uploadedBy: 'dev.user',
+                uploadDate: '2024-12-15',
+                lastUsed: 'Never',
+                status: 'inactive',
+                models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-vision']
+            }
+        ];
+        }
+    }
+
+    renderApiTokensTable() {
+        const tbody = document.getElementById('apiTokensTableBody');
+        const emptyState = document.getElementById('tokensEmptyState');
+        
+        // Initialize tokens if needed
+        this.initializeApiTokens();
+        
+        if (this.apiTokens.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+        tbody.innerHTML = this.apiTokens.map(token => {
+            // Show only last 5 characters of the token
+            const maskedToken = '•••' + token.token.slice(-5);
+            
+            // Generate models badges
+            const modelsHtml = token.models ? this.renderModelsBadges(token.models, token.provider) : '<span class="no-data">No models</span>';
+            
+            return `
+                <tr>
+                    <td><span class="provider-badge ${token.provider.toLowerCase()}">${token.provider}</span></td>
+                    <td><span class="token-display">${maskedToken}</span></td>
+                    <td>
+                        <div class="models-list">
+                            ${modelsHtml}
+                        </div>
+                    </td>
+                    <td>${token.uploadedBy}</td>
+                    <td>${token.uploadDate}</td>
+                    <td>${token.lastUsed}</td>
+                    <td><span class="status-${token.status}">${token.status.charAt(0).toUpperCase() + token.status.slice(1)}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-small secondary" onclick="testApiToken('${token.provider}', '${token.token}')">Test</button>
+                            <button class="btn btn-small danger" onclick="deleteApiToken('${token.provider}', '${token.token}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // Add search functionality
+        const searchInput = document.getElementById('tokensSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = tbody.getElementsByTagName('tr');
+                
+                Array.from(rows).forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+        
+        // Add button functionality
+        const addTokenBtn = document.getElementById('addNewToken');
+        if (addTokenBtn) {
+            addTokenBtn.addEventListener('click', () => {
+                window.openAddApiTokenModal();
+            });
+        }
+    }
+
+    renderModelsBadges(models, provider) {
+        if (!models || models.length === 0) {
+            return '<span class="no-data">No models</span>';
+        }
+        
+        const providerClass = provider.toLowerCase() + '-model';
+        
+        return models.map(model => 
+            `<span class="model-badge ${providerClass}">${model}</span>`
+        ).join('');
+    }
+
+    addNewApiToken(provider, token, uploadedBy = 'current_user') {
+        // Generate realistic models for the provider
+        const providerModels = this.getDefaultModelsForProvider(provider);
+        
+        const newToken = {
+            provider: provider.charAt(0).toUpperCase() + provider.slice(1),
+            token: token,
+            uploadedBy: uploadedBy,
+            uploadDate: new Date().toISOString().split('T')[0],
+            lastUsed: 'Never',
+            status: 'active',
+            models: providerModels
+        };
+        
+        this.apiTokens.push(newToken);
+        this.renderApiTokensTable();
+    }
+
+    getDefaultModelsForProvider(provider) {
+        const modelsByProvider = {
+            'anthropic': ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-2.1', 'claude-instant', 'claude-2'],
+            'openai': ['o3', 'o3-mini', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
+            'xai': ['grok-3', 'grok-2', 'grok-vision', 'grok-1.5', 'grok-mini'],
+            'google': ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro'],
+            'mistral': ['mistral-large', 'mistral-medium', 'mistral-small', 'mixtral-8x7b', 'mixtral-8x22b', 'codestral'],
+            'alibaba': ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-coder', 'qwen-vl', 'qwen-audio'],
+            'meta': ['llama-3.1-405b', 'llama-3.1-70b', 'llama-3.1-8b', 'llama-3-70b', 'llama-3-8b', 'code-llama'],
+            'nvidia': ['nemotron-4', 'nemo-instruct', 'nemo-guardrails', 'nvidia-llama', 'nvidia-mistral', 'chatqa']
+        };
+        
+        return modelsByProvider[provider.toLowerCase()] || [`${provider.toLowerCase()}-model-1`];
     }
 
     renderUnifiedModelsTable() {
@@ -1018,6 +1185,141 @@ window.updateApiKeyFromModal = function() {
     }
 };
 
+// Mock functions for API token actions
+window.testApiToken = function(provider, token) {
+    alert(`Testing ${provider} API token: •••${token.slice(-5)}\n\nThis is a mock function. In production, this would test the API token validity.`);
+};
+
+window.deleteApiToken = function(provider, token) {
+    if (confirm(`Are you sure you want to delete the ${provider} API token ending in ${token.slice(-5)}?`)) {
+        alert(`Deleted ${provider} API token: •••${token.slice(-5)}\n\nThis is a mock function. In production, this would remove the token from the database.`);
+        // In production, this would refresh the table after deletion
+        if (window.modelsManager) {
+            window.modelsManager.renderApiTokensTable();
+        }
+    }
+};
+
+// Modal functions for Add API Token
+window.openAddApiTokenModal = function() {
+    const modal = document.getElementById('addApiTokenModal');
+    if (modal) {
+        modal.classList.add('show');
+        // Clear form
+        document.getElementById('addApiTokenForm').reset();
+        // Update helper text for selected provider
+        updateTokenHelperText();
+    }
+};
+
+window.closeAddApiTokenModal = function() {
+    const modal = document.getElementById('addApiTokenModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+};
+
+window.handleApiTokenSubmit = function(event) {
+    event.preventDefault();
+    
+    const provider = document.getElementById('tokenProvider').value;
+    const token = document.getElementById('apiToken').value;
+    
+    if (!provider || !token) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    // Close add modal and show test modal
+    closeAddApiTokenModal();
+    showTokenTestModal(provider, token);
+};
+
+function updateTokenHelperText() {
+    const provider = document.getElementById('tokenProvider').value;
+    const helperText = document.getElementById('tokenHelperText');
+    
+    const helperTexts = {
+        'anthropic': 'Enter your Anthropic API key (starts with sk-ant-)',
+        'openai': 'Enter your OpenAI API key (starts with sk-proj- or sk-)',
+        'xai': 'Enter your xAI API key (starts with xai-)',
+        'google': 'Enter your Google AI API key (starts with AIza)',
+        'mistral': 'Enter your Mistral API key',
+        'alibaba': 'Enter your Alibaba Cloud API key',
+        'meta': 'Enter your Meta API key',
+        'nvidia': 'Enter your NVIDIA API key'
+    };
+    
+    helperText.textContent = helperTexts[provider] || 'Enter the API token provided by your selected provider';
+}
+
+function showTokenTestModal(provider, token) {
+    const modal = document.getElementById('tokenTestModal');
+    const statusMessage = document.getElementById('testStatusMessage');
+    
+    if (modal && statusMessage) {
+        modal.classList.add('show');
+        statusMessage.textContent = `Testing ${provider} API token...`;
+        
+        // Simulate API validation (mock)
+        setTimeout(() => {
+            simulateTokenTest(provider, token);
+        }, 2000);
+    }
+}
+
+function simulateTokenTest(provider, token) {
+    const modal = document.getElementById('tokenTestModal');
+    
+    // Mock validation - randomly succeed or fail for demo
+    const isValid = Math.random() > 0.2; // 80% success rate for demo
+    
+    if (isValid) {
+        // Success - add token to table
+        addTokenToTable(provider, token);
+        
+        // Close test modal
+        modal.classList.remove('show');
+        
+        // Show success message
+        alert(`✅ ${provider} API token validated successfully!\n\nThe token has been added to your account and is ready to use.`);
+        
+        // Refresh the tokens table
+        if (window.modelsManager) {
+            window.modelsManager.renderApiTokensTable();
+        }
+    } else {
+        // Failure
+        modal.classList.remove('show');
+        alert(`❌ ${provider} API token validation failed.\n\nPlease check your token and try again. Common issues:\n• Invalid token format\n• Token expired\n• Insufficient permissions`);
+    }
+}
+
+function addTokenToTable(provider, token) {
+    // Add to the ModelsManager instance
+    if (window.modelsManager) {
+        window.modelsManager.addNewApiToken(provider, token);
+    }
+    
+    // This is a mock function - in production, this would save to database
+    console.log(`Mock: Adding ${provider} token to database:`, {
+        provider: provider,
+        token: '•••' + token.slice(-5),
+        uploadedBy: 'current_user', // Would get from session
+        uploadDate: new Date().toISOString().split('T')[0],
+        lastUsed: 'Never',
+        status: 'active'
+    });
+}
+
+// Add event listener for provider dropdown change
+document.addEventListener('DOMContentLoaded', () => {
+    const providerSelect = document.getElementById('tokenProvider');
+    if (providerSelect) {
+        providerSelect.addEventListener('change', updateTokenHelperText);
+    }
+});
+
 // Initialize the models manager when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Auth check is handled by auth-utils.js
@@ -1032,6 +1334,8 @@ window.addEventListener('click', function(event) {
     const testResultsModal = document.getElementById('testResultsModal');
     const apiKeyModal = document.getElementById('apiKeyModal');
     const modelModal = document.getElementById('modelModal');
+    const addApiTokenModal = document.getElementById('addApiTokenModal');
+    const tokenTestModal = document.getElementById('tokenTestModal');
     
     if (event.target === testResultsModal) {
         window.closeTestResultsModal();
@@ -1039,5 +1343,9 @@ window.addEventListener('click', function(event) {
         window.closeApiKeyModal();
     } else if (event.target === modelModal) {
         window.closeModelModal();
+    } else if (event.target === addApiTokenModal) {
+        window.closeAddApiTokenModal();
+    } else if (event.target === tokenTestModal) {
+        tokenTestModal.classList.remove('show');
     }
 });

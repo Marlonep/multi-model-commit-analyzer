@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Models - Commit Analyzer</title>
     <link rel="stylesheet" href="../assets/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         .models-controls {
             display: flex;
@@ -288,6 +289,350 @@
             background-color: #c82333;
             border-color: #bd2130;
         }
+        
+        /* API Tokens Table Styles */
+        .organizations-table {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .organizations-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .organizations-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .organizations-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .token-display {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .status-active {
+            color: var(--accent-green);
+        }
+        
+        .status-expired {
+            color: var(--error-color);
+        }
+        
+        .status-inactive {
+            color: var(--text-secondary);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .material-icons {
+            font-size: 48px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            margin-bottom: 16px;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .provider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .provider-badge.openai {
+            background: rgba(74, 178, 149, 0.2);
+            color: #4ab295;
+            border: 1px solid rgba(74, 178, 149, 0.4);
+        }
+        
+        .provider-badge.anthropic {
+            background: rgba(216, 180, 132, 0.2);
+            color: #d8b484;
+            border: 1px solid rgba(216, 180, 132, 0.4);
+        }
+        
+        .provider-badge.google {
+            background: rgba(66, 133, 244, 0.2);
+            color: #4285f4;
+            border: 1px solid rgba(66, 133, 244, 0.4);
+        }
+        
+        .provider-badge.xai {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+        
+        .provider-badge.mistral {
+            background: rgba(255, 87, 34, 0.2);
+            color: #ff5722;
+            border: 1px solid rgba(255, 87, 34, 0.4);
+        }
+        
+        .provider-badge.alibaba {
+            background: rgba(255, 106, 0, 0.2);
+            color: #ff6a00;
+            border: 1px solid rgba(255, 106, 0, 0.4);
+        }
+        
+        .provider-badge.meta {
+            background: rgba(24, 119, 242, 0.2);
+            color: #1877f2;
+            border: 1px solid rgba(24, 119, 242, 0.4);
+        }
+        
+        .provider-badge.nvidia {
+            background: rgba(118, 185, 0, 0.2);
+            color: #76b900;
+            border: 1px solid rgba(118, 185, 0, 0.4);
+        }
+        
+        /* Model badges for the "Models Using Token" column */
+        .model-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            margin: 2px;
+            border: 1px solid;
+        }
+        
+        .model-badge.openai-model {
+            background: rgba(74, 178, 149, 0.15);
+            color: #4ab295;
+            border-color: rgba(74, 178, 149, 0.3);
+        }
+        
+        .model-badge.anthropic-model {
+            background: rgba(216, 180, 132, 0.15);
+            color: #d8b484;
+            border-color: rgba(216, 180, 132, 0.3);
+        }
+        
+        .model-badge.google-model {
+            background: rgba(66, 133, 244, 0.15);
+            color: #4285f4;
+            border-color: rgba(66, 133, 244, 0.3);
+        }
+        
+        .model-badge.xai-model {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+        
+        .model-badge.mistral-model {
+            background: rgba(255, 87, 34, 0.15);
+            color: #ff5722;
+            border-color: rgba(255, 87, 34, 0.3);
+        }
+        
+        .model-badge.alibaba-model {
+            background: rgba(255, 106, 0, 0.15);
+            color: #ff6a00;
+            border-color: rgba(255, 106, 0, 0.3);
+        }
+        
+        .model-badge.meta-model {
+            background: rgba(24, 119, 242, 0.15);
+            color: #1877f2;
+            border-color: rgba(24, 119, 242, 0.3);
+        }
+        
+        .model-badge.nvidia-model {
+            background: rgba(118, 185, 0, 0.15);
+            color: #76b900;
+            border-color: rgba(118, 185, 0, 0.3);
+        }
+        
+        .models-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            max-width: 250px;
+        }
+        
+        /* Modal styles from git.html */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            padding: 0;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: var(--accent-green);
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: normal;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--accent-green);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.1);
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+        }
+        
+        .spinner {
+            width: 100%;
+            height: 100%;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -387,6 +732,42 @@
                     </div>
                 </section>
 
+                <!-- API Tokens Table -->
+                <section class="table-section">
+                    <h3>API Tokens Management</h3>
+                    <div class="models-controls">
+                        <div class="search-container">
+                            <input type="text" class="search-bar" id="tokensSearch" placeholder="Search tokens...">
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn primary" id="addNewToken">Add New Token</button>
+                        </div>
+                    </div>
+                    <div class="organizations-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Token</th>
+                                    <th>Models Using Token</th>
+                                    <th>Uploaded By</th>
+                                    <th>Upload Date</th>
+                                    <th>Last Used</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apiTokensTableBody">
+                                <!-- Mock data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                        <div id="tokensEmptyState" class="empty-state" style="display: none;">
+                            <span class="material-icons">vpn_key</span>
+                            <p>No API tokens configured yet</p>
+                            <p>Click "Add New Token" to get started</p>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Analysis Prompt Section -->
                 <section class="table-section">
@@ -548,6 +929,58 @@
                 <button class="btn success" id="updateApiKeyFromModal" onclick="updateApiKeyFromModal()" style="display: none;">Update API Key</button>
                 <button class="btn primary" onclick="saveModel()">Save Model</button>
                 <button class="btn secondary" onclick="closeModelModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add API Token Modal -->
+    <div id="addApiTokenModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add API Token</h2>
+                <button class="close-btn" onclick="closeAddApiTokenModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addApiTokenForm">
+                    <div class="form-group">
+                        <label for="tokenProvider">Provider *</label>
+                        <select id="tokenProvider" name="provider" required>
+                            <option value="" style="color: var(--text-secondary);">Select a provider</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="xai">xAI</option>
+                            <option value="google">Google</option>
+                            <option value="mistral">Mistral</option>
+                            <option value="alibaba">Alibaba</option>
+                            <option value="meta">Meta</option>
+                            <option value="nvidia">NVIDIA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiToken">API Token *</label>
+                        <input type="password" id="apiToken" name="token" required placeholder="Enter your API token">
+                        <small id="tokenHelperText">Enter the API token provided by your selected provider</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddApiTokenModal()">Cancel</button>
+                        <button type="submit" class="btn primary" onclick="handleApiTokenSubmit(event)">Add Token</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Test Progress Modal -->
+    <div id="tokenTestModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Testing API Token</h2>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 40px;">
+                <div class="loading-spinner" style="margin-bottom: 20px;">
+                    <div class="spinner"></div>
+                </div>
+                <p id="testStatusMessage">Validating token with provider...</p>
             </div>
         </div>
     </div>
