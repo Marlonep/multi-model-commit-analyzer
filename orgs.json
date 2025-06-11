@@ -1,0 +1,16 @@
+[
+  {
+    "login": "covenant-org",
+    "id": 193524572,
+    "node_id": "O_kgDOC4jzXA",
+    "url": "https://api.github.com/orgs/covenant-org",
+    "repos_url": "https://api.github.com/orgs/covenant-org/repos",
+    "events_url": "https://api.github.com/orgs/covenant-org/events",
+    "hooks_url": "https://api.github.com/orgs/covenant-org/hooks",
+    "issues_url": "https://api.github.com/orgs/covenant-org/issues",
+    "members_url": "https://api.github.com/orgs/covenant-org/members{/member}",
+    "public_members_url": "https://api.github.com/orgs/covenant-org/public_members{/member}",
+    "avatar_url": "https://avatars.githubusercontent.com/u/193524572?v=4",
+    "description": null
+  }
+]

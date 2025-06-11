@@ -105,15 +105,3 @@ CREATE TABLE IF NOT EXISTS daily_commits (
     UNIQUE(date, user)
 );
 
--- Tools table
-CREATE TABLE IF NOT EXISTS tools (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    category TEXT NOT NULL,
-    description TEXT,
-    price TEXT,
-    website TEXT,
-    image_url TEXT,
-    is_active BOOLEAN DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);

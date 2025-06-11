@@ -6,7 +6,7 @@ npm-debug.log*
 *.db
 commit_analysis_history.json
 user-details.json
-
+promptsclaude.txt
 # Python (kept for reference)
 __pycache__/
 *.pyc

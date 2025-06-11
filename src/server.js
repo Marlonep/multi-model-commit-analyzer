@@ -417,7 +417,6 @@ app.get('/api/users/all/details', async (req, res) => {
         whatsappAvailable: false,
         minHoursPerDay: 8,
         organizations: [],
-        tools: []
       };
     }
 
@@ -449,7 +448,6 @@ app.get('/api/users/:username/details', async (req, res) => {
         whatsappAvailable: false,
         minHoursPerDay: 8,
         organizations: [],
-        tools: []
       };
     } else {
       // Transform database format to match frontend expectations
@@ -458,8 +456,7 @@ app.get('/api/users/:username/details', async (req, res) => {
         phone: userDetails.phone || '',
         whatsappAvailable: userDetails.whatsapp_available || false,
         minHoursPerDay: userDetails.min_hours_per_day || 8,
-        organizations: userDetails.organizations || [],
-        tools: userDetails.tools || []
+        organizations: userDetails.organizations || []
       };
     }
 
@@ -506,8 +503,7 @@ app.put('/api/users/:username/details', async (req, res) => {
       phone: userDetails.phone || '',
       whatsapp_available: Boolean(userDetails.whatsappAvailable),
       min_hours_per_day: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
-      organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
-      tools: userDetails.tools || []
+      organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : []
     });
 
     res.json({
@@ -518,8 +514,7 @@ app.put('/api/users/:username/details', async (req, res) => {
         phone: userDetails.phone || '',
         whatsappAvailable: Boolean(userDetails.whatsappAvailable),
         minHoursPerDay: typeof userDetails.minHoursPerDay === 'number' ? userDetails.minHoursPerDay : 8,
-        organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : [],
-        tools: userDetails.tools || []
+        organizations: Array.isArray(userDetails.organizations) ? userDetails.organizations : []
       }
     });
   } catch (error) {
@@ -780,122 +775,6 @@ app.post('/api/generate-daily-report', requireAdmin, async (req, res) => {
   }
 });
 
-// Tools API endpoints
-
-// Get all tools
-app.get('/api/tools', async (req, res) => {
-  try {
-    const tools = dbHelpers.getAllTools();
-
-    // Transform database format to match frontend expectations
-    const transformedTools = tools.map(tool => ({
-      id: tool.tool_id,
-      dbId: tool.id, // Include database ID for edit/delete operations
-      image: tool.image,
-      name: tool.name,
-      category: tool.category,
-      description: tool.description,
-      price: tool.price,
-      costPerMonth: tool.cost_per_month,
-      website: tool.website
-    }));
-
-    res.json({ tools: transformedTools });
-  } catch (error) {
-    console.error('Error fetching tools:', error);
-    res.status(500).json({ error: 'Failed to fetch tools' });
-  }
-});
-
-// Create a new tool (admin only)
-app.post('/api/tools', requireAdmin, async (req, res) => {
-  try {
-    const toolData = req.body;
-
-    // Validate required fields
-    if (!toolData.name || !toolData.category) {
-      return res.status(400).json({ error: 'Name and category are required' });
-    }
-
-    // Generate unique tool_id if not provided
-    if (!toolData.tool_id && !toolData.id) {
-      toolData.tool_id = 'tool_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    const result = dbHelpers.createTool(toolData, req.user.id);
-
-    const newTool = {
-      id: toolData.tool_id || toolData.id,
-      image: toolData.image,
-      name: toolData.name,
-      category: toolData.category,
-      description: toolData.description,
-      price: toolData.price,
-      costPerMonth: toolData.costPerMonth || toolData.cost_per_month,
-      website: toolData.website
-    };
-
-    res.json({ success: true, tool: newTool });
-  } catch (error) {
-    console.error('Error creating tool:', error);
-    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      res.status(400).json({ error: 'Tool ID already exists' });
-    } else {
-      res.status(500).json({ error: 'Failed to create tool' });
-    }
-  }
-});
-
-// Update a tool (admin only)
-app.put('/api/tools/:id', requireAdmin, async (req, res) => {
-  try {
-    const toolId = parseInt(req.params.id);
-    const toolData = req.body;
-
-    // Check if tool exists
-    const existingTool = dbHelpers.getToolById(toolId);
-    if (!existingTool) {
-      return res.status(404).json({ error: 'Tool not found' });
-    }
-
-    // Update the tool
-    const result = dbHelpers.updateTool(toolId, toolData);
-
-    if (!result || result.changes === 0) {
-      return res.status(400).json({ error: 'Failed to update tool' });
-    }
-
-    res.json({ success: true, message: 'Tool updated successfully' });
-  } catch (error) {
-    console.error('Error updating tool:', error);
-    res.status(500).json({ error: 'Failed to update tool' });
-  }
-});
-
-// Delete a tool (admin only)
-app.delete('/api/tools/:id', requireAdmin, async (req, res) => {
-  try {
-    const toolId = parseInt(req.params.id);
-
-    // Check if tool exists
-    const existingTool = dbHelpers.getToolById(toolId);
-    if (!existingTool) {
-      return res.status(404).json({ error: 'Tool not found' });
-    }
-
-    // Delete the tool
-    const result = dbHelpers.deleteTool(toolId);
-
-    if (!result || result.changes === 0) {
-      return res.status(400).json({ error: 'Failed to delete tool' });
-    }
-
-    res.json({ success: true, message: 'Tool deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting tool:', error);
-    res.status(500).json({ error: 'Failed to delete tool' });
-  }
-});
 
 // Organization API endpoints
 

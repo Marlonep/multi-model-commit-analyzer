@@ -99,24 +99,6 @@ const createTables = () => {
         )
     `);
 
-    // Tools table (replaces tools-data.json)
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS tools (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tool_id TEXT UNIQUE NOT NULL,
-            image TEXT,
-            name TEXT NOT NULL,
-            category TEXT NOT NULL,
-            description TEXT,
-            price TEXT,
-            cost_per_month REAL,
-            website TEXT,
-            created_by INTEGER,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
-        )
-    `);
 
     // AI Models table (stores all AI model configuration and performance data)
     db.exec(`
@@ -639,61 +621,6 @@ export const dbHelpers = {
         return stmt.run(...values);
     },
 
-    // Tools
-    getAllTools() {
-        return db.prepare('SELECT * FROM tools ORDER BY name ASC').all();
-    },
-
-    getToolById(id) {
-        return db.prepare('SELECT * FROM tools WHERE id = ?').get(id);
-    },
-
-    getToolByToolId(toolId) {
-        return db.prepare('SELECT * FROM tools WHERE tool_id = ?').get(toolId);
-    },
-
-    createTool(toolData, userId) {
-        const stmt = db.prepare(`
-            INSERT INTO tools (tool_id, image, name, category, description, price, cost_per_month, website, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        
-        return stmt.run(
-            toolData.tool_id || toolData.id,
-            toolData.image || null,
-            toolData.name,
-            toolData.category,
-            toolData.description || '',
-            toolData.price || null,
-            toolData.cost_per_month || toolData.costPerMonth || null,
-            toolData.website || null,
-            userId || null
-        );
-    },
-
-    updateTool(id, toolData) {
-        const stmt = db.prepare(`
-            UPDATE tools 
-            SET image = ?, name = ?, category = ?, description = ?, 
-                price = ?, cost_per_month = ?, website = ?
-            WHERE id = ?
-        `);
-        
-        return stmt.run(
-            toolData.image || null,
-            toolData.name,
-            toolData.category,
-            toolData.description || '',
-            toolData.price || null,
-            toolData.cost_per_month || toolData.costPerMonth || null,
-            toolData.website || null,
-            id
-        );
-    },
-
-    deleteTool(id) {
-        return db.prepare('DELETE FROM tools WHERE id = ?').run(id);
-    },
 
     // AI Models
     getAllAIModels() {
