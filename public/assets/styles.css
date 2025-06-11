@@ -559,7 +559,7 @@ tbody tr:hover {
     border: 1px solid var(--border-color);
     padding: 6px 12px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85em;
     font-family: inherit;
     transition: all 0.3s;
     text-decoration: none;
@@ -567,17 +567,29 @@ tbody tr:hover {
     align-items: center;
     gap: 5px;
     white-space: nowrap;
+    height: 32px;
+    border-radius: 4px;
 }
 
 .github-link:hover,
 .github-link-btn:hover {
     color: var(--accent-green);
     border-color: var(--accent-green);
+    text-decoration: none !important;
 }
 
 .github-link::before {
     content: '↗';
     font-size: 0.8rem;
+}
+
+/* GitHub links in table cells */
+td .github-link {
+    text-decoration: none !important;
+}
+
+td .github-link:hover {
+    text-decoration: none !important;
 }
 
 /* Grand Total Row */
@@ -2022,6 +2034,8 @@ tfoot td {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 0.85em;
+    font-family: inherit;
 }
 
 .btn.secondary:hover {
@@ -2626,6 +2640,7 @@ tfoot td {
     transition: all 0.3s;
     font-size: 0.85em;
     height: 32px;
+    font-family: inherit;
 }
 
 .btn-danger-small:hover {
@@ -2881,6 +2896,8 @@ tfoot td {
     cursor: pointer;
     font-weight: 500;
     transition: all 0.3s ease;
+    font-size: 0.85em;
+    font-family: inherit;
 }
 
 .btn-primary:hover {
@@ -3786,6 +3803,7 @@ textarea.form-control {
     cursor: pointer;
     transition: all 0.3s;
     border: 1px solid;
+    font-family: inherit;
 }
 
 .btn-cancel-subscription {

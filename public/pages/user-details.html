@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Details</title>
     <link rel="stylesheet" href="../assets/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -94,7 +95,10 @@
                             <span id="totalMonthlyCost" class="summary-value">$0.00</span>
                         </div>
                     </div>
-                    <button class="add-tool-btn" onclick="showToolSelector()">+ Add Tool</button>
+                    <button class="btn-primary" onclick="showToolSelector()" style="display: flex; align-items: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 18px;">add</span>
+                        Add Tool
+                    </button>
                 </div>
                 <div class="table-wrapper">
                     <table id="toolSubscriptionsTable">

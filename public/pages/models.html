@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Models - Commit Analyzer</title>
     <link rel="stylesheet" href="../assets/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         .models-controls {
             display: flex;
@@ -350,7 +351,10 @@
                             <input type="text" class="search-bar" id="modelsSearch" placeholder="Search models...">
                         </div>
                         <div class="action-buttons">
-                            <button class="btn success" id="addNewModel">Add New Model</button>
+                            <button class="btn success" id="addNewModel" style="display: flex; align-items: center; gap: 4px;">
+                                <span class="material-icons" style="font-size: 18px;">add</span>
+                                Add New Model
+                            </button>
                             <button class="btn primary" id="testAllModels">Test All Models</button>
                         </div>
                     </div>
