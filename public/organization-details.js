@@ -4,18 +4,16 @@ const organizationName = urlParams.get('org');
 let organizationCommits = [];
 
 // Chart instances
-let activityChart = null;
+let metricsChart = null;
 let projectsChart = null;
-let contributorsChart = null;
-let qualityTrendsChart = null;
 
 // Helper function to get dev level string
 function getDevLevel(level) {
-    if (level >= 9) return 'Expert';
-    if (level >= 7) return 'Senior';
-    if (level >= 5) return 'Mid-level';
-    if (level >= 3) return 'Junior';
-    return 'Beginner';
+    if (level >= 9) return 'Exp';
+    if (level >= 7) return 'Sr';
+    if (level >= 5) return 'Mid';
+    if (level >= 3) return 'Jr';
+    return 'Beg';
 }
 
 // Load organization details
@@ -56,7 +54,7 @@ async function loadOrganizationDetails() {
         
         displayOrganizationInfo();
         displayOrganizationStats();
-        displayMembersTable();
+        displayPeopleSection();
         displayProjectsTable();
         displayCommitsTable();
         createCharts();
@@ -148,8 +146,8 @@ function displayOrganizationStats() {
     document.getElementById('totalCost').textContent = '$' + totalCost.toFixed(2);
 }
 
-// Display members table
-function displayMembersTable() {
+// Display people section
+function displayPeopleSection() {
     const memberMap = new Map();
     
     organizationCommits.forEach(commit => {
@@ -180,35 +178,35 @@ function displayMembersTable() {
         }
     });
     
-    const tbody = document.getElementById('membersBody');
-    tbody.innerHTML = '';
-    
     // Convert to array and sort by commits
     const members = Array.from(memberMap.values());
     members.sort((a, b) => b.commits - a.commits);
     
+    // Display people grid
+    const peopleGrid = document.getElementById('peopleGrid');
+    peopleGrid.innerHTML = '';
+    
+    // Show all members in the grid
     members.forEach(member => {
-        const row = document.createElement('tr');
-        row.className = 'clickable-row';
-        row.onclick = () => window.location.href = `/user-details.html?user=${encodeURIComponent(member.user)}`;
+        const memberAvatar = document.createElement('div');
+        memberAvatar.className = 'member-avatar';
+        memberAvatar.onclick = () => window.location.href = `/user-details.html?user=${encodeURIComponent(member.user)}`;
         
-        row.innerHTML = `
-            <td>${member.user}</td>
-            <td>${member.projects.size}</td>
-            <td>${member.commits}</td>
-            <td>+${member.linesAdded.toLocaleString()}</td>
-            <td>-${member.linesDeleted.toLocaleString()}</td>
-            <td>${(member.qualitySum / member.commits).toFixed(1)}</td>
-            <td>${member.hoursSum.toFixed(1)}h</td>
-            <td>${member.lastActivity ? member.lastActivity.toLocaleDateString() : 'N/A'}</td>
-            <td>
-                <button class="view-details" onclick="event.stopPropagation(); window.location.href='/user-details.html?user=${encodeURIComponent(member.user)}'">
-                    Details
-                </button>
-            </td>
+        // Create avatar with initial
+        const initial = member.user.charAt(0).toUpperCase();
+        memberAvatar.innerHTML = `
+            <div class="avatar-initial">${initial}</div>
+            <div class="member-tooltip">${member.user}</div>
         `;
-        tbody.appendChild(row);
+        
+        peopleGrid.appendChild(memberAvatar);
     });
+    
+    // Update the View all link with the organization name
+    const viewAllLink = document.querySelector('.view-all-link');
+    if (viewAllLink) {
+        viewAllLink.href = `/organization-members.html?org=${encodeURIComponent(organizationName)}`;
+    }
 }
 
 // Display projects table
@@ -313,44 +311,98 @@ function displayCommitsTable() {
 
 // Create charts
 function createCharts() {
-    createActivityChart();
+    createMetricsChart();
     createProjectsChart();
     createContributorsChart();
-    createQualityTrendsChart();
 }
 
-// Create activity timeline chart
-function createActivityChart() {
-    const ctx = document.getElementById('activityChart').getContext('2d');
+// Create performance metrics chart
+function createMetricsChart() {
+    const ctx = document.getElementById('metricsChart').getContext('2d');
     
-    // Group commits by date
-    const commitsByDate = {};
-    organizationCommits.forEach(commit => {
-        const date = new Date(commit.timestamp).toLocaleDateString();
-        commitsByDate[date] = (commitsByDate[date] || 0) + 1;
-    });
+    // Calculate average metrics for the organization
+    if (organizationCommits.length === 0) {
+        return;
+    }
     
-    // Sort dates
-    const dates = Object.keys(commitsByDate).sort((a, b) => new Date(a) - new Date(b));
-    const last30Days = dates.slice(-30);
+    const avgQuality = organizationCommits.reduce((sum, c) => sum + (c.averageCodeQuality || 0), 0) / organizationCommits.length;
+    const avgDevLevel = organizationCommits.reduce((sum, c) => sum + (c.averageDevLevel || 0), 0) / organizationCommits.length;
+    const avgComplexity = organizationCommits.reduce((sum, c) => sum + (c.averageComplexity || 0), 0) / organizationCommits.length;
+    const avgAiUsage = organizationCommits.reduce((sum, c) => sum + (c.aiPercentage || 0), 0) / organizationCommits.length;
     
-    activityChart = new Chart(ctx, {
-        type: 'line',
+    metricsChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: last30Days,
+            labels: ['Code Quality', 'Dev Level', 'Complexity', 'AI Usage'],
             datasets: [{
-                label: 'Commits',
-                data: last30Days.map(date => commitsByDate[date]),
-                borderColor: '#00ff41',
-                backgroundColor: 'rgba(0, 255, 65, 0.1)',
-                tension: 0.4
+                label: 'Average Score',
+                data: [
+                    avgQuality,
+                    avgDevLevel * 1.67, // Scale dev level (0-3) to (0-5)
+                    avgComplexity,
+                    avgAiUsage / 20 // Scale AI usage (0-100) to (0-5)
+                ],
+                backgroundColor: [
+                    'rgba(57, 255, 20, 0.6)',   // Green for quality
+                    'rgba(255, 215, 0, 0.6)',   // Gold for dev level
+                    'rgba(0, 191, 255, 0.6)',   // Blue for complexity
+                    'rgba(255, 20, 147, 0.6)'   // Pink for AI usage
+                ],
+                borderColor: [
+                    'rgba(57, 255, 20, 1)',
+                    'rgba(255, 215, 0, 1)',
+                    'rgba(0, 191, 255, 1)',
+                    'rgba(255, 20, 147, 1)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label;
+                            let value = context.raw;
+                            
+                            // Format based on metric type
+                            if (label === 'Dev Level') {
+                                value = (value / 1.67).toFixed(1) + ' / 3';
+                            } else if (label === 'AI Usage') {
+                                value = (value * 20).toFixed(0) + '%';
+                            } else {
+                                value = value.toFixed(1) + ' / 5';
+                            }
+                            
+                            return label + ': ' + value;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        color: '#c9d1d9'
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#c9d1d9'
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                }
             }
         }
     });
@@ -360,73 +412,113 @@ function createActivityChart() {
 function createProjectsChart() {
     const ctx = document.getElementById('projectsChart').getContext('2d');
     
-    // Count commits by project
-    const projectCounts = {};
+    // Gather comprehensive project stats
+    const projectStats = {};
     organizationCommits.forEach(commit => {
-        projectCounts[commit.project] = (projectCounts[commit.project] || 0) + 1;
+        if (!projectStats[commit.project]) {
+            projectStats[commit.project] = {
+                commits: 0,
+                contributors: new Set(),
+                linesAdded: 0,
+                totalHours: 0,
+                avgQuality: 0,
+                qualitySum: 0
+            };
+        }
+        projectStats[commit.project].commits++;
+        projectStats[commit.project].contributors.add(commit.user);
+        projectStats[commit.project].linesAdded += commit.linesAdded || 0;
+        projectStats[commit.project].totalHours += commit.estimatedHours || 0;
+        projectStats[commit.project].qualitySum += commit.codeQuality || 0;
     });
     
-    // Sort and get top 10
-    const sortedProjects = Object.entries(projectCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
+    // Calculate averages and prepare bubble data
+    const bubbleData = Object.entries(projectStats)
+        .map(([project, stats]) => ({
+            project,
+            x: stats.contributors.size, // X-axis: number of contributors
+            y: stats.commits, // Y-axis: number of commits
+            r: Math.sqrt(stats.linesAdded) / 10, // Bubble size: based on lines of code
+            avgQuality: stats.qualitySum / stats.commits,
+            totalHours: stats.totalHours
+        }))
+        .sort((a, b) => b.y - a.y) // Sort by commits
+        .slice(0, 10); // Top 10 projects
     
     projectsChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'bubble',
         data: {
-            labels: sortedProjects.map(([project]) => project),
             datasets: [{
-                label: 'Commits',
-                data: sortedProjects.map(([, count]) => count),
-                backgroundColor: '#00ff41'
+                label: 'Projects',
+                data: bubbleData.map(d => ({
+                    x: d.x,
+                    y: d.y,
+                    r: Math.max(d.r, 5), // Minimum bubble size of 5
+                    project: d.project,
+                    avgQuality: d.avgQuality.toFixed(1),
+                    totalHours: d.totalHours.toFixed(1)
+                })),
+                backgroundColor: bubbleData.map(d => {
+                    // Color based on average quality
+                    const quality = d.avgQuality;
+                    if (quality >= 4) return 'rgba(57, 255, 20, 0.6)'; // Green
+                    if (quality >= 3) return 'rgba(255, 193, 7, 0.6)'; // Yellow
+                    return 'rgba(255, 69, 0, 0.6)'; // Red
+                }),
+                borderColor: bubbleData.map(d => {
+                    const quality = d.avgQuality;
+                    if (quality >= 4) return 'rgba(57, 255, 20, 1)';
+                    if (quality >= 3) return 'rgba(255, 193, 7, 1)';
+                    return 'rgba(255, 69, 0, 1)';
+                }),
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-}
-
-// Create contributors chart
-function createContributorsChart() {
-    const ctx = document.getElementById('contributorsChart').getContext('2d');
-    
-    // Count commits by user
-    const userCounts = {};
-    organizationCommits.forEach(commit => {
-        userCounts[commit.user] = (userCounts[commit.user] || 0) + 1;
-    });
-    
-    // Sort and get top 10
-    const sortedUsers = Object.entries(userCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-    
-    contributorsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: sortedUsers.map(([user]) => user),
-            datasets: [{
-                label: 'Commits',
-                data: sortedUsers.map(([, count]) => count),
-                backgroundColor: '#00ff41'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const data = context.raw;
+                            return [
+                                `Project: ${data.project}`,
+                                `Contributors: ${data.x}`,
+                                `Commits: ${data.y}`,
+                                `Avg Quality: ${data.avgQuality}`,
+                                `Total Hours: ${data.totalHours}`
+                            ];
+                        }
+                    }
+                }
             },
             scales: {
                 x: {
+                    title: {
+                        display: true,
+                        text: 'Number of Contributors',
+                        color: '#c9d1d9'
+                    },
                     ticks: {
-                        maxRotation: 45,
-                        minRotation: 45
+                        color: '#c9d1d9'
+                    },
+                    grid: {
+                        color: '#30363d'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Number of Commits',
+                        color: '#c9d1d9'
+                    },
+                    ticks: {
+                        color: '#c9d1d9'
+                    },
+                    grid: {
+                        color: '#30363d'
                     }
                 }
             }
@@ -434,51 +526,91 @@ function createContributorsChart() {
     });
 }
 
-// Create quality trends chart
-function createQualityTrendsChart() {
-    const ctx = document.getElementById('qualityTrendsChart').getContext('2d');
-    
-    // Group by month and calculate average quality
-    const qualityByMonth = {};
+// Create contributors leaderboard
+function createContributorsChart() {
+    // Count commits and calculate stats by user
+    const userStats = {};
     organizationCommits.forEach(commit => {
-        const month = new Date(commit.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-        if (!qualityByMonth[month]) {
-            qualityByMonth[month] = { sum: 0, count: 0 };
+        if (!userStats[commit.user]) {
+            userStats[commit.user] = {
+                commits: 0,
+                linesAdded: 0,
+                linesDeleted: 0,
+                totalHours: 0
+            };
         }
-        qualityByMonth[month].sum += commit.averageCodeQuality;
-        qualityByMonth[month].count++;
+        userStats[commit.user].commits++;
+        userStats[commit.user].linesAdded += commit.linesAdded || 0;
+        userStats[commit.user].linesDeleted += commit.linesDeleted || 0;
+        userStats[commit.user].totalHours += commit.estimatedHours || 0;
     });
     
-    // Sort months and calculate averages
-    const months = Object.keys(qualityByMonth).sort((a, b) => new Date(a) - new Date(b));
-    const avgQualities = months.map(month => 
-        qualityByMonth[month].sum / qualityByMonth[month].count
-    );
+    // Sort and get top 5
+    const sortedUsers = Object.entries(userStats)
+        .sort((a, b) => b[1].commits - a[1].commits)
+        .slice(0, 5);
     
-    qualityTrendsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: months,
-            datasets: [{
-                label: 'Average Code Quality',
-                data: avgQualities,
-                borderColor: '#00ff41',
-                backgroundColor: 'rgba(0, 255, 65, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 10
-                }
-            }
+    // Build leaderboard HTML
+    const leaderboardContainer = document.getElementById('contributorsLeaderboard');
+    leaderboardContainer.innerHTML = '';
+    
+    // Always show 5 positions
+    for (let i = 0; i < 5; i++) {
+        if (i < sortedUsers.length) {
+            // Real contributor
+            const [username, stats] = sortedUsers[i];
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            
+            const leaderboardItem = `
+                <div class="leaderboard-item" onclick="window.location.href='/user-details.html?user=${encodeURIComponent(username)}'">
+                    <div class="leaderboard-rank ${rankClass}">${i + 1}</div>
+                    <div class="leaderboard-user" title="${username}">${username}</div>
+                    <div class="leaderboard-stats">
+                        <div class="leaderboard-stat">
+                            <div class="leaderboard-stat-value">${stats.commits}</div>
+                            <div class="leaderboard-stat-label">commits</div>
+                        </div>
+                        <div class="leaderboard-stat">
+                            <div class="leaderboard-stat-value">${formatNumber(stats.linesAdded)}</div>
+                            <div class="leaderboard-stat-label">lines</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            leaderboardContainer.innerHTML += leaderboardItem;
+        } else {
+            // Empty position
+            const emptyItem = `
+                <div class="leaderboard-item" style="opacity: 0.3; cursor: default;">
+                    <div class="leaderboard-rank">${i + 1}</div>
+                    <div class="leaderboard-user">—</div>
+                    <div class="leaderboard-stats">
+                        <div class="leaderboard-stat">
+                            <div class="leaderboard-stat-value">0</div>
+                            <div class="leaderboard-stat-label">commits</div>
+                        </div>
+                        <div class="leaderboard-stat">
+                            <div class="leaderboard-stat-value">0</div>
+                            <div class="leaderboard-stat-label">lines</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            leaderboardContainer.innerHTML += emptyItem;
         }
-    });
+    }
 }
+
+// Helper function to format large numbers
+function formatNumber(num) {
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+}
+
 
 // Search functionality
 function setupSearch() {

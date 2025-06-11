@@ -254,10 +254,18 @@ header p {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    gap: 20px;
 }
 
 .section-header h3 {
     margin: 0;
+}
+
+/* Search container inside section header */
+.section-header .search-container {
+    flex: 1;
+    margin-bottom: 0;
+    max-width: calc(100% - 200px);
 }
 
 /* Search Bar */
@@ -570,7 +578,7 @@ tbody tr:hover {
     border: 1px solid var(--border-color);
     padding: 6px 12px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85em;
     font-family: inherit;
     transition: all 0.3s;
     text-decoration: none;
@@ -578,12 +586,24 @@ tbody tr:hover {
     align-items: center;
     gap: 5px;
     white-space: nowrap;
+    height: 32px;
+    border-radius: 4px;
 }
 
 .github-link:hover,
 .github-link-btn:hover {
     color: var(--accent-green);
     border-color: var(--accent-green);
+    text-decoration: none !important;
+}
+
+/* Ensure no underline on github links in table cells */
+td .github-link,
+td .github-link:hover,
+td .github-link:visited,
+td .github-link:active,
+td .github-link:focus {
+    text-decoration: none !important;
 }
 
 .github-link::before {
@@ -1804,6 +1824,8 @@ tfoot td {
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 0.85em;
+    font-family: inherit;
     transition: all 0.3s ease;
 }
 
@@ -2644,6 +2666,7 @@ tfoot td {
     cursor: pointer;
     transition: all 0.3s;
     font-size: 0.85em;
+    font-family: inherit;
     height: 32px;
 }
 
@@ -2902,6 +2925,8 @@ tfoot td {
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
+    font-size: 0.85em;
+    font-family: inherit;
     transition: all 0.3s ease;
 }
 
@@ -3128,6 +3153,7 @@ input[type="date"] {
     border-radius: 6px;
     font-size: 0.95rem;
     font-weight: 500;
+    font-family: inherit;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -3168,6 +3194,7 @@ input[type="date"] {
     border-radius: 8px;
     font-size: 1.05rem;
     font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -3227,6 +3254,8 @@ input[type="date"] {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
+    font-size: 0.95rem;
+    font-family: inherit;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -3439,6 +3468,8 @@ textarea.form-control {
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 0.85em;
+    font-family: inherit;
     transition: all 0.3s ease;
 }
 
@@ -3806,6 +3837,7 @@ textarea.form-control {
     padding: 6px 12px;
     border-radius: 4px;
     font-size: 0.85rem;
+    font-family: inherit;
     cursor: pointer;
     transition: all 0.3s;
     border: 1px solid;

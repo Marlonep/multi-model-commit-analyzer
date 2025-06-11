@@ -167,8 +167,8 @@ function displaySystemUsers() {
             <td>${createdDate}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-small secondary" onclick="editUser(${user.id})">Edit</button>
-                    <button class="btn-small danger" onclick="deleteUser(${user.id})" ${user.username === 'admin' ? 'disabled' : ''}>Delete</button>
+                    <button class="view-details" onclick="editUser(${user.id})">Edit</button>
+                    <button class="btn-danger-small" onclick="deleteUser(${user.id})" ${user.username === 'admin' ? 'disabled' : ''}>Delete</button>
                 </div>
             </td>
         `;

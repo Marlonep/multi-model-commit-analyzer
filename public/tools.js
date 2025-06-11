@@ -167,8 +167,8 @@ function renderTools() {
             <td class="tool-price">${escapeHtml(tool.price || 'N/A')}</td>
             <td class="tool-website">
                 ${tool.website ? 
-                    `<a href="${tool.website}" target="_blank" rel="noopener noreferrer">Visit Site</a>` : 
-                    'N/A'
+                    `<a href="${tool.website}" target="_blank" rel="noopener noreferrer" class="github-link">Visit Site</a>` : 
+                    '<span style="color: var(--text-secondary)">-</span>'
                 }
             </td>
             <td>

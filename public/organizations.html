@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizations - Commit Analyzer</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
@@ -57,13 +58,13 @@
                 <!-- Organizations Table -->
                 <section class="table-section">
                     <div class="section-header">
-                        <h3>All Organizations</h3>
-                        <button class="btn primary" id="addOrganizationBtn" style="display: none;">
-                            <span>+ Add Organization</span>
+                        <div class="search-container">
+                            <input type="text" class="search-bar" id="organizationsSearch" placeholder="Search organizations...">
+                        </div>
+                        <button class="btn primary" id="addOrganizationBtn" style="display: none; align-items: center; gap: 4px;">
+                            <span class="material-icons" style="font-size: 18px;">add</span>
+                            Add Organization
                         </button>
-                    </div>
-                    <div class="search-container">
-                        <input type="text" class="search-bar" id="organizationsSearch" placeholder="Search organizations...">
                     </div>
                     <div class="table-wrapper">
                         <table id="organizationsTable">

@@ -12,7 +12,7 @@ async function init() {
         // Check if user is admin
         const userData = getUserData();
         if (userData && userData.role === 'admin') {
-            document.getElementById('addOrganizationBtn').style.display = 'block';
+            document.getElementById('addOrganizationBtn').style.display = 'flex';
         }
 
         // Load organizations
