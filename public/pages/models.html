@@ -750,6 +750,8 @@
                                     <th>Provider</th>
                                     <th>Token</th>
                                     <th>Models Using Token</th>
+                                    <th>Spending Limit</th>
+                                    <th>Period</th>
                                     <th>Uploaded By</th>
                                     <th>Upload Date</th>
                                     <th>Last Used</th>
@@ -960,6 +962,45 @@
                         <label for="apiToken">API Token *</label>
                         <input type="password" id="apiToken" name="token" required placeholder="Enter your API token">
                         <small id="tokenHelperText">Enter the API token provided by your selected provider</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="enableSpendingLimit">
+                            <input type="checkbox" id="enableSpendingLimit" style="margin-right: 8px; width: auto;">
+                            Enable spending limit (optional)
+                        </label>
+                        <small>Set a safety limit to prevent unexpected charges</small>
+                    </div>
+                    <div id="spendingLimitOptions" style="display: none;">
+                        <div class="form-row" style="display: flex; gap: 12px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="spendingLimit">Limit Amount *</label>
+                                <div style="position: relative;">
+                                    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">$</span>
+                                    <input type="number" id="spendingLimit" min="1" max="10000" step="0.01" placeholder="100.00" style="padding-left: 25px;">
+                                </div>
+                                <small>Maximum amount in USD</small>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="limitPeriod">Time Period *</label>
+                                <select id="limitPeriod">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="accumulated">Total Accumulated</option>
+                                </select>
+                                <small>Reset frequency for the limit</small>
+                            </div>
+                        </div>
+                        <div class="spending-limit-info" style="background: rgba(57, 255, 20, 0.1); border: 1px solid rgba(57, 255, 20, 0.3); border-radius: 4px; padding: 12px; margin-top: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span class="material-icons" style="color: var(--accent-green); font-size: 16px;">info</span>
+                                <strong style="color: var(--accent-green);">Smart Spending Protection</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 13px; line-height: 1.4; color: var(--text-primary);">
+                                When the limit is reached, the token will be automatically disabled to prevent additional charges. 
+                                You'll receive notifications at 80% and 95% of your limit.
+                            </p>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeAddApiTokenModal()">Cancel</button>

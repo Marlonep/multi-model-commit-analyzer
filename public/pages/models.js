@@ -121,7 +121,9 @@ class ModelsManager {
                 uploadDate: '2025-01-05',
                 lastUsed: '2025-01-06 14:32',
                 status: 'active',
-                models: ['o3', 'o3-mini', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo']
+                models: ['o3', 'o3-mini', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
+                spendingLimit: 500.00,
+                limitPeriod: 'monthly'
             },
             {
                 provider: 'Anthropic',
@@ -130,7 +132,9 @@ class ModelsManager {
                 uploadDate: '2025-01-03',
                 lastUsed: '2025-01-06 15:45',
                 status: 'active',
-                models: ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3-sonnet', 'claude-2.1', 'claude-instant', 'claude-2']
+                models: ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3-sonnet', 'claude-2.1', 'claude-instant', 'claude-2'],
+                spendingLimit: 250.00,
+                limitPeriod: 'weekly'
             },
             {
                 provider: 'Google',
@@ -139,7 +143,9 @@ class ModelsManager {
                 uploadDate: '2025-01-02',
                 lastUsed: '2025-01-04 09:12',
                 status: 'active',
-                models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro', 'gemini-exp']
+                models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro', 'gemini-exp'],
+                spendingLimit: null,
+                limitPeriod: null
             },
             {
                 provider: 'xAI',
@@ -148,7 +154,9 @@ class ModelsManager {
                 uploadDate: '2024-12-28',
                 lastUsed: '2024-12-30 16:20',
                 status: 'expired',
-                models: ['grok-3', 'grok-2', 'grok-vision', 'grok-1.5', 'grok-mini']
+                models: ['grok-3', 'grok-2', 'grok-vision', 'grok-1.5', 'grok-mini'],
+                spendingLimit: 1000.00,
+                limitPeriod: 'accumulated'
             },
             {
                 provider: 'OpenAI',
@@ -157,7 +165,9 @@ class ModelsManager {
                 uploadDate: '2024-12-15',
                 lastUsed: 'Never',
                 status: 'inactive',
-                models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-vision']
+                models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-vision'],
+                spendingLimit: 100.00,
+                limitPeriod: 'daily'
             }
         ];
         }
@@ -184,6 +194,15 @@ class ModelsManager {
             // Generate models badges
             const modelsHtml = token.models ? this.renderModelsBadges(token.models, token.provider) : '<span class="no-data">No models</span>';
             
+            // Format spending limit display
+            const spendingLimitDisplay = token.spendingLimit ? 
+                `$${token.spendingLimit.toFixed(2)}` : 
+                '<span class="no-data">No limit</span>';
+            
+            const periodDisplay = token.limitPeriod ? 
+                this.formatPeriodDisplay(token.limitPeriod) : 
+                '<span class="no-data">—</span>';
+
             return `
                 <tr>
                     <td><span class="provider-badge ${token.provider.toLowerCase()}">${token.provider}</span></td>
@@ -193,6 +212,8 @@ class ModelsManager {
                             ${modelsHtml}
                         </div>
                     </td>
+                    <td>${spendingLimitDisplay}</td>
+                    <td>${periodDisplay}</td>
                     <td>${token.uploadedBy}</td>
                     <td>${token.uploadDate}</td>
                     <td>${token.lastUsed}</td>
@@ -242,9 +263,24 @@ class ModelsManager {
         ).join('');
     }
 
+    formatPeriodDisplay(period) {
+        const periodLabels = {
+            'daily': 'Daily',
+            'weekly': 'Weekly', 
+            'monthly': 'Monthly',
+            'accumulated': 'Total'
+        };
+        return periodLabels[period] || period;
+    }
+
     addNewApiToken(provider, token, uploadedBy = 'current_user') {
         // Generate realistic models for the provider
         const providerModels = this.getDefaultModelsForProvider(provider);
+        
+        // Get spending limit data from the form
+        const enableLimit = document.getElementById('enableSpendingLimit').checked;
+        const spendingLimit = enableLimit ? parseFloat(document.getElementById('spendingLimit').value) : null;
+        const limitPeriod = enableLimit ? document.getElementById('limitPeriod').value : null;
         
         const newToken = {
             provider: provider.charAt(0).toUpperCase() + provider.slice(1),
@@ -253,7 +289,9 @@ class ModelsManager {
             uploadDate: new Date().toISOString().split('T')[0],
             lastUsed: 'Never',
             status: 'active',
-            models: providerModels
+            models: providerModels,
+            spendingLimit: spendingLimit,
+            limitPeriod: limitPeriod
         };
         
         this.apiTokens.push(newToken);
@@ -1209,6 +1247,9 @@ window.openAddApiTokenModal = function() {
         document.getElementById('addApiTokenForm').reset();
         // Update helper text for selected provider
         updateTokenHelperText();
+        // Hide spending limit options initially
+        document.getElementById('spendingLimitOptions').style.display = 'none';
+        document.getElementById('enableSpendingLimit').checked = false;
     }
 };
 
@@ -1224,10 +1265,22 @@ window.handleApiTokenSubmit = function(event) {
     
     const provider = document.getElementById('tokenProvider').value;
     const token = document.getElementById('apiToken').value;
+    const enableLimit = document.getElementById('enableSpendingLimit').checked;
     
     if (!provider || !token) {
         alert('Please fill in all required fields.');
         return;
+    }
+    
+    // Validate spending limit if enabled
+    if (enableLimit) {
+        const spendingLimit = document.getElementById('spendingLimit').value;
+        const limitPeriod = document.getElementById('limitPeriod').value;
+        
+        if (!spendingLimit || !limitPeriod || parseFloat(spendingLimit) <= 0) {
+            alert('Please enter a valid spending limit and period.');
+            return;
+        }
     }
     
     // Close add modal and show test modal
@@ -1282,7 +1335,11 @@ function simulateTokenTest(provider, token) {
         modal.classList.remove('show');
         
         // Show success message
-        alert(`✅ ${provider} API token validated successfully!\n\nThe token has been added to your account and is ready to use.`);
+        const limitInfo = document.getElementById('enableSpendingLimit').checked ? 
+            `\nSpending limit: $${document.getElementById('spendingLimit').value} (${document.getElementById('limitPeriod').value})` : 
+            '\nNo spending limit set';
+            
+        alert(`✅ ${provider} API token validated successfully!\n\nThe token has been added to your account and is ready to use.${limitInfo}`);
         
         // Refresh the tokens table
         if (window.modelsManager) {
@@ -1312,11 +1369,33 @@ function addTokenToTable(provider, token) {
     });
 }
 
-// Add event listener for provider dropdown change
+// Add event listener for provider dropdown change and spending limit checkbox
 document.addEventListener('DOMContentLoaded', () => {
     const providerSelect = document.getElementById('tokenProvider');
     if (providerSelect) {
         providerSelect.addEventListener('change', updateTokenHelperText);
+    }
+    
+    const enableSpendingLimit = document.getElementById('enableSpendingLimit');
+    if (enableSpendingLimit) {
+        enableSpendingLimit.addEventListener('change', function() {
+            const spendingLimitOptions = document.getElementById('spendingLimitOptions');
+            const spendingLimitInput = document.getElementById('spendingLimit');
+            const limitPeriodSelect = document.getElementById('limitPeriod');
+            
+            if (this.checked) {
+                spendingLimitOptions.style.display = 'block';
+                spendingLimitInput.required = true;
+                limitPeriodSelect.required = true;
+            } else {
+                spendingLimitOptions.style.display = 'none';
+                spendingLimitInput.required = false;
+                limitPeriodSelect.required = false;
+                // Clear values
+                spendingLimitInput.value = '';
+                limitPeriodSelect.value = 'monthly';
+            }
+        });
     }
 });
 
