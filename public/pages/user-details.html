@@ -79,39 +79,6 @@
             </section>
 
 
-            <!-- Developer Tools -->
-            <h2 class="section-title">Developer Tools</h2>
-            <section class="tool-subscriptions-section">
-                <div class="subscriptions-header">
-                    <div class="subscriptions-summary">
-                        <div class="summary-item">
-                            <span class="summary-label">Active Tools:</span>
-                            <span id="activeSubscriptionsCount" class="summary-value">0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">Total Monthly Cost:</span>
-                            <span id="totalMonthlyCost" class="summary-value">$0.00</span>
-                        </div>
-                    </div>
-                    <button class="add-tool-btn" onclick="showToolSelector()">+ Add Tool</button>
-                </div>
-                <div class="table-wrapper">
-                    <table id="toolSubscriptionsTable">
-                        <thead>
-                            <tr>
-                                <th>Tool Name</th>
-                                <th>Status</th>
-                                <th>Monthly Cost</th>
-                                <th>Subscribed Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="toolSubscriptionsBody">
-                            <!-- Tools will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
 
             <!-- Contribution Graph -->
             <h2 class="section-title">Contribution Activity</h2>
@@ -248,90 +215,13 @@
         </div>
     </div>
 
-    <!-- Tool Selector Modal -->
-    <div id="toolSelectorModal" class="modal">
-        <div class="modal-content tool-selector-modal">
-            <div class="modal-header">
-                <h3>Select Developer Tools</h3>
-                <span class="close" onclick="hideToolSelector()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="tool-search-container">
-                    <input type="text" id="toolSearchInput" class="tool-search" placeholder="Search tools...">
-                </div>
-                <div class="tools-grid" id="toolsGrid">
-                    <!-- Available tools will be populated here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="hideToolSelector()">Cancel</button>
-            </div>
-        </div>
-    </div>
 
     <script src="../pages/auth-utils.js"></script>
     <style>
-        .subscriptions-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 20px;
-        }
-        
-        .subscriptions-summary {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .add-tool-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        .add-tool-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
         .user-info {
             margin-bottom: 40px !important;
         }
-        
-        @media (max-width: 768px) {
-            .subscriptions-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .subscriptions-summary {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
     </style>
-    <script>
-        // Load tools data from API
-        window.getAvailableTools = async function() {
-            try {
-                const response = await fetch('/api/tools', {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
-                return data.tools;
-            } catch (error) {
-                console.error('Error loading tools data:', error);
-                return [];
-            }
-        };
-    </script>
     <script src="../pages/user-details.js"></script>
 </body>
 </html>

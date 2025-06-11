@@ -38,8 +38,7 @@ let userData = {
     phone: '',
     whatsappAvailable: false,
     minHoursPerDay: 8,
-    organizations: [],
-    tools: []
+    organizations: []
 };
 
 // Chart instances
@@ -99,8 +98,7 @@ async function loadUserDetails() {
                 phone: fetchedData.phone || '',
                 whatsappAvailable: fetchedData.whatsappAvailable || false,
                 minHoursPerDay: fetchedData.minHoursPerDay || 8,
-                organizations: fetchedData.organizations || [],
-                tools: fetchedData.tools || []
+                organizations: fetchedData.organizations || []
             };
         }
         
@@ -151,7 +149,6 @@ async function loadUserDetails() {
         
         displayUserInfo();
         displayUserStats();
-        displayToolSubscriptions();
         displayContributionGraph();
         displayCommitsTable();
         createCharts();
@@ -706,8 +703,7 @@ async function saveUserDetails() {
             phone: userData.phone || '',
             whatsappAvailable: userData.whatsappAvailable || false,
             minHoursPerDay: userData.minHoursPerDay || 8,
-            organizations: userData.organizations || [],
-            tools: userData.tools || []
+            organizations: userData.organizations || []
         };
         
         console.log('Saving user details:', dataToSend);
@@ -740,266 +736,6 @@ async function saveUserDetails() {
 }
 
 
-// Display tool subscriptions table
-async function displayToolSubscriptions() {
-    const tbody = document.getElementById('toolSubscriptionsBody');
-    tbody.innerHTML = '';
-    
-    if (!userData.tools || userData.tools.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No tool subscriptions</td></tr>';
-        updateSubscriptionSummary(0, 0);
-        return;
-    }
-    
-    try {
-        const availableTools = await window.getAvailableTools();
-        let activeCount = 0;
-        let totalMonthlyCost = 0;
-        
-        userData.tools.forEach(toolData => {
-            // Handle both old format (string) and new format (object)
-            let toolId, status, subscribedDate;
-            
-            if (typeof toolData === 'string') {
-                // Old format - convert to new
-                toolId = toolData;
-                status = 'active';
-                subscribedDate = new Date().toISOString();
-            } else {
-                toolId = toolData.toolId;
-                status = toolData.status;
-                subscribedDate = toolData.subscribedDate;
-            }
-            
-            const tool = availableTools.find(t => t.id === toolId);
-            if (!tool) return;
-            
-            const row = document.createElement('tr');
-            const isActive = status === 'active';
-            const monthlyCost = tool.costPerMonth || 0;
-            
-            if (isActive) {
-                activeCount++;
-                totalMonthlyCost += monthlyCost;
-            }
-            
-            row.innerHTML = `
-                <td>
-                    ${tool.image ? `<img src="${tool.image}" alt="${tool.name}" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">` : ''}
-                    ${tool.name}
-                </td>
-                <td>
-                    <span class="subscription-status ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
-                </td>
-                <td>
-                    <span class="subscription-cost ${monthlyCost === 0 ? 'free' : ''}">
-                        ${monthlyCost === 0 ? 'Free' : `$${monthlyCost.toFixed(2)}/month`}
-                    </span>
-                </td>
-                <td>${new Date(subscribedDate).toLocaleDateString()}</td>
-                <td>
-                    <div class="subscription-actions">
-                        ${isActive ? 
-                            `<button class="btn-cancel-subscription" onclick="cancelSubscription('${toolId}')">Cancel</button>` :
-                            `<button class="btn-reactivate-subscription" onclick="reactivateSubscription('${toolId}')">Reactivate</button>`
-                        }
-                    </div>
-                </td>
-            `;
-            
-            tbody.appendChild(row);
-        });
-        
-        updateSubscriptionSummary(activeCount, totalMonthlyCost);
-        
-    } catch (error) {
-        console.error('Error displaying tool subscriptions:', error);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger-color);">Error loading subscriptions</td></tr>';
-    }
-}
-
-// Update subscription summary
-function updateSubscriptionSummary(activeCount, totalCost) {
-    document.getElementById('activeSubscriptionsCount').textContent = activeCount;
-    document.getElementById('totalMonthlyCost').textContent = `$${totalCost.toFixed(2)}`;
-}
-
-// Cancel a subscription
-async function cancelSubscription(toolId) {
-    if (!confirm('Are you sure you want to cancel this subscription?')) {
-        return;
-    }
-    
-    // Find and update the tool subscription
-    userData.tools = userData.tools.map(tool => {
-        if (typeof tool === 'string') {
-            // Convert old format to new format
-            if (tool === toolId) {
-                return {
-                    toolId: tool,
-                    status: 'inactive',
-                    subscribedDate: new Date().toISOString()
-                };
-            }
-            return {
-                toolId: tool,
-                status: 'active',
-                subscribedDate: new Date().toISOString()
-            };
-        } else if (tool.toolId === toolId) {
-            return {
-                ...tool,
-                status: 'inactive'
-            };
-        }
-        return tool;
-    });
-    
-    await saveUserDetails();
-    displayToolSubscriptions();
-}
-
-// Reactivate a subscription
-async function reactivateSubscription(toolId) {
-    // Find and update the tool subscription
-    userData.tools = userData.tools.map(tool => {
-        if (typeof tool === 'string') {
-            // Convert old format to new format
-            return {
-                toolId: tool,
-                status: tool === toolId ? 'active' : 'active',
-                subscribedDate: new Date().toISOString()
-            };
-        } else if (tool.toolId === toolId) {
-            return {
-                ...tool,
-                status: 'active'
-            };
-        }
-        return tool;
-    });
-    
-    await saveUserDetails();
-    displayToolSubscriptions();
-}
-
-// Show tool selector modal
-async function showToolSelector() {
-    const modal = document.getElementById('toolSelectorModal');
-    const toolsGrid = document.getElementById('toolsGrid');
-    
-    // Load available tools
-    try {
-        const availableTools = await window.getAvailableTools();
-        
-        // Filter out already selected tools
-        const unselectedTools = availableTools.filter(tool => {
-            if (!userData.tools || userData.tools.length === 0) return true;
-            
-            // Check if tool is already in user's tools (handle both formats)
-            return !userData.tools.some(userTool => {
-                const toolId = typeof userTool === 'string' ? userTool : userTool.toolId;
-                return toolId === tool.id;
-            });
-        });
-        
-        // Populate tools grid
-        toolsGrid.innerHTML = '';
-        unselectedTools.forEach(tool => {
-            const toolCard = document.createElement('div');
-            toolCard.className = 'tool-card';
-            toolCard.innerHTML = `
-                <div class="tool-card-content">
-                    ${tool.image ? `<img src="${tool.image}" alt="${tool.name}" class="tool-card-icon">` : '<div class="tool-card-icon-placeholder">?</div>'}
-                    <h4 class="tool-card-name">${tool.name}</h4>
-                    <span class="tool-card-category">${tool.category}</span>
-                    <p class="tool-card-description">${tool.description}</p>
-                </div>
-            `;
-            
-            toolCard.addEventListener('click', () => selectTool(tool.id));
-            toolsGrid.appendChild(toolCard);
-        });
-        
-        if (unselectedTools.length === 0) {
-            toolsGrid.innerHTML = '<div class="no-tools-available">All available tools have been selected</div>';
-        }
-        
-        modal.style.display = 'block';
-        
-        // Setup search functionality
-        const searchInput = document.getElementById('toolSearchInput');
-        searchInput.value = '';
-        searchInput.focus();
-        searchInput.addEventListener('input', () => filterToolsInModal(unselectedTools));
-        
-    } catch (error) {
-        console.error('Error loading tools:', error);
-        toolsGrid.innerHTML = '<div class="error-message">Failed to load tools</div>';
-    }
-}
-
-// Filter tools in modal based on search
-function filterToolsInModal(tools) {
-    const searchTerm = document.getElementById('toolSearchInput').value.toLowerCase();
-    const toolCards = document.querySelectorAll('.tool-card');
-    
-    toolCards.forEach((card, index) => {
-        const tool = tools[index];
-        const matches = !searchTerm || 
-            tool.name.toLowerCase().includes(searchTerm) ||
-            tool.category.toLowerCase().includes(searchTerm) ||
-            tool.description.toLowerCase().includes(searchTerm);
-        
-        card.style.display = matches ? 'block' : 'none';
-    });
-}
-
-// Hide tool selector modal
-function hideToolSelector() {
-    const modal = document.getElementById('toolSelectorModal');
-    modal.style.display = 'none';
-}
-
-// Select a tool
-async function selectTool(toolId) {
-    if (!userData.tools) {
-        userData.tools = [];
-    }
-    
-    // Check if tool already exists (handle both formats)
-    const toolExists = userData.tools.some(tool => {
-        const existingToolId = typeof tool === 'string' ? tool : tool.toolId;
-        return existingToolId === toolId;
-    });
-    
-    if (!toolExists) {
-        // Add as new format
-        userData.tools.push({
-            toolId: toolId,
-            status: 'active',
-            subscribedDate: new Date().toISOString()
-        });
-        displayToolSubscriptions();
-        await saveUserDetails();
-    }
-    
-    hideToolSelector();
-}
-
-// Remove a tool
-async function removeTool(toolId) {
-    if (!userData.tools) return;
-    
-    if (confirm('Are you sure you want to remove this tool completely?')) {
-        userData.tools = userData.tools.filter(tool => {
-            const currentToolId = typeof tool === 'string' ? tool : tool.toolId;
-            return currentToolId !== toolId;
-        });
-        displayToolSubscriptions();
-        await saveUserDetails();
-    }
-}
 
 // Show notification message
 function showNotification(message, type = 'info') {
@@ -1069,11 +805,6 @@ document.head.appendChild(style);
 
 // Make functions available globally for onclick handlers
 window.viewCommitDetails = viewCommitDetails;
-window.showToolSelector = showToolSelector;
-window.hideToolSelector = hideToolSelector;
-window.removeTool = removeTool;
-window.cancelSubscription = cancelSubscription;
-window.reactivateSubscription = reactivateSubscription;
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', () => {
@@ -1081,10 +812,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSearch();
 });
 
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('toolSelectorModal');
-    if (event.target === modal) {
-        hideToolSelector();
-    }
-});
