@@ -44,6 +44,7 @@ const createTables = () => {
             file_changes INTEGER DEFAULT 0,
             lines_added INTEGER DEFAULT 0,
             lines_deleted INTEGER DEFAULT 0,
+            repository_id INTEGER,
             
             -- Analysis scores
             average_code_quality REAL DEFAULT 0,
@@ -59,6 +60,7 @@ const createTables = () => {
             
             -- Status and metadata
             status TEXT DEFAULT 'ok' CHECK (status IN ('ok', 'abnormal', 'error')),
+            analyzed_status TEXT DEFAULT 'pending' CHECK (analyzed_status IN ('pending', 'done', 'error')),
             manually_reviewed BOOLEAN DEFAULT 0,
             status_log TEXT DEFAULT '[]', -- JSON as TEXT
             
@@ -70,7 +72,8 @@ const createTables = () => {
             
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+            FOREIGN KEY (repository_id) REFERENCES repositories(id) ON DELETE SET NULL
         )
     `);
 
@@ -544,12 +547,12 @@ export const dbHelpers = {
     createCommit(commitData) {
         const stmt = db.prepare(`
             INSERT INTO commits (
-                commit_hash, user_name, user_id, project, organization, commit_message,
+                commit_hash, user_name, user_id, repository_id, project, organization, commit_message,
                 timestamp, file_changes, lines_added, lines_deleted, average_code_quality,
                 average_dev_level, average_complexity, average_estimated_hours,
                 average_estimated_hours_with_ai, average_ai_percentage, total_cost,
-                tokens_used, status, manually_reviewed, status_log, analysis_details, model_scores
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tokens_used, status, analyzed_status, manually_reviewed, status_log, analysis_details, model_scores
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
         `);
 
         // Try to find user_id from user_name
@@ -560,6 +563,7 @@ export const dbHelpers = {
             commitData.commit_hash,
             commitData.user_name,
             userId,
+            commitData.repository_id,
             commitData.project,
             commitData.organization,
             commitData.commit_message,
@@ -576,6 +580,7 @@ export const dbHelpers = {
             commitData.total_cost || 0,
             commitData.tokens_used || 0,
             commitData.status || 'ok',
+            commitData.analyzed_status || 'pending',
             commitData.manually_reviewed ? 1 : 0,
             JSON.stringify(commitData.status_log || []),
             JSON.stringify(commitData.analysis_details || {}),
@@ -1308,6 +1313,18 @@ export const dbHelpers = {
         }
     },
 
+    getGitRepositoryById(id) {
+        try {
+            return db.prepare(`
+                SELECT * FROM repositories 
+                WHERE id = ?
+            `).get(id);
+        } catch (error) {
+            console.error('Error getting git repository by provider ID:', error);
+            return null;
+        }
+    },
+
     getGitRepositoriesByOrganization(organizationId) {
         try {
             return db.prepare(`
@@ -1422,7 +1439,7 @@ export const dbHelpers = {
             }
 
             const repositories = this.getGitRepositoriesByOrganization(organizationId);
-            
+
             return {
                 ...organization,
                 repositories

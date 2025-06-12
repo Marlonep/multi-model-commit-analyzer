@@ -11,16 +11,16 @@ import { dbHelpers, db } from './database/db.js';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import { logger } from './logger.js';
-import { wm } from './loaders.js';
+import { qa, wm } from './loaders.js';
 import { UploadKeyService } from './upload-key-service.js';
-import { continuePendingIntegrationScheme } from './validations/keys.js';
+import { continuePendingIntegrationScheme, startAnalisisSchema } from './validations/keys.js';
+import { ScanService } from './services/scan.service.js';
 
 const execAsync = promisify(exec);
 
 // Middleware to require admin role
 function requireAdmin(req, res, next) {
   if (!req.user) {
-    logger.info('invalid');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -53,245 +53,6 @@ app.use(session({
 
 app.use(wm.getMiddleware());
 
-app.post('/api/keys/scan', async (req, res) => {
-  try {
-    // Save the encrypted API key
-    const keyResult = dbHelpers.saveEncryptedApiKey(
-      req.body.key_name,
-      req.body.token,
-      req.body.provider,
-    );
-
-    // Get the encrypted API key ID
-    const encryptedKeyInfo = dbHelpers.getAllApiKeys().find(
-      key => key.key_name === req.body.key_name
-    );
-
-    const uks = new UploadKeyService();
-    const data = await uks.getInfo({
-      key: req.body.token,
-    });
-
-    // Create a pending integration record to hold data between requests
-    const pendingIntegration = dbHelpers.createPendingIntegration(
-      'pending',
-      data,
-      encryptedKeyInfo ? encryptedKeyInfo.id : null
-    );
-
-    res.json({
-      data,
-      integration_id: pendingIntegration.id
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: 'failed to save key' });
-  }
-});
-
-app.post('/api/keys/selection', async (req, res) => {
-  try {
-    const { error } = await continuePendingIntegrationScheme.validateAsync(req.body, {
-      abortEarly: false,
-    });
-
-    const integration = dbHelpers.getPendingIntegration(req.body.integration_id);
-    if (!integration) {
-      res.status(404).json({
-        message: `integration with id: ${req.body.integration_id} could not be found`,
-      });
-      return;
-    }
-
-    const encryptedKey = dbHelpers.getDecryptedApiKeyById(integration.encrypted_api_key_id);
-    assert(encryptedKey, "encrypted key was not found to integration");
-
-    const uks = new UploadKeyService();
-    const data = await uks.getInfo({
-      key: encryptedKey.key,
-    });
-
-    const toAnalyze = [];
-
-    // validate repos against the api (make sure we get correct information from platform)
-    for (const org of req.body.organizations) {
-      const foundOrg = data.orgs.find(o => o.name === org.name);
-      if (!foundOrg) {
-        res.status(422).json({
-          message: `Organization ${org.name} not found in the API response`,
-          errors: [{ message: `Organization ${org.name} not found` }],
-        });
-        return;
-      }
-
-      const foundRepos = foundOrg.repositories.filter(repo => org.repositories.some(r => r.name === repo.name));
-      if (foundRepos.length !== org.repositories.length) {
-        res.status(422).json({
-          message: `Some repositories in organization ${org.name} not found in the API response`,
-          errors: [{ message: `Repositories mismatch for organization ${org.name}` }],
-        });
-        return;
-      }
-    }
-
-    // Create organizations and repositories in the database
-    const createdOrganizations = [];
-
-    for (const orgSelection of req.body.organizations) {
-      const foundOrg = data.orgs.find(o => o.name === orgSelection.name);
-
-      // Check if organization already exists
-      let dbOrg = dbHelpers.getGitOrganizationByProviderId(encryptedKey.provider, foundOrg.id.toString());
-
-      if (!dbOrg) {
-        // Create new organization
-        dbOrg = dbHelpers.createGitOrganization({
-          provider: encryptedKey.provider,
-          provider_id: foundOrg.id.toString(),
-          name: foundOrg.name,
-          user_id: req.user?.id || null,
-          encrypted_api_key_id: integration.encrypted_api_key_id
-        });
-      }
-
-      // Process repositories for this organization
-      const createdRepos = [];
-
-      for (const repoSelection of orgSelection.repositories) {
-        const foundRepo = foundOrg.repositories.find(r => r.name === repoSelection.name);
-
-        if (foundRepo) {
-          // Check if repository already exists
-          let dbRepo = dbHelpers.getGitRepositoryByProviderId(foundRepo.id.toString());
-
-          if (!dbRepo) {
-            // Create new repository
-            dbRepo = dbHelpers.createGitRepository({
-              name: foundRepo.name,
-              description: foundRepo.description || '',
-              provider_id: foundRepo.id.toString(),
-              enabled: repoSelection.enabled !== false, // Default to enabled unless explicitly disabled
-              organization_id: dbOrg.id
-            });
-          } else {
-            // Update existing repository's enabled status
-            dbHelpers.updateGitRepository(dbRepo.id, {
-              ...dbRepo,
-              enabled: repoSelection.enabled !== false
-            });
-          }
-
-          createdRepos.push({
-            ...dbRepo,
-            enabled: repoSelection.enabled !== false
-          });
-        }
-      }
-
-      createdOrganizations.push({
-        ...dbOrg,
-        repositories: createdRepos
-      });
-    }
-
-    // Update the pending integration status to completed
-    dbHelpers.updatePendingIntegration(
-      req.body.integration_id,
-      'completed',
-      {
-        ...integration.data,
-        selected_organizations: req.body.organizations,
-      }
-    );
-
-    // @@@ Connect with the queue
-    if (req.body.scan_filter === 'all') {
-    }
-
-    res.json({
-      success: true,
-      message: 'organizations and repositories created successfully',
-      organizations: createdOrganizations,
-      total_organizations: createdOrganizations.length,
-      total_repositories: createdOrganizations.reduce((sum, org) => sum + org.repositories.length, 0)
-    });
-  } catch (err) {
-    if (err instanceof joi.ValidationError) {
-      res.status(422).json({
-        message: "validation errors",
-        errors: err.details,
-      });
-    } else {
-      console.log(err);
-      res.status(500).json({ error: 'failed to continue with integration' });
-    }
-  }
-});
-
-// Get all Git organizations with their repositories
-app.get('/api/git/organizations', async (req, res) => {
-  try {
-    // Get all organizations IDs first
-    const orgIds = db.prepare('SELECT id FROM organizations ORDER BY name ASC').all();
-
-    // Get each organization with its repositories
-    const organizationsWithRepos = orgIds.map(({ id }) => {
-      const orgWithRepos = dbHelpers.getOrganizationWithRepositories(id);
-
-      if (!orgWithRepos) return null;
-
-      // Get encrypted key information if available
-      let tokenSuffix = null;
-      if (orgWithRepos.encrypted_api_key_id) {
-        const encryptedKeys = dbHelpers.getAllApiKeys();
-        const encryptedKey = encryptedKeys.find(key => key.id === orgWithRepos.encrypted_api_key_id);
-        if (encryptedKey) {
-          tokenSuffix = encryptedKey.key_name ?
-            encryptedKey.key_name.slice(-4) :
-            '••••';
-        }
-      }
-
-      return {
-        id: orgWithRepos.id,
-        name: orgWithRepos.name,
-        provider: orgWithRepos.provider,
-        provider_id: orgWithRepos.provider_id,
-        user_id: orgWithRepos.user_id,
-        encrypted_api_key_id: orgWithRepos.encrypted_api_key_id,
-        created_at: orgWithRepos.created_at,
-        updated_at: orgWithRepos.updated_at,
-        token_suffix: tokenSuffix,
-        webhook_active: true, // TODO: Implement webhook status tracking
-        repositories: orgWithRepos.repositories.map(repo => ({
-          id: repo.id,
-          name: repo.name,
-          description: repo.description,
-          provider_id: repo.provider_id,
-          enabled: repo.enabled,
-          organization_id: repo.organization_id,
-          full_name: `${orgWithRepos.name}/${repo.name}`,
-          commits_analyzed: 0, // TODO: Implement commit count tracking
-          last_sync: null, // TODO: Implement sync tracking
-          active: repo.enabled
-        }))
-      };
-    }).filter(org => org !== null);
-
-    res.json({
-      success: true,
-      organizations: organizationsWithRepos,
-      total_organizations: organizationsWithRepos.length,
-      total_repositories: organizationsWithRepos.reduce((sum, org) => sum + org.repositories.length, 0)
-    });
-  } catch (error) {
-    console.error('Error fetching Git organizations:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch Git organizations'
-    });
-  }
-});
 
 
 // Serve login page
@@ -1234,6 +995,290 @@ app.get('/api/users/:userId/organizations', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user organizations:', error);
     res.status(500).json({ error: 'Failed to fetch user organizations' });
+  }
+});
+
+app.post('/api/keys/scan', requireAdmin, async (req, res) => {
+  try {
+    // Save the encrypted API key
+    const keyResult = dbHelpers.saveEncryptedApiKey(
+      req.body.key_name,
+      req.body.token,
+      req.body.provider,
+    );
+
+    // Get the encrypted API key ID
+    const encryptedKeyInfo = dbHelpers.getAllApiKeys().find(
+      key => key.key_name === req.body.key_name
+    );
+
+    const uks = new UploadKeyService();
+    const data = await uks.getInfo({
+      key: req.body.token,
+    });
+
+    // Create a pending integration record to hold data between requests
+    const pendingIntegration = dbHelpers.createPendingIntegration(
+      'pending',
+      data,
+      encryptedKeyInfo ? encryptedKeyInfo.id : null
+    );
+
+    res.json({
+      data,
+      integration_id: pendingIntegration.id
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'failed to save key' });
+  }
+});
+
+app.post('/api/keys/selection', requireAdmin, async (req, res) => {
+  try {
+    const { error } = await continuePendingIntegrationScheme.validateAsync(req.body, {
+      abortEarly: false,
+    });
+
+    const integration = dbHelpers.getPendingIntegration(req.body.integration_id);
+    if (!integration) {
+      res.status(404).json({
+        message: `integration with id: ${req.body.integration_id} could not be found`,
+      });
+      return;
+    }
+
+    const encryptedKey = dbHelpers.getDecryptedApiKeyById(integration.encrypted_api_key_id);
+    assert(encryptedKey, "encrypted key was not found to integration");
+
+    const uks = new UploadKeyService();
+    const data = await uks.getInfo({
+      key: encryptedKey.key,
+    });
+
+    const toAnalyze = [];
+
+    // validate repos against the api (make sure we get correct information from platform)
+    for (const org of req.body.organizations) {
+      const foundOrg = data.orgs.find(o => o.name === org.name);
+      if (!foundOrg) {
+        res.status(422).json({
+          message: `Organization ${org.name} not found in the API response`,
+          errors: [{ message: `Organization ${org.name} not found` }],
+        });
+        return;
+      }
+
+      const foundRepos = foundOrg.repositories.filter(repo => org.repositories.some(r => r.name === repo.name));
+      if (foundRepos.length !== org.repositories.length) {
+        res.status(422).json({
+          message: `Some repositories in organization ${org.name} not found in the API response`,
+          errors: [{ message: `Repositories mismatch for organization ${org.name}` }],
+        });
+        return;
+      }
+    }
+
+    // Create organizations and repositories in the database
+    const createdOrganizations = [];
+
+    for (const orgSelection of req.body.organizations) {
+      const foundOrg = data.orgs.find(o => o.name === orgSelection.name);
+
+      // Check if organization already exists
+      let dbOrg = dbHelpers.getGitOrganizationByProviderId(encryptedKey.provider, foundOrg.id.toString());
+
+      if (!dbOrg) {
+        // Create new organization
+        dbOrg = dbHelpers.createGitOrganization({
+          provider: encryptedKey.provider,
+          provider_id: foundOrg.id.toString(),
+          name: foundOrg.name,
+          user_id: req.user?.id || null,
+          encrypted_api_key_id: integration.encrypted_api_key_id
+        });
+      }
+
+      // Process repositories for this organization
+      const createdRepos = [];
+
+      for (const repoSelection of orgSelection.repositories) {
+        const foundRepo = foundOrg.repositories.find(r => r.name === repoSelection.name);
+
+        if (foundRepo) {
+          // Check if repository already exists
+          let dbRepo = dbHelpers.getGitRepositoryByProviderId(foundRepo.id.toString());
+
+          if (!dbRepo) {
+            // Create new repository
+            dbRepo = dbHelpers.createGitRepository({
+              name: foundRepo.name,
+              description: foundRepo.description || '',
+              provider_id: foundRepo.id.toString(),
+              enabled: repoSelection.enabled !== false, // Default to enabled unless explicitly disabled
+              organization_id: dbOrg.id
+            });
+          } else {
+            // Update existing repository's enabled status
+            dbHelpers.updateGitRepository(dbRepo.id, {
+              ...dbRepo,
+              enabled: repoSelection.enabled !== false
+            });
+          }
+
+          createdRepos.push({
+            ...dbRepo,
+            enabled: repoSelection.enabled !== false
+          });
+        }
+      }
+
+      createdOrganizations.push({
+        ...dbOrg,
+        repositories: createdRepos
+      });
+    }
+
+    // Update the pending integration status to completed
+    dbHelpers.updatePendingIntegration(
+      req.body.integration_id,
+      'completed',
+      {
+        ...integration.data,
+        selected_organizations: req.body.organizations,
+      }
+    );
+
+    // @@@ Connect with the queue
+    if (req.body.scan_filter === 'all') {
+    }
+
+    res.json({
+      success: true,
+      message: 'organizations and repositories created successfully',
+      organizations: createdOrganizations,
+      total_organizations: createdOrganizations.length,
+      total_repositories: createdOrganizations.reduce((sum, org) => sum + org.repositories.length, 0)
+    });
+  } catch (err) {
+    if (err instanceof joi.ValidationError) {
+      res.status(422).json({
+        message: "validation errors",
+        errors: err.details,
+      });
+    } else {
+      console.log(err);
+      res.status(500).json({ error: 'failed to continue with integration' });
+    }
+  }
+});
+
+// Get all Git organizations with their repositories
+app.get('/api/git/organizations', requireAdmin, async (req, res) => {
+  try {
+    // Get all organizations IDs first
+    const orgIds = db.prepare('SELECT id FROM organizations ORDER BY name ASC').all();
+
+    // Get each organization with its repositories
+    const organizationsWithRepos = orgIds.map(({ id }) => {
+      const orgWithRepos = dbHelpers.getOrganizationWithRepositories(id);
+
+      if (!orgWithRepos) return null;
+
+      // Get encrypted key information if available
+      let tokenSuffix = null;
+      if (orgWithRepos.encrypted_api_key_id) {
+        const encryptedKeys = dbHelpers.getAllApiKeys();
+        const encryptedKey = encryptedKeys.find(key => key.id === orgWithRepos.encrypted_api_key_id);
+        if (encryptedKey) {
+          tokenSuffix = encryptedKey.key_name ?
+            encryptedKey.key_name.slice(-4) :
+            '••••';
+        }
+      }
+
+      return {
+        id: orgWithRepos.id,
+        name: orgWithRepos.name,
+        provider: orgWithRepos.provider,
+        provider_id: orgWithRepos.provider_id,
+        user_id: orgWithRepos.user_id,
+        encrypted_api_key_id: orgWithRepos.encrypted_api_key_id,
+        created_at: orgWithRepos.created_at,
+        updated_at: orgWithRepos.updated_at,
+        token_suffix: tokenSuffix,
+        webhook_active: true, // TODO: Implement webhook status tracking
+        repositories: orgWithRepos.repositories.map(repo => ({
+          id: repo.id,
+          name: repo.name,
+          description: repo.description,
+          provider_id: repo.provider_id,
+          enabled: repo.enabled,
+          organization_id: repo.organization_id,
+          full_name: `${orgWithRepos.name}/${repo.name}`,
+          commits_analyzed: 0, // TODO: Implement commit count tracking
+          last_sync: null, // TODO: Implement sync tracking
+          active: repo.enabled
+        }))
+      };
+    }).filter(org => org !== null);
+
+    res.json({
+      success: true,
+      organizations: organizationsWithRepos,
+      total_organizations: organizationsWithRepos.length,
+      total_repositories: organizationsWithRepos.reduce((sum, org) => sum + org.repositories.length, 0)
+    });
+  } catch (error) {
+    console.error('Error fetching Git organizations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch Git organizations'
+    });
+  }
+});
+
+app.post('/api/start-analysis', async (req, res) => {
+  try {
+    await startAnalisisSchema.validateAsync(req.body);
+
+    const data = req.body;
+    // validate organization and repository exists
+    const org = dbHelpers.getOrganizationById(data.organization_id);
+    if (!org) {
+      res.status(404).json({ error: 'Organization not found' });
+      return;
+    }
+
+    const rep = dbHelpers.getGitRepositoryById(data.repository_id);
+    if (!rep) {
+      res.status(404).json({ error: 'Repository not found' });
+      return;
+    }
+
+    const encryptedKey = dbHelpers.getDecryptedApiKeyById(org.encrypted_api_key_id);
+    if (!encryptedKey) {
+      res.status(404).json({ error: 'Secret API key not found for organization' });
+      return;
+    }
+
+    logger.info('scanning repository');
+    const ss = new ScanService(org.name, rep, encryptedKey.key);
+    const commits = await ss.scan();
+
+    res.json({ message: "about to analyze " + commits.length + " commits" });
+  } catch (err) {
+    if (err instanceof joi.ValidationError) {
+      res.status(422).json({
+        message: "validation errors",
+        errors: err.details,
+      })
+    } else {
+      console.error(err);
+      res.status(500).json({
+
+      })
+    }
   }
 });
 

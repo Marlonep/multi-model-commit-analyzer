@@ -85,6 +85,23 @@ export class GitHubApi {
 	}
 
 	/**
+	* @param {string} organization
+	* @param {string} repository
+	* @returns {Promise<object>}
+	*/
+	async fetchRepository(organization, repository) {
+		const response = await this.#octokit.request('GET /repos/{owner}/{repo}', {
+			owner: organization,
+			repo: repository,
+			headers: {
+				'X-GitHub-Api-Version': '2022-11-28'
+			}
+		});
+
+		return response.data;
+	}
+
+	/**
 	 * @param {string} organization
 	 * @param {string} repository
 	 * @param {Date} fromDate

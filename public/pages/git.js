@@ -214,6 +214,10 @@ function renderOrganizationsTable() {
                     <td>
                         <div class="action-buttons">
                             ${repo.active ? `
+                                <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); startRepositoryAnalysis(${org.id}, ${repo.id})">
+                                    <span class="material-icons">analytics</span>
+                                    Analyze
+                                </button>
                                 <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); openDeactivateRepoModal(${org.id}, ${repo.id})">
                                     <span class="material-icons">pause</span>
                                     Disable
@@ -1064,6 +1068,68 @@ function confirmActivateRepository() {
 
     const modeText = selectedMode === 'future' ? 'future commits only' : 'all commit history';
     alert(`Repository "${repo.name}" has been activated with ${modeText} analysis mode.`);
+}
+
+// Start repository analysis
+async function startRepositoryAnalysis(orgId, repoId) {
+    const org = organizations.find(o => o.id === orgId);
+    const repo = org?.repositories.find(r => r.id === repoId);
+    
+    if (!repo) {
+        alert('Repository not found');
+        return;
+    }
+    
+    // Confirm action
+    const confirmMessage = `Start analysis for repository "${repo.name}"?\n\nThis will analyze all commits in the repository.`;
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        // Find the button that was clicked and show loading state
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<span class="material-icons">hourglass_empty</span> Starting...';
+        button.disabled = true;
+        
+        // Call the start analysis endpoint
+        const response = await fetch('/api/start-analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                organization_id: orgId,
+                repository_id: repoId
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to start analysis');
+        }
+        
+        const result = await response.json();
+        
+        // Show success message
+        alert(`Analysis started successfully for "${repo.name}"!\n\nThe commits will be analyzed in the background.`);
+        
+        // Restore button state
+        button.innerHTML = originalContent;
+        button.disabled = false;
+        
+    } catch (error) {
+        console.error('Error starting analysis:', error);
+        alert(`Failed to start analysis: ${error.message}`);
+        
+        // Restore button state on error
+        const button = event.target.closest('button');
+        if (button) {
+            button.innerHTML = '<span class="material-icons">analytics</span> Analyze';
+            button.disabled = false;
+        }
+    }
 }
 
 // Close modals when clicking outside

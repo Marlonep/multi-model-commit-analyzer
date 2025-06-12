@@ -11,3 +11,8 @@ export const continuePendingIntegrationScheme = joi.object({
 	scan_filter: joi.valid('all', 'future').required()
 });
 
+
+export const startAnalisisSchema = joi.object({
+	organization_id: joi.number().required(),
+	repository_id: joi.number().required(),
+});
