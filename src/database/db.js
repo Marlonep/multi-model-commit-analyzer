@@ -60,7 +60,7 @@ const createTables = () => {
             
             -- Status and metadata
             status TEXT DEFAULT 'ok' CHECK (status IN ('ok', 'abnormal', 'error')),
-            analyzed_status TEXT DEFAULT 'pending' CHECK (analyzed_status IN ('pending', 'done', 'error')),
+            analyzed_status TEXT DEFAULT 'pending' CHECK (analyzed_status IN ('pending', 'queued', 'done', 'error')),
             manually_reviewed BOOLEAN DEFAULT 0,
             status_log TEXT DEFAULT '[]', -- JSON as TEXT
             
@@ -544,6 +544,10 @@ export const dbHelpers = {
         return db.prepare('SELECT * FROM commits WHERE commit_hash = ?').get(hash);
     },
 
+    getCommitById(id) {
+        return db.prepare('SELECT * FROM commits WHERE id = ?').get(id);
+    },
+
     createCommit(commitData) {
         const stmt = db.prepare(`
             INSERT INTO commits (
@@ -585,6 +589,33 @@ export const dbHelpers = {
             JSON.stringify(commitData.status_log || []),
             JSON.stringify(commitData.analysis_details || {}),
             JSON.stringify(commitData.model_scores || [])
+        );
+    },
+
+    updateCommitScoresById(id, commitData) {
+        const commit = this.getCommitById(id);
+        if (!commit) return null;
+
+        const stmt = db.prepare(`
+            UPDATE commits 
+            SET average_code_quality = ?, average_dev_level = ?,
+                average_complexity = ?, average_estimated_hours = ?,
+                average_estimated_hours_with_ai = ?,
+                average_ai_percentage = ?,
+                total_cost = ?, tokens_used = ?, model_scores = ?
+            WHERE id = ?
+        `);
+        return stmt.run(
+            commitData.avgQuality,
+            commitData.avgDevLevel,
+            commitData.avgComplexity,
+            commitData.avgHours,
+            commitData.avgHoursWithAi,
+            commitData.avgAiPercentage,
+            commitData.totalCost,
+            commitData.totalTokens,
+            JSON.stringify(commitData.scores || []),
+            id
         );
     },
 

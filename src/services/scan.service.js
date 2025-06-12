@@ -57,6 +57,7 @@ export class ScanService {
         });
 
         logger.info(`commits: ${commits.length}`);
+        let first = false;
         for (const commit of commits) {
             const record = await dbHelpers.getCommitByHash(commit.hash);
             if (record) {
@@ -70,13 +71,17 @@ export class ScanService {
                     repository_id: this.repository.id,
                     commit_message: commit.message,
                     file_changes: 0,
-                    timestamp: new Date().toISOString(),
+                    timestamp: commit.created_at.toISOString(),
                     lines_added: commit.added_lines,
                     lines_deleted: commit.deleted_lines,
                 })
 
-                logger.info(`adding commit from ${this.repository.name} with hash ${commit.hash}`)
-                qa.add({ id: result.lastInsertRowid, hash: commit.hash, diff: commit.diff });
+                if (!first) {
+                    logger.info(`adding commit from ${this.repository.name} with hash ${commit.hash}`)
+                    qa.add({ id: result.lastInsertRowid, hash: commit.hash, diff: commit.diff });
+
+                    first = true;
+                }
             }
         }
 

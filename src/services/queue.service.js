@@ -1,6 +1,8 @@
 import { Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { logger } from '../logger.js';
+import { dbHelpers } from '../database/db.js';
+import { AICommitAnalyzer } from '../analyzers/ai-commit.analyzer.js';
 
 export class QueueService {
     /**
@@ -34,9 +36,55 @@ export class QueueService {
         });
         this.#queue.setGlobalConcurrency(opts.numberConcurrency);
 
+
         this.#worker = new Worker(QueueName, async (job) => {
-            logger.info(`ready to process job: ${job.name}`);
-            console.log('data', job.data);
+            // const commit 
+            logger.info(`processing job: ${job.name}`);
+            const commit = dbHelpers.getCommitById(job.data.id);
+
+            // @@@ TODO: Handle possible errors (race condition..?)
+            // if (!commit) {
+            // }
+
+            try {
+                const analyzer = new AICommitAnalyzer();
+                // @@@ TODO: Error handling, IMPORTANT
+                const scores = await analyzer.analyzeCommit(job.data.diff, {
+                    message: commit.message,
+                    author: commit.user_name,
+                    filesChanged: 0,
+                    linesAdded: commit.lines_added,
+                    linesDeleted: commit.lines_deleted,
+                });
+
+                const avgQuality = scores.reduce((sum, s) => sum + s.codeQuality, 0) / scores.length;
+                const avgDevLevel = scores.reduce((sum, s) => sum + s.devLevel, 0) / scores.length;
+                const avgComplexity = scores.reduce((sum, s) => sum + s.complexity, 0) / scores.length;
+                const avgHours = scores.reduce((sum, s) => sum + s.estimatedHours, 0) / scores.length;
+                const avgAiPercentage = scores.reduce((sum, s) => sum + s.aiPercentage, 0) / scores.length;
+                const avgHoursWithAi = scores.reduce((sum, s) => sum + s.estimatedHoursWithAi, 0) / scores.length;
+
+                // Calculate total cost and tokens (moved up before creating analysis)
+                const totalCost = scores.reduce((sum, s) => sum + s.cost, 0);
+                const totalTokens = scores.reduce((sum, s) => sum + s.tokensUsed, 0);
+                // const avgCostPerModel = totalCost / scores.length;
+
+                dbHelpers.updateCommitScoresById(job.data.id, {
+                    avgQuality,
+                    avgDevLevel,
+                    avgComplexity,
+                    avgHours,
+                    avgHoursWithAi,
+                    avgAiPercentage,
+                    totalCost,
+                    totalTokens,
+                    scores
+                });
+                // console.log(scores);
+            } catch (err) {
+                console.error(err);
+            }
+
 
             return '';
         }, {
