@@ -4,19 +4,30 @@ import joi from 'joi';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
+import { RedisStore } from 'connect-redis';
 import { promisify } from 'util';
 import { AIModels } from './analyzers/commitAnalyzer.js';
 import { authenticateUser, verifyToken, requireAuth } from './api/middleware/auth.middleware.js';
 import { dbHelpers, db } from './database/db.js';
 import cookieParser from 'cookie-parser';
+import IORedis from 'ioredis';
 import session from 'express-session';
 import { logger } from './logger.js';
 import { qa, wm } from './loaders.js';
 import { UploadKeyService } from './upload-key-service.js';
 import { continuePendingIntegrationScheme, startAnalisisSchema } from './validations/keys.js';
 import { ScanService } from './services/scan.service.js';
+import { REDIS_URL } from './env.js';
 
 const execAsync = promisify(exec);
+
+const instance = new IORedis(REDIS_URL);
+
+// Initialize store.
+let redisStore = new RedisStore({
+  client: instance,
+  prefix: "myapp:",
+})
 
 // Middleware to require admin role
 function requireAdmin(req, res, next) {
@@ -42,6 +53,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+  store: redisStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
