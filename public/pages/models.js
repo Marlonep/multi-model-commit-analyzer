@@ -5,7 +5,7 @@ function checkModelsAccess() {
     console.log('Checking models access...');
     console.log('User data:', getUserData());
     console.log('Is admin:', isAdmin());
-    
+
     if (!isAdmin()) {
         console.log('User is not admin, redirecting...');
         window.location.href = '/index.html';
@@ -36,7 +36,7 @@ class ModelsManager {
             const response = await fetch('/api/ai-models', {
                 headers: getAuthHeaders()
             });
-            
+
             if (response.ok) {
                 const dbModels = await response.json();
                 this.models = dbModels.map(model => ({
@@ -78,11 +78,11 @@ class ModelsManager {
             const response = await fetch('/api/ai-models/api-keys', {
                 headers: getAuthHeaders()
             });
-            
+
             if (response.ok) {
                 const result = await response.json();
                 this.apiKeyStatus = {};
-                
+
                 // Map API keys to their status
                 result.apiKeys.forEach(key => {
                     this.apiKeyStatus[key.key_name] = {
@@ -114,93 +114,93 @@ class ModelsManager {
         // Initialize with mock data if no tokens exist
         if (this.apiTokens.length === 0) {
             this.apiTokens = [
-            {
-                provider: 'OpenAI',
-                token: 'sk-proj-abcdefghijklmnopqrstuvwxyz123456789',
-                uploadedBy: 'admin',
-                uploadDate: '2025-01-05',
-                lastUsed: '2025-01-06 14:32',
-                status: 'active',
-                models: ['o3', 'o3-mini', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
-                spendingLimit: 500.00,
-                limitPeriod: 'monthly'
-            },
-            {
-                provider: 'Anthropic',
-                token: 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz123456789',
-                uploadedBy: 'john.doe',
-                uploadDate: '2025-01-03',
-                lastUsed: '2025-01-06 15:45',
-                status: 'active',
-                models: ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3-sonnet', 'claude-2.1', 'claude-instant', 'claude-2'],
-                spendingLimit: 250.00,
-                limitPeriod: 'weekly'
-            },
-            {
-                provider: 'Google',
-                token: 'AIzaSyB-abcdefghijklmnopqrstuvwxyz12345',
-                uploadedBy: 'jane.smith',
-                uploadDate: '2025-01-02',
-                lastUsed: '2025-01-04 09:12',
-                status: 'active',
-                models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro', 'gemini-exp'],
-                spendingLimit: null,
-                limitPeriod: null
-            },
-            {
-                provider: 'xAI',
-                token: 'xai-abcdefghijklmnopqrstuvwxyz123456789',
-                uploadedBy: 'admin',
-                uploadDate: '2024-12-28',
-                lastUsed: '2024-12-30 16:20',
-                status: 'expired',
-                models: ['grok-3', 'grok-2', 'grok-vision', 'grok-1.5', 'grok-mini'],
-                spendingLimit: 1000.00,
-                limitPeriod: 'accumulated'
-            },
-            {
-                provider: 'OpenAI',
-                token: 'sk-proj-zyxwvutsrqponmlkjihgfedcba987654321',
-                uploadedBy: 'dev.user',
-                uploadDate: '2024-12-15',
-                lastUsed: 'Never',
-                status: 'inactive',
-                models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-vision'],
-                spendingLimit: 100.00,
-                limitPeriod: 'daily'
-            }
-        ];
+                {
+                    provider: 'OpenAI',
+                    token: 'sk-proj-abcdefghijklmnopqrstuvwxyz123456789',
+                    uploadedBy: 'admin',
+                    uploadDate: '2025-01-05',
+                    lastUsed: '2025-01-06 14:32',
+                    status: 'active',
+                    models: ['o3', 'o3-mini', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
+                    spendingLimit: 500.00,
+                    limitPeriod: 'monthly'
+                },
+                {
+                    provider: 'Anthropic',
+                    token: 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz123456789',
+                    uploadedBy: 'john.doe',
+                    uploadDate: '2025-01-03',
+                    lastUsed: '2025-01-06 15:45',
+                    status: 'active',
+                    models: ['claude-3.5-sonnet', 'claude-3-opus', 'claude-3-haiku', 'claude-3-sonnet', 'claude-2.1', 'claude-instant', 'claude-2'],
+                    spendingLimit: 250.00,
+                    limitPeriod: 'weekly'
+                },
+                {
+                    provider: 'Google',
+                    token: 'AIzaSyB-abcdefghijklmnopqrstuvwxyz12345',
+                    uploadedBy: 'jane.smith',
+                    uploadDate: '2025-01-02',
+                    lastUsed: '2025-01-04 09:12',
+                    status: 'active',
+                    models: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro', 'gemini-exp'],
+                    spendingLimit: null,
+                    limitPeriod: null
+                },
+                {
+                    provider: 'xAI',
+                    token: 'xai-abcdefghijklmnopqrstuvwxyz123456789',
+                    uploadedBy: 'admin',
+                    uploadDate: '2024-12-28',
+                    lastUsed: '2024-12-30 16:20',
+                    status: 'expired',
+                    models: ['grok-3', 'grok-2', 'grok-vision', 'grok-1.5', 'grok-mini'],
+                    spendingLimit: 1000.00,
+                    limitPeriod: 'accumulated'
+                },
+                {
+                    provider: 'OpenAI',
+                    token: 'sk-proj-zyxwvutsrqponmlkjihgfedcba987654321',
+                    uploadedBy: 'dev.user',
+                    uploadDate: '2024-12-15',
+                    lastUsed: 'Never',
+                    status: 'inactive',
+                    models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-vision'],
+                    spendingLimit: 100.00,
+                    limitPeriod: 'daily'
+                }
+            ];
         }
     }
 
     renderApiTokensTable() {
         const tbody = document.getElementById('apiTokensTableBody');
         const emptyState = document.getElementById('tokensEmptyState');
-        
+
         // Initialize tokens if needed
         this.initializeApiTokens();
-        
+
         if (this.apiTokens.length === 0) {
             tbody.innerHTML = '';
             emptyState.style.display = 'block';
             return;
         }
-        
+
         emptyState.style.display = 'none';
         tbody.innerHTML = this.apiTokens.map(token => {
             // Show only last 5 characters of the token
             const maskedToken = '•••' + token.token.slice(-5);
-            
+
             // Generate models badges
             const modelsHtml = token.models ? this.renderModelsBadges(token.models, token.provider) : '<span class="no-data">No models</span>';
-            
+
             // Format spending limit display
-            const spendingLimitDisplay = token.spendingLimit ? 
-                `$${token.spendingLimit.toFixed(2)}` : 
+            const spendingLimitDisplay = token.spendingLimit ?
+                `$${token.spendingLimit.toFixed(2)}` :
                 '<span class="no-data">No limit</span>';
-            
-            const periodDisplay = token.limitPeriod ? 
-                this.formatPeriodDisplay(token.limitPeriod) : 
+
+            const periodDisplay = token.limitPeriod ?
+                this.formatPeriodDisplay(token.limitPeriod) :
                 '<span class="no-data">—</span>';
 
             return `
@@ -227,21 +227,21 @@ class ModelsManager {
                 </tr>
             `;
         }).join('');
-        
+
         // Add search functionality
         const searchInput = document.getElementById('tokensSearch');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase();
                 const rows = tbody.getElementsByTagName('tr');
-                
+
                 Array.from(rows).forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(searchTerm) ? '' : 'none';
                 });
             });
         }
-        
+
         // Add button functionality
         const addTokenBtn = document.getElementById('addNewToken');
         if (addTokenBtn) {
@@ -255,10 +255,10 @@ class ModelsManager {
         if (!models || models.length === 0) {
             return '<span class="no-data">No models</span>';
         }
-        
+
         const providerClass = provider.toLowerCase() + '-model';
-        
-        return models.map(model => 
+
+        return models.map(model =>
             `<span class="model-badge ${providerClass}">${model}</span>`
         ).join('');
     }
@@ -266,7 +266,7 @@ class ModelsManager {
     formatPeriodDisplay(period) {
         const periodLabels = {
             'daily': 'Daily',
-            'weekly': 'Weekly', 
+            'weekly': 'Weekly',
             'monthly': 'Monthly',
             'accumulated': 'Total'
         };
@@ -276,12 +276,12 @@ class ModelsManager {
     addNewApiToken(provider, token, uploadedBy = 'current_user') {
         // Generate realistic models for the provider
         const providerModels = this.getDefaultModelsForProvider(provider);
-        
+
         // Get spending limit data from the form
         const enableLimit = document.getElementById('enableSpendingLimit').checked;
         const spendingLimit = enableLimit ? parseFloat(document.getElementById('spendingLimit').value) : null;
         const limitPeriod = enableLimit ? document.getElementById('limitPeriod').value : null;
-        
+
         const newToken = {
             provider: provider.charAt(0).toUpperCase() + provider.slice(1),
             token: token,
@@ -293,7 +293,7 @@ class ModelsManager {
             spendingLimit: spendingLimit,
             limitPeriod: limitPeriod
         };
-        
+
         this.apiTokens.push(newToken);
         this.renderApiTokensTable();
     }
@@ -309,7 +309,7 @@ class ModelsManager {
             'meta': ['llama-3.1-405b', 'llama-3.1-70b', 'llama-3.1-8b', 'llama-3-70b', 'llama-3-8b', 'code-llama'],
             'nvidia': ['nemotron-4', 'nemo-instruct', 'nemo-guardrails', 'nvidia-llama', 'nvidia-mistral', 'chatqa']
         };
-        
+
         return modelsByProvider[provider.toLowerCase()] || [`${provider.toLowerCase()}-model-1`];
     }
 
@@ -319,9 +319,9 @@ class ModelsManager {
 
         this.models.forEach(model => {
             // Use performance data from model itself (loaded from database)
-            const successRate = model.totalAnalyses > 0 ? 
+            const successRate = model.totalAnalyses > 0 ?
                 (model.successCount / model.totalAnalyses * 100) : 0;
-                
+
             const performanceData = {
                 avgQuality: model.avgQuality || 0,
                 avgResponseTime: model.avgResponseTime || 0,
@@ -337,7 +337,7 @@ class ModelsManager {
             // Determine overall status based on both configuration and performance
             let displayStatus = model.status;
             let statusClass = model.status;
-            
+
             if (model.status === 'active' && performanceData.successRate < 100) {
                 displayStatus = 'warning';
                 statusClass = 'warning';
@@ -356,36 +356,36 @@ class ModelsManager {
                 </td>
                 <td><span class="status-badge status-${statusClass}">${displayStatus.toUpperCase()}</span></td>
                 <td>
-                    ${performanceData.avgQuality > 0 ? 
-                        `<span class="quality-badge quality-${Math.floor(performanceData.avgQuality)}">${performanceData.avgQuality.toFixed(1)}/5</span>` : 
-                        '<span class="no-data">No data</span>'
-                    }
+                    ${performanceData.avgQuality > 0 ?
+                    `<span class="quality-badge quality-${Math.floor(performanceData.avgQuality)}">${performanceData.avgQuality.toFixed(1)}/5</span>` :
+                    '<span class="no-data">No data</span>'
+                }
                 </td>
                 <td>
-                    ${performanceData.avgResponseTime > 0 ? 
-                        `${performanceData.avgResponseTime.toFixed(1)}s` : 
-                        '<span class="no-data">No data</span>'
-                    }
+                    ${performanceData.avgResponseTime > 0 ?
+                    `${performanceData.avgResponseTime.toFixed(1)}s` :
+                    '<span class="no-data">No data</span>'
+                }
                 </td>
                 <td>
-                    ${performanceData.successRate >= 0 ? 
-                        `<span class="success-rate-badge rate-${performanceData.successRate === 100 ? 'excellent' : performanceData.successRate >= 80 ? 'good' : performanceData.successRate > 0 ? 'poor' : 'none'}">${performanceData.successRate.toFixed(0)}%</span>` : 
-                        '<span class="no-data">No data</span>'
-                    }
+                    ${performanceData.successRate >= 0 ?
+                    `<span class="success-rate-badge rate-${performanceData.successRate === 100 ? 'excellent' : performanceData.successRate >= 80 ? 'good' : performanceData.successRate > 0 ? 'poor' : 'none'}">${performanceData.successRate.toFixed(0)}%</span>` :
+                    '<span class="no-data">No data</span>'
+                }
                 </td>
                 <td><small>${model.inputCost}</small></td>
                 <td><small>${model.outputCost}</small></td>
                 <td>
-                    ${performanceData.totalTokens > 0 ? 
-                        `${performanceData.totalTokens.toLocaleString()}` : 
-                        '<span class="no-data">0</span>'
-                    }
+                    ${performanceData.totalTokens > 0 ?
+                    `${performanceData.totalTokens.toLocaleString()}` :
+                    '<span class="no-data">0</span>'
+                }
                 </td>
                 <td>
-                    ${performanceData.totalCost > 0 ? 
-                        `$${performanceData.totalCost.toFixed(4)}` : 
-                        '<span class="no-data">$0.00</span>'
-                    }
+                    ${performanceData.totalCost > 0 ?
+                    `$${performanceData.totalCost.toFixed(4)}` :
+                    '<span class="no-data">$0.00</span>'
+                }
                 </td>
                 <td><small>${this.getLastUsed(model)}</small></td>
                 <td>
@@ -400,7 +400,7 @@ class ModelsManager {
                     </div>
                 </td>
             `;
-            
+
             tbody.appendChild(row);
         });
 
@@ -433,7 +433,7 @@ class ModelsManager {
     formatStatus(status) {
         const statusMap = {
             'active': '✅ Active',
-            'inactive': '❌ Inactive', 
+            'inactive': '❌ Inactive',
             'error': '⚠️ Error',
             'unknown': '❓ Unknown'
         };
@@ -451,7 +451,7 @@ class ModelsManager {
     renderConnectButton(model) {
         const keyStatus = this.apiKeyStatus[model.envVar];
         const isConfigured = keyStatus && keyStatus.configured;
-        
+
         if (isConfigured) {
             return `<button class="btn small success connect-model" data-model="${model.modelId}" data-provider="${model.provider}" title="API Key Configured - Click to Update">
                 ✓ Connected
@@ -468,10 +468,10 @@ class ModelsManager {
     updateStats() {
         const activeModels = this.models.filter(m => m.status === 'active').length;
         const inactiveModels = this.models.length - activeModels;
-        
+
         // Calculate totals from models directly
         const totalCost = this.models.reduce((sum, model) => sum + (model.totalCost || 0), 0);
-        
+
         const modelsWithData = this.models.filter(m => m.avgResponseTime > 0);
         const avgResponseTime = modelsWithData.length > 0 ?
             modelsWithData.reduce((sum, m) => sum + m.avgResponseTime, 0) / modelsWithData.length : 0;
@@ -527,7 +527,7 @@ class ModelsManager {
         resultsDiv.innerHTML = '<div class="loading">Testing all models...</div>';
 
         try {
-            const response = await fetch('/api/test-models', {
+            const response = await fetch('/api/ai/test', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -569,7 +569,7 @@ class ModelsManager {
         console.log(`Testing single model: ${model.modelName}`);
 
         try {
-            const response = await fetch('/api/test-models', {
+            const response = await fetch('/api/ai/test', {
                 method: 'POST',
                 headers: {
                     ...getAuthHeaders(),
@@ -586,7 +586,7 @@ class ModelsManager {
 
             const data = await response.json();
             const result = data.results[0];
-            
+
             if (result) {
                 const displayResult = {
                     model: result.modelName,
@@ -597,10 +597,10 @@ class ModelsManager {
 
                 // Update local model status
                 model.status = result.status;
-                
+
                 // Display results in modal
                 this.displayTestResults([displayResult]);
-                
+
                 // Refresh the table
                 this.renderUnifiedModelsTable();
                 this.updateStats();
@@ -630,7 +630,7 @@ class ModelsManager {
         try {
             // Determine new status
             const newStatus = model.status === 'active' ? 'inactive' : 'active';
-            
+
             // Update via API
             const response = await fetch(`/api/ai-models/${modelId}/status`, {
                 method: 'PUT',
@@ -649,13 +649,13 @@ class ModelsManager {
 
             // Update local model
             model.status = newStatus;
-            
+
             // Refresh the table
             this.renderUnifiedModelsTable();
             this.updateStats();
-            
+
             console.log(`Model ${model.modelName} status updated to: ${newStatus}`);
-            
+
         } catch (error) {
             console.error('Error toggling model status:', error);
             alert(`Failed to update model status: ${error.message}`);
@@ -665,10 +665,10 @@ class ModelsManager {
     displayTestResults(results) {
         const modal = document.getElementById('testResultsModal');
         const resultsDiv = document.getElementById('modalTestResults');
-        
+
         // Store results for potential status update
         this.lastTestResults = results;
-        
+
         resultsDiv.innerHTML = `
             <div class="test-results-list" style="max-height: 400px; overflow-y: auto;">
                 ${results.map(result => `
@@ -687,7 +687,7 @@ class ModelsManager {
                 `).join('')}
             </div>
         `;
-        
+
         modal.style.display = 'block';
     }
 
@@ -703,7 +703,7 @@ class ModelsManager {
     filterUnifiedTable(searchTerm) {
         const tbody = document.getElementById('unifiedModelsTableBody');
         const rows = tbody.querySelectorAll('tr');
-        
+
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             const matches = text.includes(searchTerm.toLowerCase());
@@ -784,7 +784,7 @@ Respond ONLY in this JSON format:
     // Calculate cost summary by provider
     calculateCostSummary(commits) {
         const providerStats = {};
-        
+
         commits.forEach(commit => {
             if (commit.modelScores) {
                 commit.modelScores.forEach(score => {
@@ -802,21 +802,21 @@ Respond ONLY in this JSON format:
                 });
             }
         });
-        
+
         const tbody = document.getElementById('costSummaryBody');
         if (!tbody) return;
-        
+
         tbody.innerHTML = '';
-        
+
         let grandTotalTokens = 0;
         let grandTotalCost = 0;
         let totalAnalyses = 0;
-        
+
         Object.entries(providerStats).forEach(([provider, stats]) => {
             grandTotalTokens += stats.tokens;
             grandTotalCost += stats.cost;
             totalAnalyses += stats.count;
-            
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${provider}</td>
@@ -826,11 +826,11 @@ Respond ONLY in this JSON format:
             `;
             tbody.appendChild(row);
         });
-        
+
         const grandTotalTokensEl = document.getElementById('grandTotalTokens');
         const grandTotalCostEl = document.getElementById('grandTotalCost');
         const grandAvgCostEl = document.getElementById('grandAvgCost');
-        
+
         if (grandTotalTokensEl) grandTotalTokensEl.textContent = grandTotalTokens.toLocaleString();
         if (grandTotalCostEl) grandTotalCostEl.textContent = `$${grandTotalCost.toFixed(4)}`;
         if (grandAvgCostEl) grandAvgCostEl.textContent = `$${(grandTotalCost / totalAnalyses).toFixed(4)}`;
@@ -838,7 +838,7 @@ Respond ONLY in this JSON format:
 
     async applyTestResultsToModels() {
         if (!this.lastTestResults) return;
-        
+
         // Update local model statuses
         this.lastTestResults.forEach(result => {
             const model = this.models.find(m => m.modelName === result.model);
@@ -846,7 +846,7 @@ Respond ONLY in this JSON format:
                 model.status = result.status === 'success' ? 'active' : 'error';
             }
         });
-        
+
         // Save to database
         try {
             for (const result of this.lastTestResults) {
@@ -864,13 +864,13 @@ Respond ONLY in this JSON format:
                     });
                 }
             }
-            
+
             // Reload models from database to get updated data
             await this.loadModelsConfiguration();
         } catch (error) {
             console.error('Error updating model statuses:', error);
         }
-        
+
         this.renderUnifiedModelsTable();
         this.updateStats();
     }
@@ -883,19 +883,19 @@ Respond ONLY in this JSON format:
         const modal = document.getElementById('apiKeyModal');
         const providerNameInput = document.getElementById('providerName');
         const apiKeyInput = document.getElementById('apiKeyInput');
-        
+
         // Store current model info for saving
         this.currentModelConfig = { modelId, provider };
-        
+
         // Set provider name
         providerNameInput.value = provider;
-        
+
         // Clear previous input
         apiKeyInput.value = '';
-        
+
         // Show modal
         modal.style.display = 'block';
-        
+
         // Focus on the API key input
         setTimeout(() => apiKeyInput.focus(), 100);
     }
@@ -903,17 +903,17 @@ Respond ONLY in this JSON format:
     async saveApiKey() {
         const apiKeyInput = document.getElementById('apiKeyInput');
         const apiKeyValue = apiKeyInput.value.trim();
-        
+
         if (!apiKeyValue) {
             alert('Please enter an API key');
             return;
         }
-        
+
         if (!this.currentModelConfig) {
             alert('No model selected');
             return;
         }
-        
+
         try {
             // Map provider to environment variable name
             const providerKeyMap = {
@@ -922,13 +922,13 @@ Respond ONLY in this JSON format:
                 'Google': 'GEMINI_API_KEY',
                 'xAI': 'GROK_API_KEY'
             };
-            
+
             const envKeyName = providerKeyMap[this.currentModelConfig.provider];
             if (!envKeyName) {
                 alert(`Unknown provider: ${this.currentModelConfig.provider}`);
                 return;
             }
-            
+
             // Send API key to server
             const response = await fetch('/api/ai-models/api-keys', {
                 method: 'POST',
@@ -943,18 +943,18 @@ Respond ONLY in this JSON format:
                     keyValue: apiKeyValue
                 })
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 alert(`API key saved successfully for ${this.currentModelConfig.provider}!`);
                 this.closeApiKeyModal();
-                
+
                 // Refresh the models table to show updated status
                 await this.loadModelsConfiguration();
                 await this.loadApiKeyStatus();
@@ -963,7 +963,7 @@ Respond ONLY in this JSON format:
             } else {
                 throw new Error(result.error || 'Failed to save API key');
             }
-            
+
         } catch (error) {
             console.error('Error saving API key:', error);
             alert(`Failed to save API key: ${error.message}`);
@@ -981,9 +981,9 @@ Respond ONLY in this JSON format:
         const modal = document.getElementById('modelModal');
         const title = document.getElementById('modelModalTitle');
         const updateApiKeyBtn = document.getElementById('updateApiKeyFromModal');
-        
+
         this.currentEditingModelId = modelId;
-        
+
         if (modelId) {
             // Edit mode
             title.textContent = 'Edit AI Model';
@@ -995,7 +995,7 @@ Respond ONLY in this JSON format:
             this.clearModelForm();
             updateApiKeyBtn.style.display = 'none';
         }
-        
+
         modal.style.display = 'block';
     }
 
@@ -1011,7 +1011,7 @@ Respond ONLY in this JSON format:
         document.getElementById('statusInput').value = 'inactive';
         document.getElementById('parametersInput').value = '{}';
         document.getElementById('notesInput').value = '';
-        
+
         // Enable model ID input for new models
         document.getElementById('modelIdInput').disabled = false;
     }
@@ -1019,7 +1019,7 @@ Respond ONLY in this JSON format:
     populateModelForm(modelId) {
         const model = this.models.find(m => m.modelId === modelId);
         if (!model) return;
-        
+
         document.getElementById('modelIdInput').value = model.modelId;
         document.getElementById('providerInput').value = model.provider;
         document.getElementById('modelNameInput').value = model.modelName;
@@ -1031,7 +1031,7 @@ Respond ONLY in this JSON format:
         document.getElementById('statusInput').value = model.status;
         document.getElementById('parametersInput').value = JSON.stringify(model.parameters || {}, null, 2);
         document.getElementById('notesInput').value = model.notes || '';
-        
+
         // Disable model ID input for existing models
         document.getElementById('modelIdInput').disabled = true;
     }
@@ -1069,12 +1069,12 @@ Respond ONLY in this JSON format:
         }
 
         try {
-            const url = this.currentEditingModelId ? 
-                `/api/ai-models/${this.currentEditingModelId}` : 
+            const url = this.currentEditingModelId ?
+                `/api/ai-models/${this.currentEditingModelId}` :
                 '/api/ai-models';
-            
+
             const method = this.currentEditingModelId ? 'PUT' : 'POST';
-            
+
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -1090,11 +1090,11 @@ Respond ONLY in this JSON format:
             }
 
             const result = await response.json();
-            
+
             if (result.success) {
                 alert(`Model ${this.currentEditingModelId ? 'updated' : 'created'} successfully!`);
                 this.closeModelModal();
-                
+
                 // Refresh the models table
                 await this.loadModelsConfiguration();
                 await this.loadApiKeyStatus();
@@ -1134,10 +1134,10 @@ Respond ONLY in this JSON format:
             }
 
             const result = await response.json();
-            
+
             if (result.success) {
                 alert('Model deleted successfully!');
-                
+
                 // Refresh the models table
                 await this.loadModelsConfiguration();
                 await this.loadApiKeyStatus();
@@ -1173,7 +1173,7 @@ Respond ONLY in this JSON format:
 
         // Close the model modal and open the API key modal
         this.closeModelModal();
-        
+
         // Small delay to ensure modal is closed before opening new one
         setTimeout(() => {
             this.openApiKeyModal(model.modelId, model.provider);
@@ -1262,27 +1262,27 @@ window.closeAddApiTokenModal = function() {
 
 window.handleApiTokenSubmit = function(event) {
     event.preventDefault();
-    
+
     const provider = document.getElementById('tokenProvider').value;
     const token = document.getElementById('apiToken').value;
     const enableLimit = document.getElementById('enableSpendingLimit').checked;
-    
+
     if (!provider || !token) {
         alert('Please fill in all required fields.');
         return;
     }
-    
+
     // Validate spending limit if enabled
     if (enableLimit) {
         const spendingLimit = document.getElementById('spendingLimit').value;
         const limitPeriod = document.getElementById('limitPeriod').value;
-        
+
         if (!spendingLimit || !limitPeriod || parseFloat(spendingLimit) <= 0) {
             alert('Please enter a valid spending limit and period.');
             return;
         }
     }
-    
+
     // Close add modal and show test modal
     closeAddApiTokenModal();
     showTokenTestModal(provider, token);
@@ -1291,7 +1291,7 @@ window.handleApiTokenSubmit = function(event) {
 function updateTokenHelperText() {
     const provider = document.getElementById('tokenProvider').value;
     const helperText = document.getElementById('tokenHelperText');
-    
+
     const helperTexts = {
         'anthropic': 'Enter your Anthropic API key (starts with sk-ant-)',
         'openai': 'Enter your OpenAI API key (starts with sk-proj- or sk-)',
@@ -1302,18 +1302,18 @@ function updateTokenHelperText() {
         'meta': 'Enter your Meta API key',
         'nvidia': 'Enter your NVIDIA API key'
     };
-    
+
     helperText.textContent = helperTexts[provider] || 'Enter the API token provided by your selected provider';
 }
 
 function showTokenTestModal(provider, token) {
     const modal = document.getElementById('tokenTestModal');
     const statusMessage = document.getElementById('testStatusMessage');
-    
+
     if (modal && statusMessage) {
         modal.classList.add('show');
         statusMessage.textContent = `Testing ${provider} API token...`;
-        
+
         // Simulate API validation (mock)
         setTimeout(() => {
             simulateTokenTest(provider, token);
@@ -1323,24 +1323,24 @@ function showTokenTestModal(provider, token) {
 
 function simulateTokenTest(provider, token) {
     const modal = document.getElementById('tokenTestModal');
-    
+
     // Mock validation - randomly succeed or fail for demo
     const isValid = Math.random() > 0.2; // 80% success rate for demo
-    
+
     if (isValid) {
         // Success - add token to table
         addTokenToTable(provider, token);
-        
+
         // Close test modal
         modal.classList.remove('show');
-        
+
         // Show success message
-        const limitInfo = document.getElementById('enableSpendingLimit').checked ? 
-            `\nSpending limit: $${document.getElementById('spendingLimit').value} (${document.getElementById('limitPeriod').value})` : 
+        const limitInfo = document.getElementById('enableSpendingLimit').checked ?
+            `\nSpending limit: $${document.getElementById('spendingLimit').value} (${document.getElementById('limitPeriod').value})` :
             '\nNo spending limit set';
-            
+
         alert(`✅ ${provider} API token validated successfully!\n\nThe token has been added to your account and is ready to use.${limitInfo}`);
-        
+
         // Refresh the tokens table
         if (window.modelsManager) {
             window.modelsManager.renderApiTokensTable();
@@ -1357,7 +1357,7 @@ function addTokenToTable(provider, token) {
     if (window.modelsManager) {
         window.modelsManager.addNewApiToken(provider, token);
     }
-    
+
     // This is a mock function - in production, this would save to database
     console.log(`Mock: Adding ${provider} token to database:`, {
         provider: provider,
@@ -1375,14 +1375,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (providerSelect) {
         providerSelect.addEventListener('change', updateTokenHelperText);
     }
-    
+
     const enableSpendingLimit = document.getElementById('enableSpendingLimit');
     if (enableSpendingLimit) {
         enableSpendingLimit.addEventListener('change', function() {
             const spendingLimitOptions = document.getElementById('spendingLimitOptions');
             const spendingLimitInput = document.getElementById('spendingLimit');
             const limitPeriodSelect = document.getElementById('limitPeriod');
-            
+
             if (this.checked) {
                 spendingLimitOptions.style.display = 'block';
                 spendingLimitInput.required = true;
@@ -1415,7 +1415,7 @@ window.addEventListener('click', function(event) {
     const modelModal = document.getElementById('modelModal');
     const addApiTokenModal = document.getElementById('addApiTokenModal');
     const tokenTestModal = document.getElementById('tokenTestModal');
-    
+
     if (event.target === testResultsModal) {
         window.closeTestResultsModal();
     } else if (event.target === apiKeyModal) {

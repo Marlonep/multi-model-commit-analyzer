@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import bcrypt from 'bcryptjs';
 import express from 'express';
 import joi from 'joi';
 import path from 'path';
@@ -18,6 +19,10 @@ import { UploadKeyService } from './upload-key-service.js';
 import { continuePendingIntegrationScheme, startAnalisisSchema } from './validations/keys.js';
 import { ScanService } from './services/scan.service.js';
 import { REDIS_URL } from './env.js';
+import { routes } from './routes/setup.js';
+import { requireAdmin } from './api/middleware/auth.middleware.js';
+import { Octokit } from 'octokit';
+import { GitHubApi } from './github-api.js';
 
 const execAsync = promisify(exec);
 
@@ -26,21 +31,8 @@ const instance = new IORedis(REDIS_URL);
 // Initialize store.
 let redisStore = new RedisStore({
   client: instance,
-  prefix: "myapp:",
+  prefix: "codepulse:",
 })
-
-// Middleware to require admin role
-function requireAdmin(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Forbidden: Admin access required' });
-  }
-
-  next();
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +56,6 @@ app.use(session({
 }));
 
 app.use(wm.getMiddleware());
-
 
 
 // Serve login page
@@ -126,38 +117,7 @@ app.get('/', (req, res) => {
   res.redirect('/pages/analytics.html');
 });
 
-// Login endpoint
-app.post('/api/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
-
-    const result = await authenticateUser(username, password);
-
-    if (!result) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-
-    // Set session
-    req.session.userId = result.user.id;
-    req.session.username = result.user.username;
-    req.session.role = result.user.role;
-    req.session.save();
-
-    res.json({
-      token: result.token,
-      username: result.user.username,
-      name: result.user.name,
-      role: result.user.role
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error during login' });
-  }
-});
+app.use(routes());
 
 // Verify token endpoint
 app.get('/api/verify', (req, res) => {
@@ -570,7 +530,6 @@ app.get('/api/system-users', requireAdmin, async (req, res) => {
 // API endpoint to create a new user
 app.post('/api/system-users', requireAdmin, async (req, res) => {
   try {
-    const bcrypt = await import('bcryptjs');
     const { username, password, name, role, github_username } = req.body;
 
     // Validate required fields
@@ -1111,6 +1070,28 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
         });
       }
 
+      // create users
+      const api = new GitHubApi(new Octokit({ auth: encryptedKey.key }), logger);
+      const members = await api.fetchUsers(orgSelection.name);
+      for (const member of members) {
+        // Check if user already exists in the database
+        let dbUser = dbHelpers.getUserByUsername(member.login);
+
+        if (!dbUser) {
+          const saltRounds = 10;
+          const password_hash = await bcrypt.hash('test123', saltRounds);
+
+          // Create new user
+          dbUser = dbHelpers.createUser({
+            username: member.login,
+            password_hash: password_hash,
+            name: '',
+            role: 'user',
+            status: 'active',
+          });
+        }
+      }
+
       // Process repositories for this organization
       const createdRepos = [];
 
@@ -1184,116 +1165,6 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
     }
   }
 });
-
-// Get all Git organizations with their repositories
-app.get('/api/git/organizations', requireAdmin, async (req, res) => {
-  try {
-    // Get all organizations IDs first
-    const orgIds = db.prepare('SELECT id FROM organizations ORDER BY name ASC').all();
-
-    // Get each organization with its repositories
-    const organizationsWithRepos = orgIds.map(({ id }) => {
-      const orgWithRepos = dbHelpers.getOrganizationWithRepositories(id);
-
-      if (!orgWithRepos) return null;
-
-      // Get encrypted key information if available
-      let tokenSuffix = null;
-      if (orgWithRepos.encrypted_api_key_id) {
-        const encryptedKeys = dbHelpers.getAllApiKeys();
-        const encryptedKey = encryptedKeys.find(key => key.id === orgWithRepos.encrypted_api_key_id);
-        if (encryptedKey) {
-          tokenSuffix = encryptedKey.key_name ?
-            encryptedKey.key_name.slice(-4) :
-            '••••';
-        }
-      }
-
-      return {
-        id: orgWithRepos.id,
-        name: orgWithRepos.name,
-        provider: orgWithRepos.provider,
-        provider_id: orgWithRepos.provider_id,
-        user_id: orgWithRepos.user_id,
-        encrypted_api_key_id: orgWithRepos.encrypted_api_key_id,
-        created_at: orgWithRepos.created_at,
-        updated_at: orgWithRepos.updated_at,
-        token_suffix: tokenSuffix,
-        webhook_active: true, // TODO: Implement webhook status tracking
-        repositories: orgWithRepos.repositories.map(repo => ({
-          id: repo.id,
-          name: repo.name,
-          description: repo.description,
-          provider_id: repo.provider_id,
-          enabled: repo.enabled,
-          organization_id: repo.organization_id,
-          full_name: `${orgWithRepos.name}/${repo.name}`,
-          commits_analyzed: 0, // TODO: Implement commit count tracking
-          last_sync: null, // TODO: Implement sync tracking
-          active: repo.enabled
-        }))
-      };
-    }).filter(org => org !== null);
-
-    res.json({
-      success: true,
-      organizations: organizationsWithRepos,
-      total_organizations: organizationsWithRepos.length,
-      total_repositories: organizationsWithRepos.reduce((sum, org) => sum + org.repositories.length, 0)
-    });
-  } catch (error) {
-    console.error('Error fetching Git organizations:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch Git organizations'
-    });
-  }
-});
-
-app.post('/api/start-analysis', async (req, res) => {
-  try {
-    await startAnalisisSchema.validateAsync(req.body);
-
-    const data = req.body;
-    // validate organization and repository exists
-    const org = dbHelpers.getOrganizationById(data.organization_id);
-    if (!org) {
-      res.status(404).json({ error: 'Organization not found' });
-      return;
-    }
-
-    const rep = dbHelpers.getGitRepositoryById(data.repository_id);
-    if (!rep) {
-      res.status(404).json({ error: 'Repository not found' });
-      return;
-    }
-
-    const encryptedKey = dbHelpers.getDecryptedApiKeyById(org.encrypted_api_key_id);
-    if (!encryptedKey) {
-      res.status(404).json({ error: 'Secret API key not found for organization' });
-      return;
-    }
-
-    logger.info('scanning repository');
-    const ss = new ScanService(org.name, rep, encryptedKey.key);
-    const commits = await ss.scan();
-
-    res.json({ message: "about to analyze " + commits.length + " commits" });
-  } catch (err) {
-    if (err instanceof joi.ValidationError) {
-      res.status(422).json({
-        message: "validation errors",
-        errors: err.details,
-      })
-    } else {
-      console.error(err);
-      res.status(500).json({
-
-      })
-    }
-  }
-});
-
 
 // Start server
 app.listen(PORT, () => {

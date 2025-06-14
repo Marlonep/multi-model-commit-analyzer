@@ -74,4 +74,19 @@ export function requireAuth(req, res, next) {
     next();
 }
 
-// Note: User creation, updating, and deletion is now handled in server.js using dbHelpers
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ **/
+export function requireAdmin(req, res, next) {
+	if (!req.user) {
+		return res.status(401).json({ error: 'Unauthorized' });
+	}
+
+	if (req.user.role !== 'admin') {
+		return res.status(403).json({ error: 'Forbidden: Admin access required' });
+	}
+
+	next();
+}
