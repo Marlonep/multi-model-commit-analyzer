@@ -30,6 +30,20 @@
         <div class="main-content">
             <header>
                 <h1>Organization Analytics</h1>
+                <div class="queue-controls">
+                    <div class="queue-info">
+                        <span class="queue-label">Queue:</span>
+                        <span id="queueCount" class="queue-value">0</span>
+                        <span class="queue-label">jobs</span>
+                    </div>
+                    <div class="queue-info">
+                        <span class="queue-label">Status:</span>
+                        <span id="queueState" class="queue-status">Unknown</span>
+                    </div>
+                    <button id="queueToggleBtn" class="btn btn-small btn-primary" onclick="toggleQueue()">
+                        <span class="btn-text">Stop Queue</span>
+                    </button>
+                </div>
             </header>
 
             <main>

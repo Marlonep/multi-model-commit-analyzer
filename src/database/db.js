@@ -478,7 +478,7 @@ export const dbHelpers = {
     },
     // Users
     getAllUsers() {
-        return db.prepare('SELECT id, username, name, role, status, github_username, created_at FROM users ORDER BY created_at DESC').all();
+        return db.prepare('SELECT id, username, name, role, status, created_at FROM users ORDER BY created_at DESC').all();
     },
 
     getUserByUsername(username) {
@@ -617,6 +617,18 @@ export const dbHelpers = {
             JSON.stringify(commitData.scores || []),
             id
         );
+    },
+
+    updateCommitAnalyzeStatusById(id, status) {
+        const commit = this.getCommitById(id);
+        if (!commit) return null;
+
+        const stmt = db.prepare(`
+            UPDATE commits 
+            SET analyzed_status = ?
+            WHERE id = ?
+        `);
+        return stmt.run(status, id);
     },
 
     updateCommitStatus(hash, status, changedBy) {

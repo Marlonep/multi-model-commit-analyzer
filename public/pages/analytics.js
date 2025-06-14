@@ -1,3 +1,92 @@
+// Queue state management
+let queueInterval = null;
+let currentQueueState = false;
+
+// Fetch queue metrics
+async function fetchQueueMetrics() {
+    try {
+        const response = await fetch('/api/analysis-metrics');
+        if (!response.ok) {
+            throw new Error('Failed to fetch queue metrics');
+        }
+        
+        const data = await response.json();
+        
+        // Update queue count
+        document.getElementById('queueCount').textContent = data.count || 0;
+        
+        // Update queue state
+        currentQueueState = data.state;
+        const stateText = data.state ? 'Running' : 'Stopped';
+        const stateElement = document.getElementById('queueState');
+        stateElement.textContent = stateText;
+        stateElement.className = `queue-status ${data.state ? 'status-running' : 'status-stopped'}`;
+        
+        // Update button
+        updateQueueButton(data.state);
+        
+    } catch (error) {
+        console.error('Error fetching queue metrics:', error);
+        document.getElementById('queueCount').textContent = '?';
+        document.getElementById('queueState').textContent = 'Error';
+    }
+}
+
+// Update queue toggle button based on state
+function updateQueueButton(isRunning) {
+    const button = document.getElementById('queueToggleBtn');
+    const btnText = button.querySelector('.btn-text');
+    
+    if (isRunning) {
+        button.className = 'btn btn-small btn-danger';
+        btnText.textContent = 'Stop Queue';
+    } else {
+        button.className = 'btn btn-small btn-success';
+        btnText.textContent = 'Start Queue';
+    }
+}
+
+// Toggle queue state
+async function toggleQueue() {
+    try {
+        const endpoint = currentQueueState ? '/api/stop-analysis' : '/api/resume-analysis';
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to toggle queue state');
+        }
+        
+        // Refresh metrics immediately
+        await fetchQueueMetrics();
+        
+    } catch (error) {
+        console.error('Error toggling queue:', error);
+        alert('Failed to toggle queue state');
+    }
+}
+
+// Start monitoring queue metrics
+function startQueueMonitoring() {
+    // Fetch immediately
+    fetchQueueMetrics();
+    
+    // Then fetch every 5 seconds
+    queueInterval = setInterval(fetchQueueMetrics, 5000);
+}
+
+// Stop monitoring queue metrics
+function stopQueueMonitoring() {
+    if (queueInterval) {
+        clearInterval(queueInterval);
+        queueInterval = null;
+    }
+}
+
 // Check if user has permission to view analytics
 function checkAnalyticsAccess() {
     if (!isAdmin()) {
@@ -289,5 +378,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only load analytics if user has permission
     if (checkAnalyticsAccess()) {
         loadAnalytics();
+        startQueueMonitoring();
     }
+});
+
+// Clean up when page unloads
+window.addEventListener('beforeunload', () => {
+    stopQueueMonitoring();
 });

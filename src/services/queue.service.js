@@ -1,6 +1,6 @@
 import { Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
-import { logger } from '../logger.js';
+import { createSublogger } from '../logger.js';
 import { dbHelpers } from '../database/db.js';
 import { AICommitAnalyzer } from '../analyzers/ai-commit.analyzer.js';
 
@@ -30,17 +30,21 @@ export class QueueService {
     */
     constructor(opts) {
         const QueueName = "analysis";
+        this.state = true;
         this.#connection = new IORedis(opts.redisUrl, { maxRetriesPerRequest: null });
         this.#queue = new Queue(QueueName, {
             connection: this.#connection,
         });
         this.#queue.setGlobalConcurrency(opts.numberConcurrency);
+        this.logger = createSublogger('queue');
 
 
         this.#worker = new Worker(QueueName, async (job) => {
             // const commit 
-            logger.info(`processing job: ${job.name}`);
+            this.logger.info(`processing job: ${job.name}`);
             const commit = dbHelpers.getCommitById(job.data.id);
+
+            dbHelpers.updateCommitAnalyzeStatusById(job.data.id, 'queued');
 
             // @@@ TODO: Handle possible errors (race condition..?)
             // if (!commit) {
@@ -89,14 +93,17 @@ export class QueueService {
             return '';
         }, {
             connection: this.#connection,
+            concurrency: opts.numberConcurrency,
         });
 
         this.#worker.on('completed', (job) => {
-            logger.info(`completed: ${job.name}`);
+            this.logger.info(`completed: ${job.name}`);
+            dbHelpers.updateCommitAnalyzeStatusById(job.data.id, 'done');
         });
 
         this.#worker.on('failed', (job, error) => {
-            logger.error(`failed at job: ${job?.name}`);
+            dbHelpers.updateCommitAnalyzeStatusById(job.data.id, 'error');
+            this.logger.error(`failed at job: ${job?.name}`);
             console.error(error);
         });
     }
@@ -109,4 +116,24 @@ export class QueueService {
     add(opts) {
         this.#queue.add(`commit-#${opts.id}`, opts);
     }
+
+    async stopProcessing() {
+        this.logger.info('stop processing');
+        await this.#worker.pause();
+        this.state = false;
+    }
+
+    resumeProcessing() {
+        this.logger.info('resume processing');
+        this.#worker.resume();
+        this.state = true;
+    }
+
+    async getMetrics() {
+        return {
+            count: await this.#queue.count(),
+            state: this.state,
+        }
+    }
+
 }

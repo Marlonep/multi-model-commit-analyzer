@@ -118,11 +118,13 @@ export class RepositoryScanner {
 	 */
 	#api;
 
+	/**
+	 * @type {Record<string, string>}
+	 */
 	#emailToUsernameCache = {};
 
 	/**
-	 * @type {Array<any>}
-	 * @access private
+	 * @type {Array<string>}
 	 */
 	#members = [];
 
@@ -135,6 +137,20 @@ export class RepositoryScanner {
 		this.organization = organization;
 		this.repository = repository;
 		this.#api = api;
+	}
+
+	/**
+	 * @param {Array<string>} members
+	 */
+	setMembers(members) {
+		this.#members = members;
+	}
+
+	/**
+	 * @param {Record<string, string>} emailToUsernameCache
+	 */
+	setEmailToUsernameCache(emailToUsernameCache) {
+		this.#emailToUsernameCache = emailToUsernameCache;
 	}
 
 	/**
@@ -471,10 +487,10 @@ export class RepositoryScanner {
 		}
 
 		for (const member of this.#members) {
-			if (email.includes(member.login)) {
-				this.#emailToUsernameCache[email] = member.login;
+			if (email.includes(member)) {
+				this.#emailToUsernameCache[email] = member;
 
-				return member.login;
+				return member;
 			}
 		}
 

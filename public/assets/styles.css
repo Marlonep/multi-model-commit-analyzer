@@ -4304,3 +4304,78 @@ textarea.form-control {
 .permission-note strong {
     color: var(--text-primary);
 }
+
+/* Queue Controls in Analytics Page */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.queue-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.queue-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.queue-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.queue-value {
+    color: var(--accent-green);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.queue-status {
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.queue-status.status-running {
+    color: var(--success-color);
+    background: rgba(57, 255, 20, 0.1);
+}
+
+.queue-status.status-stopped {
+    color: var(--error-color);
+    background: rgba(255, 0, 0, 0.1);
+}
+
+#queueToggleBtn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-danger {
+    background: var(--error-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 0, 0, 0.8);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: var(--bg-primary);
+}
+
+.btn-success:hover {
+    background: rgba(57, 255, 20, 0.8);
+}

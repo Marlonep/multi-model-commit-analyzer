@@ -57,6 +57,11 @@ app.use(session({
 
 app.use(wm.getMiddleware());
 
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+})
+
 
 // Serve login page
 app.get('/login', (req, res) => {
@@ -419,7 +424,7 @@ app.get('/api/users/:username/details', async (req, res) => {
     }
 
     // Get user details from database
-    let userDetails = dbHelpers.getUserDetailsByUsername(username);
+    let userDetails = dbHelpers.getUserByUsername(username)
 
     // Return default empty object if not found
     if (!userDetails) {
@@ -1052,6 +1057,7 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
 
     // Create organizations and repositories in the database
     const createdOrganizations = [];
+    const toScan = [];
 
     for (const orgSelection of req.body.organizations) {
       const foundOrg = data.orgs.find(o => o.name === orgSelection.name);
@@ -1119,6 +1125,14 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
             });
           }
 
+          if (req.body.scan_filter === 'all')
+            toScan.push({
+              key: encryptedKey.key,
+              organization: foundOrg.name,
+              repository: dbRepo,
+            });
+
+
           createdRepos.push({
             ...dbRepo,
             enabled: repoSelection.enabled !== false
@@ -1142,10 +1156,6 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
       }
     );
 
-    // @@@ Connect with the queue
-    if (req.body.scan_filter === 'all') {
-    }
-
     res.json({
       success: true,
       message: 'organizations and repositories created successfully',
@@ -1153,6 +1163,15 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
       total_organizations: createdOrganizations.length,
       total_repositories: createdOrganizations.reduce((sum, org) => sum + org.repositories.length, 0)
     });
+
+    if (toScan.length) {
+      logger.info(`about to start scanning ${toScan.length} repositories`);
+      for (const entry of toScan) {
+        const ss = new ScanService(entry.organization, entry.repository, entry.key);
+        await ss.scan();
+      }
+      logger.info(`finished scanning ${toScan.length} repositories`);
+    }
   } catch (err) {
     if (err instanceof joi.ValidationError) {
       res.status(422).json({
@@ -1165,6 +1184,36 @@ app.post('/api/keys/selection', requireAdmin, async (req, res) => {
     }
   }
 });
+
+app.post('/api/stop-analysis', requireAdmin, async (req, res) => {
+  try {
+    await qa.stopProcessing();
+    res.json({ message: "queue drained and worker stoped" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'failed to stop queue' });
+  }
+})
+
+app.post('/api/resume-analysis', requireAdmin, async (req, res) => {
+  try {
+    qa.resumeProcessing();
+    res.json({ message: "resumed processing" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'failed to resumed processing' });
+  }
+})
+
+app.get('/api/analysis-metrics', requireAuth, async (req, res) => {
+  try {
+    const metrics = await qa.getMetrics();
+    res.json(metrics);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'failed to get analysis metrics' });
+  }
+})
 
 // Start server
 app.listen(PORT, () => {
